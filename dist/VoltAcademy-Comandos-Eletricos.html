@@ -2196,7 +2196,17 @@ function projectFile() {
   const data = JSON.parse(serialize());
   return JSON.stringify({ format: 'voltacademy-projeto', formatVersion: 1, savedAt: new Date().toISOString(), ...data }, null, 1);
 }
+// In the claude.ai viewer files go through the platform's `downloads` capability (the viewer confirms the save).
+let dlNS = null; const dlReady = (window.claude && window.claude.use) ? window.claude.use('downloads').then(ns => (dlNS = ns), () => null) : Promise.resolve(null);
 async function saveBlob(blob, name, types) {
+  if (window.claude && window.claude.use) {
+    const ns = dlNS || await Promise.race([dlReady, new Promise(r => setTimeout(() => r(null), 2500))]);
+    if (ns) {
+      const fname = /\.(json|pdf|csv)$/i.test(name) ? name : name + '.json';
+      try { await ns.save({ filename: fname, data: blob }); return 'saved'; }
+      catch (e) { if (e && e.code === 'declined') return 'cancel'; flashInfo(e && e.code === 'rate_limited' ? 'Já existe um pedido de download aberto. Tente de novo em instantes.' : 'Não foi possível salvar o arquivo nesta página.'); return 'cancel'; }
+    }
+  }
   // Chrome/Edge: let the user pick the folder; otherwise fall back to a regular download.
   if (window.showSaveFilePicker && window.self === window.top) {
     try {
@@ -2248,7 +2258,7 @@ function openFile() {
     <div class="card fcard"><div class="fic2">📂</div><div><b>Abrir ou importar</b><p>Abra um arquivo <span class="mono">${FILE_EXT}</span> ou <span class="mono">.json</span>, ou só adicione as folhas dele ao projeto atual. Também dá para arrastar o arquivo para a janela.</p></div><label class="btn" for="pFile">Escolher arquivo</label><input id="pFile" type="file" accept="${FILE_EXT},.json,application/json" hidden></div>
     <div class="card fcard"><div class="fic2">📄</div><div><b>Exportar PDF</b><p>Uma página por folha, no tamanho configurado (A4 a A0), com carimbo, números de fio e, se quiser, o relatório de cabos.</p></div><button class="btn pri" id="pPdf">Gerar PDF</button></div>
   </div>
-  <p class="muted small" style="margin:0">Na página publicada no Claude os downloads ficam bloqueados. Para salvar arquivo e PDF, use o simulador no computador (<span class="mono">INICIAR-SIMULADOR.bat</span>) ou copie o código abaixo.</p>
+  <p class="muted small" style="margin:0">Na página publicada no Claude, o navegador pede para você confirmar cada download, e o projeto é salvo como <span class="mono">.voltacademy.json</span> (o simulador abre os dois formatos).</p>
   <details><summary class="small">Código do projeto (copiar e colar)</summary>
     <div class="field" style="margin-top:8px"><textarea id="fJson" class="json">${esc(serialize())}</textarea></div>
     <div class="row" style="margin-top:8px"><button class="btn" id="aCopy">Copiar código</button><button class="btn" id="aLoadTxt">Abrir o código colado</button></div></details>

@@ -36,8 +36,8 @@ Ao abrir, o circuito "Partida direta com selo" já vem carregado. Aperte **SIMUL
 - **Arquivos (botão Projeto):** salvar o projeto em `.voltacademy` para backup (Ctrl+S; no Chrome/Edge escolhe a pasta),
   abrir um arquivo ou adicionar as folhas dele ao projeto atual (também arrastando o arquivo para a janela) e exportar
   **PDF** sem internet e sem janela de impressão (Ctrl+P): uma página por folha no tamanho configurado, aparência símbolos
-  ou 2D, qualidade ajustável e relatório de cabos e componentes. Na página publicada no Claude os downloads ficam bloqueados;
-  use o arquivo do computador.
+  ou 2D, qualidade ajustável e relatório de cabos e componentes. Na página publicada no Claude cada download pede confirmação e
+  o projeto sai como `.voltacademy.json`.
 - **Aba Listas:** resumo de cabos por bitola e cor, lista de fios (de/para), lista de componentes, renumeração e cópia em CSV.
 - **Sinalização sonora:** buzzer, buzina e sirene com som real na simulação (contínuo, intermitente, pulsado, bitonal e
   varredura), botão para ouvir no painel de propriedades e botão Som/Mudo na barra superior.
