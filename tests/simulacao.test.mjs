@@ -137,6 +137,34 @@ results.push(['Mouse: segurar S1 liga K1', await p.evaluate(() => !!window.__va.
 await p.mouse.up(); await p.waitForTimeout(100);
 results.push(['Mouse: soltar S1 mantém K1 (selo)', await p.evaluate(() => !!window.__va.sim.coils.K1)]);
 
+// Folhas, navegação e painel de operação
+await p.click('#bRun'); await p.evaluate(() => window.__va.setView('diagram'));
+const sheetsBefore = await p.evaluate(() => window.__va.doc().sheets.length);
+await p.click('#sNew');
+results.push(['Folhas: Nova folha cria uma folha', await p.evaluate(n => window.__va.doc().sheets.length === n + 1, sheetsBefore)]);
+await p.click('#sDel'); await p.click('#dConfirm');
+results.push(['Folhas: Apagar remove a folha', await p.evaluate(n => window.__va.doc().sheets.length === n, sheetsBefore)]);
+const cross = await p.evaluate(() => {
+  const va = window.__va; va.load(va.EXAMPLES[1].build()); va.startSim();
+  const s1 = va.doc().comps.find(c => c.tag === 'S1');
+  const m = va.doc().comps.find(c => c.type === 'motor_3f');
+  va.sim.pressed.add(s1.id); va.solve(); va.sim.pressed.clear(); va.solve();
+  const ok = s1.sheet !== m.sheet && va.sim.motors[m.id].run;
+  va.render();
+  return { ok, flow: document.querySelectorAll('#cv .wflow').length };
+});
+results.push(['Folhas: botão na folha 2 liga o motor da folha 1 via segmentos de cabo', cross.ok]);
+results.push(['Corrente animada nos fios energizados', cross.flow > 0]);
+await p.click('[data-nav="monitor"]');
+results.push(['Monitoramento: registro de eventos preenchido', await p.locator('.events li').count() > 1]);
+await p.click('#moRun'); await p.click('[data-nav="operate"]'); await p.click('#opRun');
+const op = p.locator('.opbtn.push').filter({ hasText: 'S1' }).first();
+const ob = await op.boundingBox();
+await p.mouse.move(ob.x + ob.width / 2, ob.y + ob.height / 2); await p.mouse.down(); await p.waitForTimeout(80); await p.mouse.up(); await p.waitForTimeout(80);
+results.push(['Operação: botão do painel aciona K1 com selo', await p.evaluate(() => !!window.__va.sim.coils.K1)]);
+await p.click('[data-nav="home"]');
+results.push(['Início: exemplos com miniatura', await p.locator('.excard .thumb').count() === 4]);
+
 const m = await browser.newPage({ viewport: { width: 390, height: 844 } });
 await m.goto(page); await m.waitForTimeout(500);
 results.push(['Celular: sem rolagem horizontal', !(await m.evaluate(() => document.documentElement.scrollWidth > innerWidth))]);

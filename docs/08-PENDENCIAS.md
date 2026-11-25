@@ -2,7 +2,7 @@
 
 ## Simulador de Comandos Elétricos
 - [x] Circuito de força: fonte trifásica, contator de força, relé térmico de força, disjuntor-motor e motor 3F com sentido de giro
-- [ ] Múltiplas folhas e setas de continuação entre folhas
+- [x] Múltiplas folhas e setas/segmentos de cabo entre folhas, com referência cruzada
 - [ ] Modo 2D (montagem física em painel)
 - [x] Contatos comuns NA/NF (reversores), relé de falta de fase, relé de segurança, sensor capacitivo
 - [ ] Exemplo pronto de partida estrela-triângulo (o motor de 6 pontas já reconhece as duas ligações)

@@ -12,6 +12,17 @@ Comandos Elétricos**, que já funciona de ponta a ponta.
 Ao abrir, o circuito "Partida direta com selo" já vem carregado. Aperte **SIMULAR**, segure
 **S1** para ligar o contator K1 e segure **S0** para desligar.
 
+## Interface
+- **Barra superior:** Simular/Parar com cronômetro, Desfazer, Refazer, Projeto (salvar/abrir), Ajuda, Tema claro/escuro e Painel de propriedades.
+- **Biblioteca em pastas (esquerda):** categorias com ícones coloridos (Alimentação, Comando, Contatores e relés, Proteção, Cargas) e busca por nome.
+- **Folhas:** abas no topo do desenho com Configurar, Renomear, Apagar e Nova folha. A simulação roda em todas as folhas juntas.
+  Segmentos de cabo OUT/IN e setas com a mesma tag ligam folhas diferentes e mostram o destino ("→ 2.3" = folha 2, coluna 3).
+  Abaixo de cada bobina aparece onde estão seus contatos (espelho de contatos).
+- **Ferramentas (direita):** selecionar, fio, mover tela, cor do fio, girar, excluir, zoom e enquadrar.
+- **Navegação (inferior):** Diagrama · Operação (painel com botões grandes para operar o circuito) · Início (projetos e exemplos) ·
+  Tags (lista de componentes com folha, bornes e estado) · Monitoramento (estados ao vivo e registro de eventos).
+- Durante a simulação, os fios por onde passa corrente ficam animados.
+
 ## O que o simulador faz
 - **Biblioteca IEC 60617 com 43 componentes**, desenhados na posição de repouso:
   - Alimentação: fase (L1/L2/L3), neutro, fonte trifásica + N + PE, fonte AC/DC 24 Vcc,
@@ -34,7 +45,7 @@ Ao abrir, o circuito "Partida direta com selo" já vem carregado. Aperte **SIMUL
   - **curto-circuito** entre quaisquer potenciais diferentes (fase-neutro, fase-fase, +24/0 V).
 - Avisos de projeto: contato sem bobina com a mesma tag, segmento de cabo sem par, componente sem ligação.
 - Desfazer/refazer, zoom (roda do mouse ou pinça no celular), salvamento automático e exportação/importação em JSON.
-- 4 circuitos de exemplo: partida direta, partida direta com força e comando, reversão com
+- 4 circuitos de exemplo: partida direta, força e comando em 2 folhas, reversão com
   intertravamento e partida com sinalização temporizada.
 
 ## Desenvolvimento
