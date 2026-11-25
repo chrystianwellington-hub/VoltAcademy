@@ -145,7 +145,7 @@ const results = await p.evaluate(async () => {
   check('Curto na bobina: disjuntor do comando desarma', va.sim.running && va.sim.toggled.has(qc.id) && va.sim.events.some(e => /Curto-circuito/.test(e.msg) && /Q1 desarmou/.test(e.msg)));
   va.stopSim();
 
-  check('Biblioteca com 43 componentes', Object.keys(va.TYPES).length === 43);
+  check('Biblioteca com 46 componentes (inclui buzzer, buzina e sirene)', Object.keys(va.TYPES).length === 46);
   return out;
 });
 
@@ -198,6 +198,35 @@ results.push(['Monitoramento: gráficos com dados e leituras de V, A e Hz', awai
 const fbtn = p.locator('[data-fault^="short:"]').first(); await fbtn.click(); await p.waitForTimeout(400);
 results.push(['Monitoramento: botão de falha provoca curto e a proteção atua', await p.evaluate(() => window.__va.sim.running && Object.keys(window.__va.sim.faults).length > 0)]);
 await p.click('[data-nav="diagram"]'); await p.click('[data-look="sym"]');
+
+// ---- Fios: arrastar para ligar, rota automática, alças, editor, relatório, som ----
+await p.evaluate(() => { const va = window.__va; if (va.sim.running) va.stopSim(); va.ui.look = 'sym'; va.load({ project: 'Fios', sheets: [{ id: 's1', name: 'Comando' }],
+  comps: [{ id: 'c1', type: 'fase', x: 300, y: 100, tag: '', phase: 'L1', sheet: 's1' }, { id: 'c2', type: 'sirene', x: 300, y: 500, tag: 'HA1', sheet: 's1' },
+          { id: 'c3', type: 'bobina', x: 300, y: 300, tag: 'K9', sheet: 's1' }, { id: 'c4', type: 'neutro', x: 300, y: 700, tag: '', sheet: 's1' }], wires: [] });
+  va.setView('diagram'); document.getElementById('bFit').click(); });
+const tp = sel => p.evaluate(q => { const r = document.querySelector(q).getBoundingClientRect(); return [r.x + r.width / 2, r.y + r.height / 2]; }, sel);
+let [ax, ay] = await tp('[data-term="c1|a"]'); let [bx, by] = await tp('[data-term="c2|a"]');
+await p.mouse.move(ax, ay); await p.mouse.down(); await p.mouse.move((ax + bx) / 2, (ay + by) / 2, { steps: 4 }); await p.mouse.move(bx + 6, by + 5, { steps: 4 }); await p.mouse.up();
+const w1 = await p.evaluate(() => { const va = window.__va, w = va.doc().wires[0]; return w && { no: w.no, pts: w.pts.length, P: va.points(w.id) }; });
+results.push(['Fio: arrastar de um borne a outro cria o fio numerado (ímã no borne)', !!w1 && w1.no === 1]);
+results.push(['Fio: rota automática desvia da bobina no caminho', !!w1 && w1.P.length > 2 && w1.P.every(([x]) => x === 300) === false]);
+[ax, ay] = await tp('[data-term="c2|b"]'); [bx, by] = await tp('[data-term="c4|a"]');
+await p.mouse.move(ax, ay); await p.mouse.down(); await p.mouse.move(bx, by, { steps: 6 }); await p.mouse.up();
+results.push(['Fio: segundo fio recebe o número 2', await p.evaluate(() => window.__va.doc().wires[1] && window.__va.doc().wires[1].no === 2)]);
+const hb = await p.evaluate(() => { const va = window.__va; va.ui.sel = { kind: 'wire', id: va.doc().wires[0].id }; va.render(); const h = document.querySelector('.whandle'); const r = h.getBoundingClientRect(); return [r.x + r.width / 2, r.y + r.height / 2]; });
+await p.mouse.move(hb[0], hb[1]); await p.mouse.down(); await p.mouse.move(hb[0] + 60, hb[1] + 60, { steps: 5 }); await p.mouse.up();
+results.push(['Fio: arrastar a alça reposiciona o trecho e mantém os bornes', await p.evaluate(() => { const va = window.__va, w = va.doc().wires[0], P = va.points(w.id); return w.pts.length > 0 && P[0][0] === 300 && P[0][1] === 120 && P[P.length - 1][1] === 460; })]);
+await p.evaluate(() => { const el = document.querySelector('.wno'); el.dispatchEvent(new MouseEvent('dblclick', { bubbles: true })); });
+results.push(['Fio: duplo clique abre o editor com bitola', await p.locator('#wSec').count() === 1]);
+await p.selectOption('#wKind', 'potencia'); await p.selectOption('#wSec', '16'); await p.click('#wSave');
+results.push(['Fio: seção de 16 mm² salva no fio', await p.evaluate(() => { const w = window.__va.doc().wires.find(x => x.no === 1); return w.section === 16 && w.kind === 'potencia'; })]);
+await p.click('[data-nav="tags"]');
+results.push(['Relatório: lista de fios e resumo por bitola', /16 mm²/.test(await p.locator('#vTags').textContent()) && await p.locator('#vTags tbody tr').count() >= 4]);
+await p.click('[data-nav="diagram"]'); await p.click('#bRun'); await p.waitForTimeout(300);
+results.push(['Som: sirene energizada toca', await p.evaluate(() => { const va = window.__va; return Object.values(va.sim.lamps).some(Boolean) && Object.keys(va.audio.voices).length === 1; })]);
+await p.click('#bSound'); await p.waitForTimeout(150);
+results.push(['Som: botão Mudo silencia os alarmes', await p.evaluate(() => Object.keys(window.__va.audio.voices).length === 0)]);
+await p.click('#bSound'); await p.click('#bRun');
 
 const m = await browser.newPage({ viewport: { width: 390, height: 844 } });
 await m.goto(page); await m.waitForTimeout(500);

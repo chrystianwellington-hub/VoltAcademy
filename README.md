@@ -25,6 +25,13 @@ Ao abrir, o circuito "Partida direta com selo" já vem carregado. Aperte **SIMUL
 - **Aparência Símbolos ou 2D:** no modo 2D cada componente vira um desenho de equipamento real (disjuntor com alavanca,
   disjuntor-motor com manopla, contator com visor I/O, relé térmico com dial e reset, botões coloridos, sinaleiros acesos,
   sensores, fusíveis com visor e motor com ventoinha girando). Desenhos vetoriais próprios, sem fotos de fabricantes.
+- **Fios:** aperte num borne e arraste até outro. Os bornes viram alvos verdes, o fio gruda no mais próximo e nasce com
+  rota automática em ângulo reto que desvia dos componentes (com animação de desenho). Clique no fio e arraste as alças
+  para reposicionar os trechos. Cada fio recebe número automático; o duplo clique abre o editor de número, cor, tipo de
+  circuito (comando ou potência) e seção do cabo (comando 0,75–4 mm², potência 0,75–25 mm²). A espessura no desenho não muda.
+- **Aba Listas:** resumo de cabos por bitola e cor, lista de fios (de/para), lista de componentes, renumeração e cópia em CSV.
+- **Sinalização sonora:** buzzer, buzina e sirene com som real na simulação (contínuo, intermitente, pulsado, bitonal e
+  varredura), botão para ouvir no painel de propriedades e botão Som/Mudo na barra superior.
 - **Grandezas elétricas** (modelo didático: 220 V F-N, 380 V F-F, 60 Hz): barra inferior com tensão, corrente total, frequência e estado.
 - **Monitoramento com gráficos** de corrente dos motores (pico de partida, regime, sobrecarga) e tensão da rede (afundamento no curto),
   com cruz de leitura ao passar o mouse e marcação das falhas.
@@ -33,7 +40,7 @@ Ao abrir, o circuito "Partida direta com selo" já vem carregado. Aperte **SIMUL
   por sobrecarga ou falta de fase, tudo com animação de falha. "Rearmar proteções" volta ao normal.
 
 ## O que o simulador faz
-- **Biblioteca IEC 60617 com 43 componentes**, desenhados na posição de repouso:
+- **Biblioteca IEC 60617 com 46 componentes**, desenhados na posição de repouso:
   - Alimentação: fase (L1/L2/L3), neutro, fonte trifásica + N + PE, fonte AC/DC 24 Vcc,
     autotransformador de partida, setas de continuação, segmentos de cabo IN/OUT, ponto de conexão.
   - Comando: botões NA/NF, pulsador NA+NF, pulsador comutador, emergência NA/NF (cogumelo com
@@ -42,7 +49,7 @@ Ao abrir, o circuito "Partida direta com selo" já vem carregado. Aperte **SIMUL
     contatos temporizados NA/NF, contator de força 3 polos, relé de segurança, relé de falta de fase.
   - Proteção: disjuntores mono, bi, tripolar e disjuntor-motor, fusível, conjunto de fusíveis,
     relé térmico de força e seus contatos 95-96 / 97-98.
-  - Cargas: sinaleiro com cor, motor trifásico e motor de 6 pontas.
+  - Cargas e sinalização: sinaleiro com cor, buzzer, buzina, sirene, motor trifásico e motor de 6 pontas.
 - Bornes numerados conforme a norma (13-14, 21-22, 95-96, A1-A2, 1/3/5–2/4/6, U-V-W…).
 - Fios em 8 cores, com rota automática ou pontos de dobra; folha técnica com régua 1–12 / A–F e carimbo.
 - **Simulação elétrica:**
