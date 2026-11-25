@@ -145,6 +145,20 @@ const results = await p.evaluate(async () => {
   check('Curto na bobina: disjuntor do comando desarma', va.sim.running && va.sim.toggled.has(qc.id) && va.sim.events.some(e => /Curto-circuito/.test(e.msg) && /Q1 desarmou/.test(e.msg)));
   va.stopSim();
 
+  // ---- Numeração de fios por ponto elétrico ----
+  const netsOK = () => {
+    const d = va.doc(), par = {}, f = k => { while (par[k] && par[k] !== k) k = par[k]; return k; }, u = (a, b) => { const ra = f(a), rb = f(b); if (ra !== rb) par[ra] = rb; };
+    for (const w of d.wires) { par[w.a.c + w.a.t] = par[w.a.c + w.a.t] || w.a.c + w.a.t; par[w.b.c + w.b.t] = par[w.b.c + w.b.t] || w.b.c + w.b.t; u(w.a.c + w.a.t, w.b.c + w.b.t); }
+    const byNet = {}; for (const w of d.wires) (byNet[f(w.a.c + w.a.t)] = byNet[f(w.a.c + w.a.t)] || new Set()).add(String(w.no));
+    const nos = Object.values(byNet).map(s => [...s]);
+    return { uniform: nos.every(s => s.length === 1), unique: new Set(nos.map(s => s[0])).size === nos.length, nets: nos.length, wires: d.wires.length };
+  };
+  va.load(va.EXAMPLES[0].build());
+  { const r = netsOK(); check('Números de fio: mesmo ponto de conexão mantém o mesmo número', r.uniform && r.nets < r.wires); check('Números de fio: pontos diferentes têm números diferentes', r.unique); }
+  va.load(va.EXAMPLES[1].build());
+  { const d = va.doc(), no = tg => d.wires.find(w => [w.a.c, w.b.c].includes(d.comps.find(c => c.type === tg[0] && c.tag === tg[1]).id)).no;
+    check('Números de fio: segmento de cabo leva o mesmo número para a outra folha', no(['cabo_out', 'W1']) === no(['cabo_in', 'W1']) && no(['cabo_out', 'W2']) === no(['cabo_in', 'W2'])); }
+
   check('Biblioteca com 46 componentes (inclui buzzer, buzina e sirene)', Object.keys(va.TYPES).length === 46);
   return out;
 });
@@ -227,6 +241,26 @@ results.push(['Som: sirene energizada toca', await p.evaluate(() => { const va =
 await p.click('#bSound'); await p.waitForTimeout(150);
 results.push(['Som: botão Mudo silencia os alarmes', await p.evaluate(() => Object.keys(window.__va.audio.voices).length === 0)]);
 await p.click('#bSound'); await p.click('#bRun');
+
+// ---- Configurar folha: formato, grade e logo; edição de número por ponto ----
+await p.evaluate(() => { const va = window.__va; if (va.sim.running) va.stopSim(); va.load(va.EXAMPLES[0].build()); va.setView('diagram'); });
+const net = await p.evaluate(() => { const d = window.__va.doc(), s0 = d.comps.find(c => c.tag === 'S0'); return d.wires.filter(w => (w.a.c === s0.id && w.a.t === 'b') || (w.b.c === s0.id && w.b.t === 'b')).map(w => w.id); });
+await p.evaluate(id => { window.__va.ui.sel = { kind: 'wire', id }; window.__va.render(); document.querySelector('.wno.sel').dispatchEvent(new MouseEvent('dblclick', { bubbles: true })); }, net[0]);
+await p.fill('#wNo', '50'); await p.click('#wSave');
+results.push(['Números de fio: mudar o número altera todos os fios do mesmo ponto', await p.evaluate(ids => ids.every(id => window.__va.doc().wires.find(w => w.id === id).no === 50), net)]);
+const other = await p.evaluate(ids => window.__va.doc().wires.find(w => !ids.includes(w.id)).id, net);
+await p.evaluate(id => { window.__va.ui.sel = { kind: 'wire', id }; window.__va.render(); document.querySelector('.wno.sel').dispatchEvent(new MouseEvent('dblclick', { bubbles: true })); }, other);
+await p.fill('#wNo', '50'); await p.click('#wSave');
+results.push(['Números de fio: número de outro ponto é recusado', /outro ponto/.test(await p.locator('#wMsg').textContent())]);
+await p.click('[data-close]');
+await p.click('#sCfg');
+await p.selectOption('#dSize', 'A4'); await p.selectOption('#dOrient', 'retrato'); await p.fill('#dCols', '8'); await p.fill('#dRows', '10');
+const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAFklEQVR42mP8z8Dwn4EIwDiqkL4KAQBLMQf/2mcV5gAAAABJRU5ErkJggg==', 'base64');
+await p.setInputFiles('#dLogo', { name: 'logo.png', mimeType: 'image/png', buffer: png }); await p.waitForTimeout(300);
+await p.uncheck('#dAuto'); await p.fill('#dDate', '2026-12-01');
+await p.click('#dSave'); await p.waitForTimeout(200);
+results.push(['Folha: A4 retrato com 8 colunas e 10 linhas', await p.evaluate(() => { const s = window.__va.doc().sheets[0]; const r = document.querySelector('#bgHit rect'); return s.size === 'A4' && s.orient === 'retrato' && s.cols === 8 && s.rows === 10 && r.getAttribute('width') === '840' && r.getAttribute('height') === '1188'; })]);
+results.push(['Folha: logo e data manual no carimbo', await p.evaluate(() => /^data:image\/png/.test(window.__va.doc().logo) && !!document.querySelector('.stamp image') && /01\/12\/2026/.test(document.querySelector('.stamp').textContent))]);
 
 const m = await browser.newPage({ viewport: { width: 390, height: 844 } });
 await m.goto(page); await m.waitForTimeout(500);

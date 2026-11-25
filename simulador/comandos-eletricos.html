@@ -266,7 +266,7 @@ textarea.json { font-family: var(--font-mono); font-size: 12px; min-height: 200p
 .stamp rect, .stamp line { stroke: var(--frame); stroke-width: 1.2; }
 .stamp .sb { font: 800 20px var(--font-display); fill: #26281F; letter-spacing: 2px; }
 .stamp .sk { font: 600 9px var(--font-body); fill: #77735F; letter-spacing: 1.2px; }
-.stamp .sv { font: 500 14px var(--font-body); fill: #2A2C24; }
+.stamp .sv { font: 500 14px var(--font-body); fill: #2A2C24; } .stamp .sv.st { font-weight: 700; font-size: 16px; }
 .spin.cw { animation: spin 1.2s linear infinite; } .spin.ccw { animation: spin 1.2s linear infinite reverse; }
 
 /* 2D look */
@@ -317,6 +317,14 @@ textarea.json { font-family: var(--font-mono); font-size: 12px; min-height: 200p
 .whandle { fill: #fff; stroke: #B8861E; stroke-width: 1.6; }
 .tlabel { pointer-events: none; } .tlabel rect { fill: #1F2328; opacity: .9; } .tlabel text { font: 600 11px var(--font-mono); fill: #fff; }
 .swl { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 6px; vertical-align: -1px; box-shadow: 0 0 0 1px var(--line); }
+.cfg { display: grid; grid-template-columns: 130px 1fr; gap: 10px 14px; align-items: center; }
+.cfg > label { font-size: 13px; color: var(--muted); }
+.cfg input, .cfg select { background: var(--surface-2); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; width: 100%; }
+.cfg input:disabled { opacity: .6; }
+.logobox { width: 120px; height: 56px; border: 1px dashed var(--line); border-radius: 8px; display: grid; place-items: center; background: var(--paper); overflow: hidden; }
+.logobox img { max-width: 100%; max-height: 100%; }
+.chk { display: flex; gap: 8px; align-items: center; font-size: 13px; }
+@media (max-width: 520px) { .cfg { grid-template-columns: 1fr; gap: 4px; } }
 .only-m { display: none !important; }
 @keyframes spin { to { transform: rotate(360deg); } }
 @media (max-width: 1440px) { .sbtn span { display: none; } .sbtn { padding: 7px 9px; } }
@@ -723,10 +731,14 @@ const $$ = s => [...document.querySelectorAll(s)];
 const uid = p => p + (nextId++);
 const snap = v => Math.round(v / GRID) * GRID;
 const esc = s => String(s ?? '').replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
-const COLW = (SHEET.w - 60) / 12;
-const colOf = c => Math.min(12, Math.max(1, Math.floor((c.x - 40) / COLW) + 1));
+const SIZES = { A4: [297, 210], A3: [420, 297], A2: [594, 420], A1: [841, 594], A0: [1189, 841] };
+const MM = 4;
+function sheetDims(sh) { const [a, b] = SIZES[(sh && sh.size) || 'A3'] || SIZES.A3; const land = !sh || sh.orient !== 'retrato'; return land ? [a * MM, b * MM] : [b * MM, a * MM]; }
+const sheetOf = (c, d = doc) => d.sheets.find(s => s.id === c.sheet) || d.sheets[0];
+const colOf = (c, d = doc) => { const sh = sheetOf(c, d), [W] = sheetDims(sh), cols = sh.cols || 12; return Math.min(cols, Math.max(1, Math.floor((c.x - 40) / ((W - 60) / cols)) + 1)); };
+const curDims = () => sheetDims(doc.sheets.find(s => s.id === ui.sheet));
 const sheetNo = (d, sid) => d.sheets.findIndex(s => s.id === sid) + 1;
-const refOf = (d, c) => `${sheetNo(d, c.sheet)}.${colOf(c)}`;
+const refOf = (d, c) => `${sheetNo(d, c.sheet)}.${colOf(c, d)}`;
 
 function termPos(c, t) {
   const [lx, ly] = TYPES[c.type].terms[t];
@@ -800,11 +812,40 @@ const wireSection = w => w.section || (wireKind(w) === 'potencia' ? 2.5 : 1);
 const fmtSec = v => (+v).toLocaleString('pt-BR') + ' mm²';
 const colorName = c => (WIRE_COLORS.find(x => x[0] === c) || [, 'Outra'])[1];
 function nextWireNo() { return 1 + Math.max(0, ...doc.wires.map(w => +w.no || 0)); }
+// A wire number names an electrical point: every wire joined through terminals, connection points or
+// sheet references (same-tag cable segments / arrows) carries the same number. Contacts do NOT join points.
+function wireNets() {
+  const parent = new Map(), f = k => { if (!parent.has(k)) parent.set(k, k); let r = k; while (parent.get(r) !== r) r = parent.get(r); return r; };
+  const u = (a, b) => { const ra = f(a), rb = f(b); if (ra !== rb) parent.set(ra, rb); }, key = (c, t) => c + ':' + t;
+  for (const w of doc.wires) u(key(w.a.c, w.a.t), key(w.b.c, w.b.t));
+  const groups = {};
+  for (const c of doc.comps) { const g = TYPES[c.type].linkGroup; if (g && c.tag) (groups[g + '|' + c.tag] = groups[g + '|' + c.tag] || []).push(c); }
+  for (const list of Object.values(groups)) for (let i = 1; i < list.length; i++) for (const t of Object.keys(TYPES[list[i].type].terms)) if (TYPES[list[0].type].terms[t]) u(key(list[0].id, t), key(list[i].id, t));
+  const nets = new Map();
+  for (const w of doc.wires) { const r = f(key(w.a.c, w.a.t)); if (!nets.has(r)) nets.set(r, []); nets.get(r).push(w); }
+  return [...nets.values()];
+}
+const cmpNo = (a, b) => String(a).localeCompare(String(b), 'pt', { numeric: true });
+function normalizeWireNumbers() {
+  const nets = wireNets(), used = new Set();
+  let max = Math.max(0, ...doc.wires.map(w => +w.no || 0));
+  const first = net => net.map(w => w.no).filter(v => v !== undefined && v !== '' && v !== null).sort(cmpNo)[0];
+  nets.sort((a, b) => { const fa = first(a), fb = first(b); return fa === undefined ? 1 : fb === undefined ? -1 : cmpNo(fa, fb); });
+  for (const net of nets) {
+    const cands = [...new Set(net.map(w => w.no).filter(v => v !== undefined && v !== '' && v !== null))].sort(cmpNo);
+    let no = cands.find(v => !used.has(String(v)));
+    if (no === undefined) { do { no = ++max; } while (used.has(String(no))); }
+    used.add(String(no));
+    for (const w of net) w.no = no;
+  }
+}
+const netOfWire = w => wireNets().find(n => n.includes(w)) || [w];
 function endLabel(e) { const c = compById(e.c); if (!c) return '?'; const T0 = TYPES[c.type], n = T0.nums[e.t] || (Object.keys(T0.terms).length > 1 ? e.t.toUpperCase() : ''); return `${c.tag || T0.name}${n ? ':' + n : ''}`; }
 // ---------- History & persistence ----------
-function serialize() { return JSON.stringify({ app: PLATFORM, kind: 'comandos-eletricos', version: 3, project: doc.project, author: doc.author, sheets: doc.sheets, comps: doc.comps, wires: doc.wires }); }
+function serialize() { return JSON.stringify({ app: PLATFORM, kind: 'comandos-eletricos', version: 4, project: doc.project, author: doc.author, logo: doc.logo || '', dateAuto: doc.dateAuto !== false, date: doc.date || '', dateIso: doc.dateIso || '', sheets: doc.sheets, comps: doc.comps, wires: doc.wires }); }
 function saveLocal() { try { localStorage.setItem('voltacademy.ce.doc', serialize()); localStorage.setItem('voltacademy.ce.sheet', ui.sheet || ''); } catch (e) {} }
 function commit() {
+  normalizeWireNumbers();
   hist.stack = hist.stack.slice(0, hist.idx + 1);
   hist.stack.push(serialize()); hist.idx = hist.stack.length - 1;
   if (hist.stack.length > 120) { hist.stack.shift(); hist.idx--; }
@@ -814,14 +855,14 @@ function load(json, { keepHistory = false } = {}) {
   const d = typeof json === 'string' ? JSON.parse(json) : json;
   if (!d || !Array.isArray(d.comps) || !Array.isArray(d.wires)) throw new Error('Arquivo sem componentes ou fios.');
   for (const c of d.comps) if (!TYPES[c.type]) throw new Error(`Componente desconhecido: ${c.type}`);
-  const sheets = Array.isArray(d.sheets) && d.sheets.length ? d.sheets.map(s => ({ id: s.id, name: s.name || 'Folha', desc: s.desc || '' })) : [{ id: 's1', name: 'Folha 1', desc: '' }];
+  const sheets = (Array.isArray(d.sheets) && d.sheets.length ? d.sheets : [{ id: 's1', name: 'Folha 1' }]).map(s => ({ id: s.id, name: s.name || 'Folha', desc: s.desc || '', size: SIZES[s.size] ? s.size : 'A3', orient: s.orient === 'retrato' ? 'retrato' : 'paisagem', cols: Math.min(40, Math.max(2, +s.cols || 12)), rows: Math.min(26, Math.max(2, +s.rows || 6)) }));
   const ids = new Set(sheets.map(s => s.id));
-  doc = { project: d.project || 'Projeto sem nome', author: d.author || '', sheets,
+  doc = { project: d.project || 'Projeto sem nome', author: d.author || '', logo: typeof d.logo === 'string' && d.logo.startsWith('data:image/') ? d.logo : '', dateAuto: d.dateAuto !== false, date: d.date || '', dateIso: d.dateIso || '', sheets,
     comps: d.comps.map(c => ({ ...c, sheet: ids.has(c.sheet) ? c.sheet : sheets[0].id })),
     wires: d.wires.map(w => ({ ...w, pts: w.pts ? w.pts.map(p => [...p]) : [] })) };
   const num = x => +String(x).replace(/\D/g, '') || 0;
   nextId = 1 + Math.max(0, ...doc.comps.map(c => num(c.id)), ...doc.wires.map(w => num(w.id)), ...doc.sheets.map(s => num(s.id)));
-  { let n = Math.max(0, ...doc.wires.map(w => +w.no || 0)); for (const w of doc.wires) if (!w.no) w.no = ++n; }
+  normalizeWireNumbers();
   if (!ids.has(ui.sheet)) ui.sheet = sheets[0].id;
   ui.sel = null;
   if (!keepHistory) { hist.stack = []; hist.idx = -1; commit(); }
@@ -1324,21 +1365,28 @@ function netInfo(cid, t) {
   return cls && sim.flow.has(r) ? cls + ' flow' : cls;
 }
 function frameSVG(d, sheet) {
-  const cols = 12, rows = 6, x0 = 40, y0 = 40, x1 = SHEET.w - 20, y1 = SHEET.h - 20;
-  const rh = (y1 - y0) / rows;
-  let s = `<rect x="0" y="0" width="${SHEET.w}" height="${SHEET.h}" fill="var(--paper)" stroke="var(--frame)" stroke-width="1"/>`;
+  const [W, H] = sheetDims(sheet), cols = sheet.cols || 12, rows = sheet.rows || 6, x0 = 40, y0 = 40, x1 = W - 20, y1 = H - 20;
+  const cw = (x1 - x0) / cols, rh = (y1 - y0) / rows, rowName = j => j < 26 ? String.fromCharCode(65 + j) : 'A' + String.fromCharCode(39 + j);
+  let s = `<rect x="0" y="0" width="${W}" height="${H}" fill="var(--paper)" stroke="var(--frame)" stroke-width="1"/>`;
   s += `<rect x="${x0}" y="${y0}" width="${x1 - x0}" height="${y1 - y0}" fill="url(#gridp)" stroke="var(--frame)" stroke-width="1.4"/><g class="rul">`;
-  for (let i = 0; i < cols; i++) { const x = x0 + i * COLW; s += `<line x1="${x}" y1="20" x2="${x}" y2="${y0}"/><text x="${x + COLW / 2}" y="34" text-anchor="middle">${i + 1}</text>`; }
-  for (let j = 0; j < rows; j++) { const y = y0 + j * rh; s += `<line x1="20" y1="${y}" x2="${x0}" y2="${y}"/><text x="30" y="${y + rh / 2 + 4}" text-anchor="middle">${'ABCDEF'[j]}</text>`; }
+  for (let i = 0; i < cols; i++) { const x = x0 + i * cw; s += `<line x1="${x}" y1="20" x2="${x}" y2="${y0}"/><text x="${x + cw / 2}" y="34" text-anchor="middle">${i + 1}</text>`; }
+  for (let j = 0; j < rows; j++) { const y = y0 + j * rh; s += `<line x1="20" y1="${y}" x2="${x0}" y2="${y}"/><text x="30" y="${y + rh / 2 + 4}" text-anchor="middle">${rowName(j)}</text>`; }
   s += `<rect x="20" y="20" width="${x1 - 20}" height="${y1 - 20}" fill="none"/></g>`;
-  const bw = 560, bh = 84, bx = x1 - bw, by = y1 - bh, n = sheetNo(d, sheet.id);
+  const bw = Math.min(680, x1 - x0), bh = 84, bx = x1 - bw, by = y1 - bh, n = sheetNo(d, sheet.id), half = by + bh / 2;
+  const c1 = bx + 150, c2 = bx + bw - 250, c3 = bx + bw - 110;
+  const date = d.dateAuto === false && d.date ? d.date : new Date().toLocaleDateString('pt-BR');
+  const fmt = `${sheet.size || 'A3'} ${sheet.orient === 'retrato' ? 'retrato' : 'paisagem'}`;
   s += `<g class="stamp"><rect x="${bx}" y="${by}" width="${bw}" height="${bh}" fill="var(--paper)"/>
-    <line x1="${bx + 150}" y1="${by}" x2="${bx + 150}" y2="${y1}"/><line x1="${bx + 150}" y1="${by + bh / 2}" x2="${x1}" y2="${by + bh / 2}"/><line x1="${bx + 440}" y1="${by}" x2="${bx + 440}" y2="${y1}"/>
-    <text x="${bx + 75}" y="${by + 38}" text-anchor="middle" class="sb">VOLT</text><text x="${bx + 75}" y="${by + 62}" text-anchor="middle" class="sb">ACADEMY</text>
-    <text x="${bx + 160}" y="${by + 16}" class="sk">PROJETO</text><text x="${bx + 160}" y="${by + 34}" class="sv">${esc(d.project).slice(0, 36)}</text>
-    <text x="${bx + 160}" y="${by + bh / 2 + 16}" class="sk">FOLHA</text><text x="${bx + 160}" y="${by + bh / 2 + 34}" class="sv">${esc(sheet.name).slice(0, 36)}</text>
-    <text x="${bx + 450}" y="${by + 16}" class="sk">AUTOR</text><text x="${bx + 450}" y="${by + 34}" class="sv">${esc(d.author || '—').slice(0, 12)}</text>
-    <text x="${bx + 450}" y="${by + bh / 2 + 16}" class="sk">FOLHA Nº</text><text x="${bx + 450}" y="${by + bh / 2 + 34}" class="sv">${n}/${d.sheets.length}</text></g>`;
+    <line x1="${c1}" y1="${by}" x2="${c1}" y2="${y1}"/><line x1="${c2}" y1="${by}" x2="${c2}" y2="${y1}"/><line x1="${c3}" y1="${by}" x2="${c3}" y2="${y1}"/>
+    <line x1="${c1}" y1="${half}" x2="${x1}" y2="${half}"/>
+    ${d.logo ? `<image href="${d.logo}" x="${bx + 8}" y="${by + 8}" width="134" height="${bh - 16}" preserveAspectRatio="xMidYMid meet"/>`
+      : `<text x="${bx + 75}" y="${by + 38}" text-anchor="middle" class="sb">VOLT</text><text x="${bx + 75}" y="${by + 62}" text-anchor="middle" class="sb">ACADEMY</text>`}
+    <text x="${c1 + 10}" y="${by + 16}" class="sk">PROJETO</text><text x="${c1 + 10}" y="${by + 34}" class="sv">${esc(d.project).slice(0, 40)}</text>
+    <text x="${(c1 + c2) / 2}" y="${half + 16}" class="sk" text-anchor="middle">TÍTULO DA FOLHA</text><text x="${(c1 + c2) / 2}" y="${half + 35}" class="sv st" text-anchor="middle">${esc(sheet.name).slice(0, 40)}</text>
+    <text x="${c2 + 10}" y="${by + 16}" class="sk">AUTOR</text><text x="${c2 + 10}" y="${by + 34}" class="sv">${esc(d.author || '—').slice(0, 16)}</text>
+    <text x="${c2 + 10}" y="${half + 16}" class="sk">DATA</text><text x="${c2 + 10}" y="${half + 34}" class="sv">${esc(date)}</text>
+    <text x="${c3 + 10}" y="${by + 16}" class="sk">FOLHA Nº</text><text x="${c3 + 10}" y="${by + 34}" class="sv">${n}/${d.sheets.length}</text>
+    <text x="${c3 + 10}" y="${half + 16}" class="sk">FORMATO</text><text x="${c3 + 10}" y="${half + 34}" class="sv">${fmt}</text></g>`;
   return s;
 }
 function crossRefs(d, c) {
@@ -1694,7 +1742,7 @@ function renderTags() {
   const sum = Object.values(groups).sort((a, b) => a.kind.localeCompare(b.kind) || a.sec - b.sec);
   const m = px => (px / 100).toLocaleString('pt-BR', { maximumFractionDigits: 1 });
   const csv = ['Nº;De;Para;Folha;Tipo;Cor;Seção (mm²)', ...wr.map(r => [r.no, r.from, r.to, r.sheet, r.kind === 'potencia' ? 'Potência' : 'Comando', r.color, String(r.sec).replace('.', ',')].join(';'))].join('\n');
-  $('#vTags').innerHTML = `<div class="vhead"><div><p class="eyebrow">Listas e relatório</p><h2>${rows.length} componentes · ${wr.length} fios</h2></div>
+  $('#vTags').innerHTML = `<div class="vhead"><div><p class="eyebrow">Listas e relatório</p><h2>${rows.length} componentes · ${wr.length} fios · ${wireNets().length} pontos numerados</h2></div>
       <div class="row"><button class="btn" id="tRenum">Renumerar fios</button><button class="btn pri" id="tCsv">Copiar lista de fios (CSV)</button></div></div>
     <section><p class="h">Resumo de cabos por bitola</p><div class="tablewrap"><table><thead><tr><th>Circuito</th><th>Seção</th><th>Cor</th><th>Quantidade de fios</th><th>Comprimento no desenho*</th></tr></thead><tbody>
     ${sum.map(g => `<tr><td>${g.kind === 'potencia' ? 'Potência' : 'Comando'}</td><td class="mono">${fmtSec(g.sec)}</td><td><span class="swl" style="background:${(WIRE_COLORS.find(x => x[1] === g.color) || ['#999'])[0]}"></span>${esc(g.color)}</td><td class="mono">${g.n}</td><td class="mono">${m(g.len)} m</td></tr>`).join('') || '<tr><td colspan="5" class="muted">Nenhum fio no projeto.</td></tr>'}
@@ -1816,7 +1864,7 @@ function renderHome() {
   $('#vHome').innerHTML = `<div class="hero"><div><p class="eyebrow">VoltAcademy · Simulador</p><h1>Comandos elétricos</h1><p class="lead">Monte diagramas com símbolos IEC, distribua o projeto em folhas e simule força e comando como num painel real.</p>
     <div class="row"><button class="btn pri lg" id="hNew">Novo projeto</button><button class="btn lg" id="hCont">Continuar: ${esc(doc.project)}</button><button class="btn lg" id="hOpen">Abrir arquivo</button></div></div></div>
     <p class="h">Circuitos de exemplo</p>
-    <div class="exgrid">${EXAMPLES.map((e, i) => { const d = e.build(); return `<article class="excard"><svg viewBox="0 0 ${SHEET.w} ${SHEET.h}" class="thumb">${sheetSVG(normalize(d), d.sheets[0].id, false)}</svg>
+    <div class="exgrid">${EXAMPLES.map((e, i) => { const d = normalize(e.build()), [tw, th] = sheetDims(d.sheets[0]); return `<article class="excard"><svg viewBox="0 0 ${tw} ${th}" class="thumb">${sheetSVG(normalize(d), d.sheets[0].id, false)}</svg>
       <div class="exb"><h3>${e.title}</h3><p>${e.text}</p><p class="small"><b>Teste:</b> ${e.test}</p><p class="small muted">${d.sheets.length} folha${d.sheets.length > 1 ? 's' : ''} · ${d.comps.length} componentes</p><button class="btn pri" data-ex="${i}">Abrir exemplo</button></div></article>`; }).join('')}</div>`;
   $('#hNew').addEventListener('click', () => { loadKeepingHistory({ project: 'Novo projeto', author: doc.author, sheets: [{ id: 's1', name: 'Força' }, { id: 's2', name: 'Comando' }], comps: [], wires: [] }); });
   $('#hCont').addEventListener('click', () => { ui.view = 'diagram'; render(); fit(); });
@@ -1887,7 +1935,7 @@ svg.addEventListener('pointermove', ev => {
   if (drag && drag.kind === 'pan') { ui.px = drag.px + (ev.clientX - drag.sx); ui.py = drag.py + (ev.clientY - drag.sy); renderDiagram(); return; }
   if (drag && drag.kind === 'move') {
     const c = compById(drag.id); const nx = snap(p[0] - drag.ox), ny = snap(p[1] - drag.oy);
-    if (nx !== c.x || ny !== c.y) { c.x = Math.max(40, Math.min(SHEET.w - 40, nx)); c.y = Math.max(40, Math.min(SHEET.h - 40, ny)); drag.moved = true; renderDiagram(); }
+    if (nx !== c.x || ny !== c.y) { const [W, H] = curDims(); c.x = Math.max(40, Math.min(W - 40, nx)); c.y = Math.max(40, Math.min(H - 40, ny)); drag.moved = true; renderDiagram(); }
     return;
   }
   if (drag && drag.kind === 'seg') { moveSeg(p); return; }
@@ -1914,7 +1962,7 @@ function finishWire(hit) {
   const a = ui.wireStart;
   const same = w => (w.a.c === a.c && w.a.t === a.t && w.b.c === hit.c && w.b.t === hit.t) || (w.b.c === a.c && w.b.t === a.t && w.a.c === hit.c && w.a.t === hit.t);
   if (!doc.wires.some(same)) {
-    const w = { id: uid('w'), a, b: hit, color: ui.wireColor, pts: ui.wirePts.map(q => [...q]), no: nextWireNo() };
+    const w = { id: uid('w'), a, b: hit, color: ui.wireColor, pts: ui.wirePts.map(q => [...q]) };
     doc.wires.push(w); ui.newWire = w.id; setTimeout(() => { if (ui.newWire === w.id) { ui.newWire = null; } }, 650);
     ui.sel = { kind: 'wire', id: w.id };
     commit();
@@ -1963,14 +2011,14 @@ svg.addEventListener('pointerup', endDrag); svg.addEventListener('pointercancel'
 svg.addEventListener('wheel', ev => { ev.preventDefault(); zoomAt(ev.deltaY < 0 ? 1.12 : 1 / 1.12, ev.clientX, ev.clientY); }, { passive: false });
 function zoomAt(k, cx, cy) {
   const r = svg.getBoundingClientRect(); cx = cx ?? r.left + r.width / 2; cy = cy ?? r.top + r.height / 2;
-  const nz = Math.max(0.2, Math.min(3, ui.zoom * k)); const mx = cx - r.left, my = cy - r.top;
+  const nz = Math.max(0.08, Math.min(3, ui.zoom * k)); const mx = cx - r.left, my = cy - r.top;
   ui.px = mx - (mx - ui.px) * nz / ui.zoom; ui.py = my - (my - ui.py) * nz / ui.zoom; ui.zoom = nz; renderDiagram();
 }
 function fit() {
   if (ui.view !== 'diagram') return;
   const r = svg.getBoundingClientRect(); if (!r.width) return;
-  const z = Math.min((r.width - 24) / SHEET.w, (r.height - 24) / SHEET.h);
-  ui.zoom = Math.max(0.2, z); ui.px = (r.width - SHEET.w * ui.zoom) / 2; ui.py = (r.height - SHEET.h * ui.zoom) / 2; renderDiagram();
+  const [W, H] = curDims(), z = Math.min((r.width - 24) / W, (r.height - 24) / H);
+  ui.zoom = Math.max(0.08, z); ui.px = (r.width - W * ui.zoom) / 2; ui.py = (r.height - H * ui.zoom) / 2; renderDiagram();
 }
 
 // =====================================================================
@@ -2018,7 +2066,7 @@ $$('[data-look]').forEach(b => b.addEventListener('click', () => { ui.look = b.d
 $('#tabs').addEventListener('click', ev => { const b = ev.target.closest('[data-sheet]'); if (!b) return; ui.sheet = b.dataset.sheet; ui.sel = null; ui.wireStart = null; saveLocal(); render(); });
 $('#sNew').addEventListener('click', () => {
   if (sim.running) return flash('Pare a simulação para editar as folhas.');
-  const s = { id: uid('s'), name: `Folha ${doc.sheets.length + 1}`, desc: '' }; doc.sheets.push(s); ui.sheet = s.id; ui.sel = null; commit(); render();
+  const cur = doc.sheets.find(x => x.id === ui.sheet) || {}; const s = { id: uid('s'), name: `Folha ${doc.sheets.length + 1}`, desc: '', size: cur.size || 'A3', orient: cur.orient || 'paisagem', cols: cur.cols || 12, rows: cur.rows || 6 }; doc.sheets.push(s); ui.sheet = s.id; ui.sel = null; commit(); render();
 });
 $('#sRen').addEventListener('click', () => sheetDialog('rename'));
 $('#sCfg').addEventListener('click', () => sheetDialog('config'));
@@ -2037,22 +2085,59 @@ $('#sDel').addEventListener('click', () => {
 function sheetDialog(mode) {
   if (sim.running) return flash('Pare a simulação para editar as folhas.');
   const s = doc.sheets.find(x => x.id === ui.sheet);
-  openModal(`<p class="title-lg">${mode === 'rename' ? 'Renomear folha' : 'Configurar folha e projeto'}</p>
-    <div class="field"><label for="dName">Nome da folha</label><input id="dName" value="${esc(s.name)}" maxlength="40"></div>
-    ${mode === 'config' ? `<div class="field"><label for="dDesc">Descrição da folha</label><input id="dDesc" value="${esc(s.desc)}" maxlength="80" placeholder="Ex.: circuito de força do motor M1"></div>
-    <div class="field"><label for="dProj">Nome do projeto</label><input id="dProj" value="${esc(doc.project)}" maxlength="60"></div>
-    <div class="field"><label for="dAuth">Autor</label><input id="dAuth" value="${esc(doc.author)}" maxlength="60" placeholder="Seu nome"></div>` : ''}
+  if (mode === 'rename') {
+    openModal(`<p class="title-lg">Renomear folha</p><div class="field"><label for="dName">Título da folha</label><input id="dName" value="${esc(s.name)}" maxlength="40"></div>
+      <div class="row" style="justify-content:flex-end"><button class="btn" data-close>Cancelar</button><button class="btn pri" id="dSave">Salvar</button></div>`);
+    const save = () => { s.name = $('#dName').value.trim() || s.name; commit(); closeModal(); render(); };
+    $('#dName').focus(); $('#dSave').addEventListener('click', save); $('#dName').addEventListener('keydown', ev => { if (ev.key === 'Enter') save(); });
+    return;
+  }
+  let logo = doc.logo || '';
+  const today = new Date().toISOString().slice(0, 10);
+  openModal(`<div class="row" style="justify-content:space-between;align-items:center"><p class="title-lg">Configurar folha</p><button class="btn" data-close>Fechar</button></div>
+    <div class="cfg">
+      <label>Logo</label><div class="row" style="align-items:center"><div class="logobox" id="dLogoBox"></div><label class="btn" for="dLogo">Carregar</label><input id="dLogo" type="file" accept="image/png,image/jpeg,image/svg+xml,image/webp" hidden><button class="btn" id="dLogoDel">Remover</button></div>
+      <label for="dSize">Tamanho</label><div class="row"><select id="dSize" style="flex:1">${Object.entries(SIZES).map(([k, [a, b]]) => `<option value="${k}" ${s.size === k ? 'selected' : ''}>${k} · ${a} × ${b} mm</option>`).join('')}</select>
+        <select id="dOrient" style="flex:1"><option value="paisagem" ${s.orient !== 'retrato' ? 'selected' : ''}>Paisagem</option><option value="retrato" ${s.orient === 'retrato' ? 'selected' : ''}>Retrato</option></select></div>
+      <label for="dCols">Colunas</label><input id="dCols" type="number" min="2" max="40" value="${s.cols || 12}">
+      <label for="dRows">Linhas</label><input id="dRows" type="number" min="2" max="26" value="${s.rows || 6}">
+      <label for="dName">Título (centro)</label><input id="dName" value="${esc(s.name)}" maxlength="40">
+      <label for="dDesc">Descrição</label><input id="dDesc" value="${esc(s.desc)}" maxlength="80" placeholder="Ex.: circuito de força do motor M1">
+      <label for="dAuth">Autor</label><input id="dAuth" value="${esc(doc.author)}" maxlength="60" placeholder="Nome do autor">
+      <label for="dProj">Projeto</label><input id="dProj" value="${esc(doc.project)}" maxlength="60" placeholder="Nome do projeto">
+      <label for="dDate">Data</label><input id="dDate" type="date" value="${doc.dateAuto === false && /^\d{4}-\d{2}-\d{2}$/.test(doc.dateIso || '') ? doc.dateIso : today}" ${doc.dateAuto === false ? '' : 'disabled'}>
+    </div>
+    <label class="chk"><input type="checkbox" id="dAuto" ${doc.dateAuto === false ? '' : 'checked'}> Data automática (hoje)</label>
+    <label class="chk"><input type="checkbox" id="dAll"> Aplicar tamanho, orientação, colunas e linhas a todas as folhas</label>
+    <p class="muted small" id="dMsg" style="margin:0"></p>
     <div class="row" style="justify-content:flex-end"><button class="btn" data-close>Cancelar</button><button class="btn pri" id="dSave">Salvar</button></div>`);
-  $('#dName').focus();
-  const save = () => {
-    s.name = $('#dName').value.trim() || s.name;
-    if (mode === 'config') { s.desc = $('#dDesc').value.trim(); doc.project = $('#dProj').value.trim() || doc.project; doc.author = $('#dAuth').value.trim(); }
-    commit(); closeModal(); render();
-  };
-  $('#dSave').addEventListener('click', save);
-  $('#sheet').addEventListener('keydown', ev => { if (ev.key === 'Enter') save(); });
+  const showLogo = () => { $('#dLogoBox').innerHTML = logo ? `<img src="${logo}" alt="Logo">` : '<span class="muted small">Sem logo</span>'; };
+  showLogo();
+  $('#dAuto').addEventListener('change', e => { $('#dDate').disabled = e.target.checked; });
+  $('#dLogoDel').addEventListener('click', () => { logo = ''; showLogo(); });
+  $('#dLogo').addEventListener('change', ev => {
+    const f = ev.target.files[0]; if (!f) return;
+    if (f.size > 4e6) { $('#dMsg').textContent = 'Imagem acima de 4 MB. Use um arquivo menor.'; return; }
+    const r = new FileReader();
+    r.onload = () => { const img = new Image(); img.onload = () => {
+      const k = Math.min(1, 480 / img.width, 240 / img.height), cv = document.createElement('canvas');
+      cv.width = Math.max(1, Math.round(img.width * k)); cv.height = Math.max(1, Math.round(img.height * k));
+      cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height); logo = cv.toDataURL('image/png'); showLogo(); $('#dMsg').textContent = '';
+    }; img.onerror = () => { $('#dMsg').textContent = 'Não consegui ler essa imagem. Use PNG, JPG ou SVG.'; }; img.src = r.result; };
+    r.readAsDataURL(f);
+  });
+  $('#dSave').addEventListener('click', () => {
+    const fmt = { size: $('#dSize').value, orient: $('#dOrient').value, cols: Math.min(40, Math.max(2, +$('#dCols').value || 12)), rows: Math.min(26, Math.max(2, +$('#dRows').value || 6)) };
+    for (const sh of $('#dAll').checked ? doc.sheets : [s]) Object.assign(sh, fmt);
+    s.name = $('#dName').value.trim() || s.name; s.desc = $('#dDesc').value.trim();
+    doc.author = $('#dAuth').value.trim(); doc.project = $('#dProj').value.trim() || doc.project; doc.logo = logo;
+    doc.dateAuto = $('#dAuto').checked;
+    if (!doc.dateAuto) { doc.dateIso = $('#dDate').value; const [y, m, dd] = (doc.dateIso || today).split('-'); doc.date = `${dd}/${m}/${y}`; }
+    const out = doc.comps.filter(c => { const [W, H] = sheetDims(sheetOf(c)); return c.x > W - 40 || c.y > H - 40; }).length;
+    commit(); closeModal(); render(); requestAnimationFrame(fit);
+    if (out) flash(`${out} componente${out > 1 ? 's ficaram' : ' ficou'} fora da folha menor. Aumente o tamanho ou arraste para dentro.`);
+  });
 }
-
 document.addEventListener('keydown', ev => {
   if (ev.target.closest('input,textarea,select')) return;
   if (ev.key === 'Escape') { ui.placing = null; ui.wireStart = null; ui.wirePts = []; closeModal(); $('#colorPop').hidden = true; render(); return; }
@@ -2102,17 +2187,26 @@ function openWireDialog(id) {
     <div class="field"><label>Cor</label><div class="swatches" id="wCols">${WIRE_COLORS.map(([col, n]) => `<button class="sw${w.color === col ? ' act' : ''}" data-wc="${col}" title="${n}" aria-label="${n}" style="background:${col}"></button>`).join('')}</div></div>
     <div class="field"><label for="wSec">Seção do cabo (bitola)</label><select id="wSec">${secOpts(kind)}</select>
       <p class="muted small" style="margin:2px 0 0">Comando: 0,75 a 4 mm². Potência: 0,75 a 25 mm². A bitola aparece no relatório de cabos; a espessura no desenho não muda.</p></div>
+    <p class="muted small" style="margin:0">O número identifica o ponto elétrico: ${netOfWire(w).length > 1 ? `os ${netOfWire(w).length} fios ligados a este ponto usam o mesmo número e mudam juntos.` : 'fios ligados ao mesmo ponto recebem o mesmo número.'}</p><p class="small" id="wMsg" style="margin:0;color:var(--critical)"></p>
     <div class="row" style="justify-content:space-between"><button class="btn" id="wAuto" ${w.pts.length ? '' : 'disabled'}>Refazer rota automática</button><button class="btn pri" id="wSave">Salvar</button></div>`);
   let col = w.color;
   $('#wCols').addEventListener('click', e => { const b = e.target.closest('[data-wc]'); if (!b) return; col = b.dataset.wc; $$('#wCols .sw').forEach(x => x.classList.toggle('act', x === b)); });
   $('#wKind').addEventListener('change', e => { const cur = +$('#wSec').value; $('#wSec').innerHTML = SECTIONS[e.target.value].map(v => `<option value="${v}" ${v === cur ? 'selected' : ''}>${fmtSec(v)}</option>`).join(''); });
   $('#wAuto').addEventListener('click', () => { w.pts = []; commit(); closeModal(); render(); });
-  $('#wSave').addEventListener('click', () => { { const v = $('#wNo').value.trim(); if (v) w.no = /^\d+$/.test(v) ? +v : v; } w.kind = $('#wKind').value; w.section = +$('#wSec').value; w.color = col; commit(); closeModal(); render(); });
+  $('#wSave').addEventListener('click', () => {
+    const v = $('#wNo').value.trim(), net = netOfWire(w), no = /^\d+$/.test(v) ? +v : v;
+    if (v && String(no) !== String(w.no)) {
+      if (doc.wires.some(x => !net.includes(x) && String(x.no) === String(no))) { $('#wMsg').textContent = `O número ${v} já pertence a outro ponto do circuito. Escolha outro.`; return; }
+      for (const x of net) x.no = no;
+    }
+    w.kind = $('#wKind').value; w.section = +$('#wSec').value; w.color = col; commit(); closeModal(); render();
+  });
 }
 function renumberWires() {
   const mid = w => { const P = fullPointsAny(w); return P ? P[Math.floor(P.length / 2)] : [0, 0]; };
-  const ord = doc.wires.map(w => ({ w, s: sheetNo(doc, (compById(w.a.c) || {}).sheet), m: mid(w) })).sort((a, b) => a.s - b.s || a.m[0] - b.m[0] || a.m[1] - b.m[1]);
-  ord.forEach((o, i) => { o.w.no = i + 1; }); commit(); render();
+  const nets = wireNets().map(net => { const ws = net.map(w => ({ s: sheetNo(doc, (compById(w.a.c) || {}).sheet), m: mid(w) })).sort((a, b) => a.s - b.s || a.m[0] - b.m[0] || a.m[1] - b.m[1]); return { net, k: ws[0] }; });
+  nets.sort((a, b) => a.k.s - b.k.s || a.k.m[0] - b.k.m[0] || a.k.m[1] - b.k.m[1]);
+  nets.forEach((o, i) => { for (const w of o.net) w.no = i + 1; }); commit(); render();
 }
 function fullPointsAny(w) { const map = new Map(doc.comps.map(c => [c.id, c])); const c = map.get(w.a.c); if (!c) return null; const rects = doc.comps.filter(x => x.sheet === c.sheet).map(x => ({ id: x.id, r: compRect(x) })); return wirePoints(w, map, rects); }
 function wireRows() {
@@ -2125,6 +2219,7 @@ function openHelp() {
   openModal(`<div class="row" style="justify-content:space-between;align-items:center"><p class="title-lg">Como usar</p><button class="btn" data-close>Fechar</button></div>
   <ol class="helpol">
     <li><b>Componentes:</b> abra uma pasta na barra da esquerda, toque no componente e depois na folha. Segure Shift para inserir vários.</li>
+    <li><b>Números de fio:</b> fios ligados ao mesmo ponto elétrico (inclusive por segmento de cabo em outra folha) recebem o mesmo número; um número novo só aparece para um ponto diferente.</li>
     <li><b>Fios:</b> aperte num borne e arraste até outro: os bornes viram alvos verdes, o fio gruda no mais próximo e a rota é feita sozinha, desviando dos componentes. Clique no fio e arraste as alças para reposicionar. Duplo clique abre número, cor, tipo e seção do cabo.</li>
     <li><b>Folhas:</b> use Nova folha para separar força e comando. Para o fio continuar em outra folha, ponha um Segmento de cabo OUT numa folha e um IN na outra com a mesma tag. A referência "→ 2.3" indica folha 2, coluna 3.</li>
     <li><b>Contatos:</b> cada contato usa a tag da bobina que o comanda (K1, KT1). Abaixo da bobina aparecem as folhas e colunas dos contatos dela.</li>

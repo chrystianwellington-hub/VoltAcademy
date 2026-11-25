@@ -29,6 +29,10 @@ Ao abrir, o circuito "Partida direta com selo" já vem carregado. Aperte **SIMUL
   rota automática em ângulo reto que desvia dos componentes (com animação de desenho). Clique no fio e arraste as alças
   para reposicionar os trechos. Cada fio recebe número automático; o duplo clique abre o editor de número, cor, tipo de
   circuito (comando ou potência) e seção do cabo (comando 0,75–4 mm², potência 0,75–25 mm²). A espessura no desenho não muda.
+- **Números de fio por ponto elétrico:** fios ligados ao mesmo ponto (inclusive pela continuação em outra folha) mantêm o
+  mesmo número; só um ponto diferente recebe número novo. Mudar o número de um fio muda o ponto inteiro.
+- **Configurar folha:** tamanho A4 a A0, paisagem ou retrato, colunas e linhas da grade, título, descrição, autor, projeto,
+  data automática ou manual e logo da empresa no carimbo (opção de aplicar a todas as folhas).
 - **Aba Listas:** resumo de cabos por bitola e cor, lista de fios (de/para), lista de componentes, renumeração e cópia em CSV.
 - **Sinalização sonora:** buzzer, buzina e sirene com som real na simulação (contínuo, intermitente, pulsado, bitonal e
   varredura), botão para ouvir no painel de propriedades e botão Som/Mudo na barra superior.
