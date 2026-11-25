@@ -7,7 +7,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const page = pathToFileURL(join(dirname(fileURLToPath(import.meta.url)), '../dist/VoltAcademy-Comandos-Eletricos.html')).href;
 const browser = await chromium.launch();
-const p = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+const p = await browser.newPage({ viewport: { width: 1440, height: 900 }, acceptDownloads: true });
 const errors = [];
 p.on('pageerror', e => errors.push(e.message));
 await p.goto(page);
@@ -261,6 +261,27 @@ await p.uncheck('#dAuto'); await p.fill('#dDate', '2026-12-01');
 await p.click('#dSave'); await p.waitForTimeout(200);
 results.push(['Folha: A4 retrato com 8 colunas e 10 linhas', await p.evaluate(() => { const s = window.__va.doc().sheets[0]; const r = document.querySelector('#bgHit rect'); return s.size === 'A4' && s.orient === 'retrato' && s.cols === 8 && s.rows === 10 && r.getAttribute('width') === '840' && r.getAttribute('height') === '1188'; })]);
 results.push(['Folha: logo e data manual no carimbo', await p.evaluate(() => /^data:image\/png/.test(window.__va.doc().logo) && !!document.querySelector('.stamp image') && /01\/12\/2026/.test(document.querySelector('.stamp').textContent))]);
+
+// ---- Arquivos: salvar backup, importar (abrir/adicionar folhas) e PDF ----
+await p.evaluate(() => { const va = window.__va; if (va.sim.running) va.stopSim(); va.load(va.EXAMPLES[1].build()); window.showSaveFilePicker = undefined; va.setView('diagram'); });
+await p.click('#bFile');
+const [dl] = await Promise.all([p.waitForEvent('download'), p.click('#pSave')]);
+const saved = await (await import('node:fs/promises')).readFile(await dl.path(), 'utf8');
+const sj = JSON.parse(saved);
+results.push(['Arquivo: salvar gera .voltacademy com o projeto completo', dl.suggestedFilename().endsWith('.voltacademy') && sj.format === 'voltacademy-projeto' && sj.sheets.length === 2 && sj.wires.length > 20]);
+await p.keyboard.press('Escape');
+await p.evaluate(() => { const va = window.__va; va.load(va.EXAMPLES[0].build()); });
+await p.click('#bFile'); await p.setInputFiles('#pFile', { name: 'backup.voltacademy', mimeType: 'application/json', buffer: Buffer.from(saved) });
+await p.click('#iMerge');
+results.push(['Arquivo: importar adiciona as folhas ao projeto atual', await p.evaluate(() => window.__va.doc().sheets.length === 3 && window.__va.doc().comps.length === 29)]);
+await p.click('#bFile'); await p.setInputFiles('#pFile', { name: 'backup.voltacademy', mimeType: 'application/json', buffer: Buffer.from(saved) });
+await p.click('#iOpen');
+results.push(['Arquivo: abrir substitui pelo projeto salvo', await p.evaluate(() => window.__va.doc().sheets.length === 2 && window.__va.doc().comps.length === 17)]);
+await p.click('#bFile'); await p.click('#pPdf');
+const [dp] = await Promise.all([p.waitForEvent('download', { timeout: 60000 }), p.click('#xGo')]);
+const pdf = await (await import('node:fs/promises')).readFile(await dp.path());
+const pagesN = (pdf.toString('latin1').match(/\/Type \/Page\b/g) || []).length;
+results.push(['PDF: arquivo válido com folhas e relatório', pdf.slice(0, 5).toString() === '%PDF-' && pdf.slice(-6).toString().includes('%%EOF') && pagesN === 4]);
 
 const m = await browser.newPage({ viewport: { width: 390, height: 844 } });
 await m.goto(page); await m.waitForTimeout(500);

@@ -33,6 +33,11 @@ Ao abrir, o circuito "Partida direta com selo" já vem carregado. Aperte **SIMUL
   mesmo número; só um ponto diferente recebe número novo. Mudar o número de um fio muda o ponto inteiro.
 - **Configurar folha:** tamanho A4 a A0, paisagem ou retrato, colunas e linhas da grade, título, descrição, autor, projeto,
   data automática ou manual e logo da empresa no carimbo (opção de aplicar a todas as folhas).
+- **Arquivos (botão Projeto):** salvar o projeto em `.voltacademy` para backup (Ctrl+S; no Chrome/Edge escolhe a pasta),
+  abrir um arquivo ou adicionar as folhas dele ao projeto atual (também arrastando o arquivo para a janela) e exportar
+  **PDF** sem internet e sem janela de impressão (Ctrl+P): uma página por folha no tamanho configurado, aparência símbolos
+  ou 2D, qualidade ajustável e relatório de cabos e componentes. Na página publicada no Claude os downloads ficam bloqueados;
+  use o arquivo do computador.
 - **Aba Listas:** resumo de cabos por bitola e cor, lista de fios (de/para), lista de componentes, renumeração e cópia em CSV.
 - **Sinalização sonora:** buzzer, buzina e sirene com som real na simulação (contínuo, intermitente, pulsado, bitonal e
   varredura), botão para ouvir no painel de propriedades e botão Som/Mudo na barra superior.

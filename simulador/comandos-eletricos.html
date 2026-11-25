@@ -325,6 +325,17 @@ textarea.json { font-family: var(--font-mono); font-size: 12px; min-height: 200p
 .logobox img { max-width: 100%; max-height: 100%; }
 .chk { display: flex; gap: 8px; align-items: center; font-size: 13px; }
 @media (max-width: 520px) { .cfg { grid-template-columns: 1fr; gap: 4px; } }
+.banner.info { background: var(--brand); color: #F3E9CF; }
+.fgrid { display: grid; gap: 10px; }
+.fcard { display: grid; grid-template-columns: 40px 1fr auto; gap: 12px; align-items: center; }
+.fcard p { margin: 2px 0 0; font-size: 12.5px; color: var(--muted); line-height: 1.4; }
+.fic2 { font-size: 24px; text-align: center; }
+@media (max-width: 560px) { .fcard { grid-template-columns: 32px 1fr; } .fcard > .btn, .fcard > label.btn { grid-column: 1 / -1; justify-self: start; } }
+.impopts { display: grid; gap: 10px; }
+.impbtn { text-align: left; display: flex; flex-direction: column; gap: 4px; }
+.impbtn:hover { border-color: var(--accent); } .impbtn span { color: var(--muted); font-size: 12.5px; }
+body.dropping::after { content: "Solte o arquivo para importar o projeto"; position: fixed; inset: 12px; border: 3px dashed var(--accent); border-radius: 16px; background: rgba(184,134,30,.10);
+  display: grid; place-items: center; font: 700 22px var(--font-body); color: var(--accent-ink); z-index: 90; pointer-events: none; }
 .only-m { display: none !important; }
 @keyframes spin { to { transform: rotate(360deg); } }
 @media (max-width: 1440px) { .sbtn span { display: none; } .sbtn { padding: 7px 9px; } }
@@ -1414,7 +1425,7 @@ function symbolSVG(c, st, d, look = ui.look) {
   if (d) s += crossRefs(d, c);
   return s;
 }
-function sheetSVG(d, sheetId, live) {
+function sheetSVG(d, sheetId, live, look = 'sym') {
   const sheet = d.sheets.find(s => s.id === sheetId) || d.sheets[0];
   const map = new Map(d.comps.map(c => [c.id, c]));
   const comps = d.comps.filter(c => c.sheet === sheet.id);
@@ -1448,7 +1459,7 @@ function sheetSVG(d, sheetId, live) {
     const [bx, by, bw, bh] = T0.box, mark = s.length;
     s += `<g class="comp${sel ? ' sel' : ''}${inter}" data-comp="${c.id}" transform="translate(${c.x} ${c.y}) rotate(${c.rot || 0})">`;
     s += `<rect class="chit" x="${bx}" y="${by}" width="${bw}" height="${bh}" rx="6"/>`;
-    s += symbolSVG(c, st, d, live ? ui.look : 'sym');
+    s += symbolSVG(c, st, d, live ? ui.look : look);
     if (!T0.notag) s += `<text x="${T0.tagAt[0]}" y="${T0.tagAt[1]}" class="tag">${esc(c.tag)}</text>`;
     if (c.type === 'temporizador') s += `<text x="22" y="20" class="num">${(+c.preset || 0).toFixed(1)} s</text>`;
     const tgt = live && !sim.running && (ui.mode === 'wire' || ui.wireStart);
@@ -2151,6 +2162,16 @@ document.addEventListener('keydown', ev => {
   else if ((ev.key === 'v' || ev.key === 'V') && !sim.running) { ui.mode = 'select'; ui.placing = null; ui.wireStart = null; render(); }
 });
 window.addEventListener('pointerup', () => { if (sim.pressed.size && !drag) pressEnd(); });
+window.addEventListener('dragover', ev => { if ([...(ev.dataTransfer?.types || [])].includes('Files')) { ev.preventDefault(); document.body.classList.add('dropping'); } });
+window.addEventListener('dragleave', ev => { if (!ev.relatedTarget) document.body.classList.remove('dropping'); });
+window.addEventListener('drop', ev => { document.body.classList.remove('dropping'); const f = ev.dataTransfer?.files?.[0]; if (!f) return; ev.preventDefault(); readFileThen(f, importDialog); });
+document.addEventListener('keydown', ev => {
+  if (!(ev.ctrlKey || ev.metaKey)) return;
+  const k = ev.key.toLowerCase();
+  if (k === 's') { ev.preventDefault(); saveProjectFile(); }
+  else if (k === 'o') { ev.preventDefault(); openFile(); }
+  else if (k === 'p' && !ev.shiftKey) { ev.preventDefault(); openPdfDialog(); }
+}, true);
 
 // ---------- Modals ----------
 function openModal(html) { $('#sheet').innerHTML = html; $('#modal').hidden = false; }
@@ -2162,18 +2183,188 @@ function loadKeepingHistory(src) {
   hist.stack = keep.concat(hist.stack); hist.idx = hist.stack.length - 1; saveLocal(); closeModal();
   ui.view = 'diagram'; render(); requestAnimationFrame(fit);
 }
+const FILE_EXT = '.voltacademy';
+function safeName(t) { return (t || 'projeto').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^\w\- ]+/g, '').trim().replace(/\s+/g, '-').toLowerCase().slice(0, 60) || 'projeto'; }
+function projectFile() {
+  const data = JSON.parse(serialize());
+  return JSON.stringify({ format: 'voltacademy-projeto', formatVersion: 1, savedAt: new Date().toISOString(), ...data }, null, 1);
+}
+async function saveBlob(blob, name, types) {
+  // Chrome/Edge: let the user pick the folder; otherwise fall back to a regular download.
+  if (window.showSaveFilePicker && window.self === window.top) {
+    try {
+      const h = await window.showSaveFilePicker({ suggestedName: name, types });
+      const wr = await h.createWritable(); await wr.write(blob); await wr.close(); return 'saved';
+    } catch (e) { if (e && e.name === 'AbortError') return 'cancel'; }
+  }
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+  return 'download';
+}
+async function saveProjectFile() {
+  const name = `${safeName(doc.project)}${FILE_EXT}`;
+  const r = await saveBlob(new Blob([projectFile()], { type: 'application/json' }), name, [{ description: 'Projeto VoltAcademy', accept: { 'application/json': [FILE_EXT, '.json'] } }]);
+  if (r !== 'cancel') { sim.events.unshift({ t: sim.t, msg: `Projeto salvo: ${name}` }); flashInfo(`Projeto salvo como ${name}`); }
+  return r;
+}
+function flashInfo(msg) { const b = $('#banner'); b.classList.add('info'); showBanner(msg); setTimeout(() => { showBanner(null); b.classList.remove('info'); }, 2600); }
+function parseProject(text) {
+  const d = typeof text === 'string' ? JSON.parse(text) : text;
+  if (!d || !Array.isArray(d.comps) || !Array.isArray(d.wires)) throw new Error('o arquivo não é um projeto da VoltAcademy.');
+  return d;
+}
+function mergeProject(src) {
+  const d = parseProject(src), map = {};
+  const sheets = (d.sheets && d.sheets.length ? d.sheets : [{ id: 's1', name: 'Folha importada' }]);
+  for (const sh of sheets) { const id = uid('s'); map['s:' + sh.id] = id; doc.sheets.push({ size: 'A3', orient: 'paisagem', cols: 12, rows: 6, desc: '', ...sh, id, name: doc.sheets.some(x => x.name === sh.name) ? `${sh.name} (importada)` : sh.name }); }
+  for (const c of d.comps) { if (!TYPES[c.type]) continue; const id = uid('c'); map['c:' + c.id] = id; doc.comps.push({ ...c, id, sheet: map['s:' + c.sheet] || map['s:' + sheets[0].id] }); }
+  for (const w of d.wires) { const a = map['c:' + w.a.c], b = map['c:' + w.b.c]; if (!a || !b) continue; const { no, ...rest } = w; doc.wires.push({ ...rest, id: uid('w'), a: { ...w.a, c: a }, b: { ...w.b, c: b }, pts: (w.pts || []).map(p => [...p]) }); }
+  ui.sheet = map['s:' + sheets[0].id]; commit(); render(); requestAnimationFrame(fit);
+  return sheets.length;
+}
+function importDialog(text, fileName) {
+  let d; try { d = parseProject(text); } catch (e) { openModal(`<p class="title-lg">Não foi possível abrir</p><p class="muted" style="margin:0">${esc(fileName || 'Arquivo')}: ${esc(e.message)}</p><div class="row" style="justify-content:flex-end"><button class="btn pri" data-close>Fechar</button></div>`); return; }
+  const n = (d.sheets || [1]).length;
+  openModal(`<p class="title-lg">Importar projeto</p>
+    <p class="muted" style="margin:0"><b>${esc(fileName || '')}</b> · ${esc(d.project || 'Projeto sem nome')} · ${n} folha${n > 1 ? 's' : ''} · ${d.comps.length} componentes · ${d.wires.length} fios${d.savedAt ? ` · salvo em ${new Date(d.savedAt).toLocaleString('pt-BR')}` : ''}</p>
+    <div class="impopts"><button class="card impbtn" id="iOpen"><b>Abrir este projeto</b><span>Substitui o projeto atual. Você pode voltar com Desfazer.</span></button>
+    <button class="card impbtn" id="iMerge"><b>Adicionar as folhas ao projeto atual</b><span>Junta ${n} folha${n > 1 ? 's' : ''} a "${esc(doc.project)}". Números de fio são refeitos por ponto.</span></button></div>
+    <div class="row" style="justify-content:flex-end"><button class="btn" data-close>Cancelar</button></div>`);
+  $('#iOpen').addEventListener('click', () => { if (sim.running) stopSim(); loadKeepingHistory(d); flashInfo(`Projeto aberto: ${d.project || fileName}`); });
+  $('#iMerge').addEventListener('click', () => { if (sim.running) stopSim(); closeModal(); ui.view = 'diagram'; const k = mergeProject(d); flashInfo(`${k} folha${k > 1 ? 's adicionadas' : ' adicionada'} ao projeto`); });
+}
+function readFileThen(file, fn) { const r = new FileReader(); r.onload = () => fn(r.result, file.name); r.readAsText(file); }
 function openFile() {
   openModal(`<div class="row" style="justify-content:space-between;align-items:center"><p class="title-lg">Projeto</p><button class="btn" data-close>Fechar</button></div>
-  <p class="muted" style="margin:0">O projeto fica salvo neste navegador automaticamente. Para levar a outro computador, copie o código abaixo ou carregue um arquivo .json.</p>
-  <div class="field"><label for="fJson">Código do projeto (JSON)</label><textarea id="fJson" class="json">${esc(serialize())}</textarea></div>
-  <div class="row"><button class="btn pri" id="aCopy">Copiar código</button><button class="btn" id="aLoadTxt">Abrir o código colado</button>
-  <label class="btn" for="fFile">Abrir arquivo .json</label><input id="fFile" type="file" accept=".json,application/json" hidden></div>
+  <div class="fgrid">
+    <div class="card fcard"><div class="fic2">💾</div><div><b>Salvar no computador</b><p>Arquivo <span class="mono">${FILE_EXT}</span> com todo o projeto: folhas, componentes, fios, bitolas, logo e configurações. Use como backup. Atalho Ctrl+S.</p></div><button class="btn pri" id="pSave">Salvar arquivo</button></div>
+    <div class="card fcard"><div class="fic2">📂</div><div><b>Abrir ou importar</b><p>Abra um arquivo <span class="mono">${FILE_EXT}</span> ou <span class="mono">.json</span>, ou só adicione as folhas dele ao projeto atual. Também dá para arrastar o arquivo para a janela.</p></div><label class="btn" for="pFile">Escolher arquivo</label><input id="pFile" type="file" accept="${FILE_EXT},.json,application/json" hidden></div>
+    <div class="card fcard"><div class="fic2">📄</div><div><b>Exportar PDF</b><p>Uma página por folha, no tamanho configurado (A4 a A0), com carimbo, números de fio e, se quiser, o relatório de cabos.</p></div><button class="btn pri" id="pPdf">Gerar PDF</button></div>
+  </div>
+  <p class="muted small" style="margin:0">Na página publicada no Claude os downloads ficam bloqueados. Para salvar arquivo e PDF, use o simulador no computador (<span class="mono">INICIAR-SIMULADOR.bat</span>) ou copie o código abaixo.</p>
+  <details><summary class="small">Código do projeto (copiar e colar)</summary>
+    <div class="field" style="margin-top:8px"><textarea id="fJson" class="json">${esc(serialize())}</textarea></div>
+    <div class="row" style="margin-top:8px"><button class="btn" id="aCopy">Copiar código</button><button class="btn" id="aLoadTxt">Abrir o código colado</button></div></details>
   <p id="fileMsg" class="muted" style="margin:0"></p>`);
   const msg = t => { $('#fileMsg').textContent = t; };
-  const tryLoad = src => { try { loadKeepingHistory(src); } catch (e) { msg('Não foi possível abrir: ' + e.message); } };
+  $('#pSave').addEventListener('click', () => saveProjectFile());
+  $('#pPdf').addEventListener('click', openPdfDialog);
+  $('#pFile').addEventListener('change', ev => { const f = ev.target.files[0]; if (f) readFileThen(f, importDialog); });
   $('#aCopy').addEventListener('click', () => { const ta = $('#fJson'); const sel = () => { ta.select(); msg('Selecionei o código: use Ctrl+C para copiar.'); }; if (navigator.clipboard) navigator.clipboard.writeText(ta.value).then(() => msg('Código copiado.'), sel); else sel(); });
-  $('#aLoadTxt').addEventListener('click', () => tryLoad($('#fJson').value));
-  $('#fFile').addEventListener('change', ev => { const f = ev.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = () => tryLoad(r.result); r.readAsText(f); });
+  $('#aLoadTxt').addEventListener('click', () => importDialog($('#fJson').value, 'Código colado'));
+}
+
+// ---------------------------------------------------------------- PDF (no dependencies)
+function printCSS() {
+  let css = `svg{--paper:#FFFFFF;--frame:#8F8A7A;--live:#CF3F25;--neutral:#2D6BB0;--gold:#C9962F;--gold-soft:#FBF1DC;--ok:#1F9D55;--accent:#B8861E;--critical:#dc3c3d;
+    --font-body:"IBM Plex Sans",Arial,sans-serif;--font-mono:"IBM Plex Mono","Courier New",monospace;--font-display:"Archivo","Arial Black",Arial,sans-serif}`;
+  for (const sh of document.styleSheets) { let rules; try { rules = sh.cssRules; } catch (e) { continue; }
+    for (const r of rules) if (r.selectorText && /#cv|\.sym|\.stamp|\.rul|\.tag\b|\.num\b|\.xref|\.wno|\.d2\b|\.it\b|\.sl\b/.test(r.selectorText)) css += r.cssText + '\n'; }
+  return css;
+}
+function sheetStandaloneSVG(sheet, { look = 'sym', grid = false } = {}) {
+  const [W, H] = sheetDims(sheet);
+  return `<svg xmlns="http://www.w3.org/2000/svg" id="cv" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}"><style>${printCSS()}</style>
+    <defs><pattern id="gridp" width="20" height="20" patternUnits="userSpaceOnUse">${grid ? '<circle cx="0" cy="0" r="1.1" fill="#D9D4C6"/>' : ''}</pattern>
+    <pattern id="peStripe" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="5" height="10" fill="#F3C21F"/></pattern>
+    <filter id="glow" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+    ${sheetSVG(doc, sheet.id, false, look)}</svg>`;
+}
+function reportPagesSVG() {
+  // A4 landscape pages with the cable summary, wire list and component list.
+  const W = 297 * MM, H = 210 * MM, rowsPer = 34, pages = [];
+  const wr = wireRows(), groups = {};
+  for (const r of wr) { const k = `${r.kind}|${r.sec}|${r.color}`; (groups[k] = groups[k] || { ...r, n: 0, len: 0 }); groups[k].n++; groups[k].len += r.len; }
+  const lines = [['h', 'Resumo de cabos por bitola'], ['t', ['Circuito', 'Seção', 'Cor', 'Fios', 'Comprimento no desenho'], [200, 180, 220, 140, 300]]];
+  for (const g of Object.values(groups).sort((a, b) => a.kind.localeCompare(b.kind) || a.sec - b.sec)) lines.push(['r', [g.kind === 'potencia' ? 'Potência' : 'Comando', fmtSec(g.sec), g.color, String(g.n), (g.len / 100).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + ' m']]);
+  lines.push(['g'], ['h', 'Lista de fios'], ['t', ['Nº', 'De', 'Para', 'Folha', 'Circuito · cor · seção'], [70, 210, 210, 210, 360]]);
+  for (const r of wr) lines.push(['r', [String(r.no), r.from, r.to, r.sheet, `${r.kind === 'potencia' ? 'Potência' : 'Comando'} · ${r.color} · ${fmtSec(r.sec)}`]]);
+  lines.push(['g'], ['h', 'Lista de componentes'], ['t', ['Tag', 'Componente', 'Folha', 'Bornes', ''], [110, 400, 260, 290, 0]]);
+  for (const c of doc.comps.filter(c => !TYPES[c.type].notag).sort((a, b) => a.tag.localeCompare(b.tag, 'pt', { numeric: true }))) lines.push(['r', [c.tag, TYPES[c.type].name, `${sheetOf(c).name} · ${refOf(doc, c)}`, Object.values(TYPES[c.type].nums).filter(Boolean).join(' '), '']]);
+  let cols = [200, 180, 220, 140, 300];
+  for (let i = 0; i < lines.length; i += rowsPer) {
+    const chunk = lines.slice(i, i + rowsPer); let y = 150;
+    let body = `<rect width="${W}" height="${H}" fill="#fff"/><text x="60" y="80" font-family="Arial" font-size="34" font-weight="700" fill="#1B1E23">Relatório de cabos e componentes</text>
+      <text x="60" y="112" font-family="Arial" font-size="18" fill="#6A717C">${esc(doc.project)} · ${new Date().toLocaleDateString('pt-BR')} · página ${pages.length + 1}</text>`;
+    for (const [k, v, wd] of chunk) {
+      if (k === 't' && wd) cols = wd;
+      if (k === 'g') { y += 10; continue; }
+      if (k === 'h') { body += `<text x="60" y="${y + 18}" font-family="Arial" font-size="20" font-weight="700" fill="#8A6210">${esc(v.toUpperCase())}</text>`; y += 30; continue; }
+      let x = 60; if (k === 't') body += `<rect x="56" y="${y - 2}" width="${W - 112}" height="28" fill="#F2F3F5"/>`;
+      v.forEach((cell, ci) => { if (!cols[ci]) return; const txt = String(cell), max = Math.floor(cols[ci] / 9.2); body += `<text x="${x}" y="${y + 18}" font-family="Arial" font-size="16" font-weight="${k === 't' ? 700 : 400}" fill="${k === 't' ? '#4B5563' : '#1B1E23'}">${esc(txt.length > max ? txt.slice(0, max - 1) + '…' : txt)}</text>`; x += cols[ci] || 0; });
+      body += `<line x1="56" y1="${y + 26}" x2="${W - 56}" y2="${y + 26}" stroke="#E2E5EA"/>`; y += 28;
+    }
+    pages.push({ svg: `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${body}</svg>`, mm: [297, 210] });
+  }
+  return pages;
+}
+function svgToJpeg(svgText, wPx, hPx) {
+  return new Promise((res, rej) => {
+    const img = new Image();
+    img.onload = () => {
+      const cv = document.createElement('canvas'); cv.width = wPx; cv.height = hPx;
+      const g = cv.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, wPx, hPx); g.drawImage(img, 0, 0, wPx, hPx);
+      cv.toBlob(b => b ? b.arrayBuffer().then(buf => res(new Uint8Array(buf))) : rej(new Error('falha ao gerar a imagem')), 'image/jpeg', 0.92);
+    };
+    img.onerror = () => rej(new Error('falha ao desenhar a folha'));
+    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgText);
+  });
+}
+function buildPDF(pages, title) {
+  const enc = new TextEncoder(), parts = [], offs = []; let len = 0;
+  const put = x => { const b = typeof x === 'string' ? enc.encode(x) : x; parts.push(b); len += b.length; };
+  const obj = (id, body, stream) => { offs[id] = len; put(`${id} 0 obj\n${body}\n`); if (stream) { put('stream\n'); put(stream); put('\nendstream\n'); } put('endobj\n'); };
+  const hex = t => '<FEFF' + [...t].map(ch => ch.charCodeAt(0).toString(16).padStart(4, '0')).join('').toUpperCase() + '>';
+  put('%PDF-1.4\n%âãÏÓ\n');
+  const n = pages.length, infoId = 3 + 3 * n;
+  obj(1, '<< /Type /Catalog /Pages 2 0 R >>');
+  obj(2, `<< /Type /Pages /Kids [${pages.map((_, i) => `${3 + 3 * i} 0 R`).join(' ')}] /Count ${n} >>`);
+  pages.forEach((p, i) => {
+    const pid = 3 + 3 * i, cid = pid + 1, iid = pid + 2, w = (p.mm[0] * 72 / 25.4).toFixed(2), h = (p.mm[1] * 72 / 25.4).toFixed(2);
+    obj(pid, `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${w} ${h}] /Resources << /XObject << /Im${i} ${iid} 0 R >> >> /Contents ${cid} 0 R >>`);
+    const content = enc.encode(`q ${w} 0 0 ${h} 0 0 cm /Im${i} Do Q`);
+    obj(cid, `<< /Length ${content.length} >>`, content);
+    obj(iid, `<< /Type /XObject /Subtype /Image /Width ${p.wPx} /Height ${p.hPx} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${p.jpeg.length} >>`, p.jpeg);
+  });
+  obj(infoId, `<< /Title ${hex(title)} /Producer ${hex('VoltAcademy Comandos Elétricos')} /CreationDate (D:${new Date().toISOString().replace(/[-:T]/g, '').slice(0, 14)}) >>`);
+  const xref = len;
+  put(`xref\n0 ${infoId + 1}\n0000000000 65535 f \n` + Array.from({ length: infoId }, (_, k) => String(offs[k + 1]).padStart(10, '0') + ' 00000 n \n').join(''));
+  put(`trailer\n<< /Size ${infoId + 1} /Root 1 0 R /Info ${infoId} 0 R >>\nstartxref\n${xref}\n%%EOF`);
+  return new Blob(parts, { type: 'application/pdf' });
+}
+async function exportPDF({ which = 'all', look = 'sym', grid = false, report = true, dpi = 150 } = {}) {
+  const sheets = which === 'all' ? doc.sheets : doc.sheets.filter(x => x.id === ui.sheet);
+  const pages = [];
+  for (const sh of sheets) {
+    const [W, H] = sheetDims(sh), mm = [W / MM, H / MM], scale = Math.min(dpi / 25.4, 9000 / Math.max(mm[0], mm[1]));
+    const wPx = Math.round(mm[0] * scale), hPx = Math.round(mm[1] * scale);
+    pages.push({ mm, wPx, hPx, jpeg: await svgToJpeg(sheetStandaloneSVG(sh, { look, grid }), wPx, hPx) });
+  }
+  if (report) for (const r of reportPagesSVG()) { const s2 = dpi / 25.4, wPx = Math.round(r.mm[0] * s2), hPx = Math.round(r.mm[1] * s2); pages.push({ mm: r.mm, wPx, hPx, jpeg: await svgToJpeg(r.svg, wPx, hPx) }); }
+  return buildPDF(pages, doc.project);
+}
+function openPdfDialog() {
+  openModal(`<div class="row" style="justify-content:space-between;align-items:center"><p class="title-lg">Exportar PDF</p><button class="btn" data-close>Fechar</button></div>
+    <div class="cfg">
+      <label for="xWhich">Folhas</label><select id="xWhich"><option value="all">Todas as folhas (${doc.sheets.length})</option><option value="cur">Só a folha atual</option></select>
+      <label for="xLook">Aparência</label><select id="xLook"><option value="sym">Símbolos IEC (padrão de projeto)</option><option value="2d">2D (equipamentos)</option></select>
+      <label for="xDpi">Qualidade</label><select id="xDpi"><option value="110">Rascunho (arquivo leve)</option><option value="150" selected>Normal</option><option value="220">Alta (impressão grande)</option></select>
+    </div>
+    <label class="chk"><input type="checkbox" id="xReport" checked> Incluir relatório de cabos e lista de componentes</label>
+    <label class="chk"><input type="checkbox" id="xGrid"> Mostrar a grade pontilhada</label>
+    <p class="muted small" id="xMsg" style="margin:0"></p>
+    <div class="row" style="justify-content:flex-end"><button class="btn" data-close>Cancelar</button><button class="btn pri" id="xGo">Gerar PDF</button></div>`);
+  $('#xGo').addEventListener('click', async () => {
+    const btn = $('#xGo'); btn.disabled = true; $('#xMsg').textContent = 'Gerando as páginas…';
+    try {
+      const blob = await exportPDF({ which: $('#xWhich').value, look: $('#xLook').value, dpi: +$('#xDpi').value, report: $('#xReport').checked, grid: $('#xGrid').checked });
+      const name = `${safeName(doc.project)}.pdf`;
+      const r = await saveBlob(blob, name, [{ description: 'PDF', accept: { 'application/pdf': ['.pdf'] } }]);
+      if (r !== 'cancel') { closeModal(); flashInfo(`PDF gerado: ${name} (${(blob.size / 1048576).toLocaleString('pt-BR', { maximumFractionDigits: 1 })} MB)`); }
+      else { btn.disabled = false; $('#xMsg').textContent = ''; }
+      window.__lastPdf = blob;
+    } catch (e) { btn.disabled = false; $('#xMsg').textContent = 'Não foi possível gerar o PDF: ' + e.message; }
+  });
 }
 function openWireDialog(id) {
   const w = doc.wires.find(x => x.id === id); if (!w) return;
@@ -2224,6 +2415,7 @@ function openHelp() {
     <li><b>Folhas:</b> use Nova folha para separar força e comando. Para o fio continuar em outra folha, ponha um Segmento de cabo OUT numa folha e um IN na outra com a mesma tag. A referência "→ 2.3" indica folha 2, coluna 3.</li>
     <li><b>Contatos:</b> cada contato usa a tag da bobina que o comanda (K1, KT1). Abaixo da bobina aparecem as folhas e colunas dos contatos dela.</li>
     <li><b>Simular:</b> aperte Simular. Segure os botões; toque em chaves, sensores, disjuntores, fusíveis, fonte e relé térmico. Os fios animados mostram por onde a corrente passa.</li>
+    <li><b>Arquivos:</b> em Projeto, salve o arquivo <span class="mono">.voltacademy</span> (Ctrl+S), abra ou adicione folhas de outro arquivo (ou arraste o arquivo para a janela) e gere o PDF (Ctrl+P).</li>
     <li><b>Operação:</b> na barra de baixo, a aba Operação vira um painel com botões grandes; Monitoramento mostra estados e o registro de eventos.</li>
   </ol>
   <p class="muted small" style="margin:0">Atalhos: <span class="kbd">Espaço</span> simula · <span class="kbd">W</span> fio · <span class="kbd">V</span> selecionar · <span class="kbd">R</span> gira · <span class="kbd">Del</span> exclui · <span class="kbd">Ctrl+Z</span> desfaz</p>`);
@@ -2300,6 +2492,6 @@ if (matchMedia('(max-width: 1100px)').matches) ui.inspOpen = false;
 render();
 requestAnimationFrame(fit);
 window.addEventListener('resize', () => fit());
-window.__va = { doc: () => doc, sim, ui, points: id => fullPointsAny(doc.wires.find(w => w.id === id)), audio, solve: resolve, rawSolve: solve, clearFaults, updateElectrical, startSim, stopSim, load, EXAMPLES, TYPES, interact, render, setView: v => { ui.view = v; render(); } };
+window.__va = { exportPDF, projectFile, mergeProject, doc: () => doc, sim, ui, points: id => fullPointsAny(doc.wires.find(w => w.id === id)), audio, solve: resolve, rawSolve: solve, clearFaults, updateElectrical, startSim, stopSim, load, EXAMPLES, TYPES, interact, render, setView: v => { ui.view = v; render(); } };
 })();
 </script>
