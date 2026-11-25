@@ -207,84 +207,253 @@ const SHEET = { w: 1600, h: 1000 };
 const GRID = 20;
 const WIRE_COLORS = [['#C0392B','Vermelho'],['#22231C','Preto'],['#2D6BB0','Azul'],['#2E8B57','Verde'],['#D9822B','Laranja'],['#C9A227','Amarelo'],['#7D4CB0','Violeta'],['#8E8A7A','Cinza']];
 const LAMP_COLORS = { verde: '#35B26B', vermelho: '#E2442F', amarelo: '#F2C230', azul: '#3D86E0', branco: '#F4F1E6' };
+const PHASES = ['L1', 'L2', 'L3'];
 
-// ---------- Symbol drawing (IEC 60617 style, vertical, terminals a=top b=bottom) ----------
+// =====================================================================
+// IEC 60617 symbol helpers. Convention: vertical current path, fixed
+// terminal leads, moving contact (blade) pivoting on the lower lead,
+// actuators drawn on the left, joined by a dashed mechanical link.
+// =====================================================================
 const L = (x1, y1, x2, y2, extra = '') => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" ${extra}/>`;
-const leads = (t = 14) => L(0, -40, 0, -t) + L(0, t, 0, 40);
-const blade = (closed, nf) => closed ? L(0, 14, nf ? 9 : 0, nf ? -15 : -14) : L(0, 14, -14, -12);
-const nfTick = () => L(0, -14, 10, -14);
-const link = (y = 0) => L(-7, y, -24, y, 'stroke-dasharray="3 3"');
-const push = () => L(-24, -8, -24, 8) + L(-24, -8, -29, -8) + L(-24, 8, -29, 8);
-const mushroom = () => `<path d="M-24 -11 A 11 11 0 0 0 -24 11 Z" fill="currentColor"/>`;
-const selector = () => L(-24, -8, -24, 8) + L(-24, -8, -29, -8) + L(-24, 8, -19, 8);
-const parachute = () => `<path d="M-14 -6 A 8 8 0 0 1 -14 6" fill="none"/>` + L(-14, -6, -14, 6);
-const thermal = () => `<rect x="-36" y="-7" width="12" height="14" fill="none"/>` + `<path d="M-33 4 v-4 h6 v-4" fill="none"/>`;
-const rhombus = () => `<path d="M-30 -9 L-21 0 L-30 9 L-39 0 Z" fill="none"/>` + L(-35, -3, -26, 3) ;
+const T = (x, y, s, cls = 'it', anchor = 'middle') => `<text x="${x}" y="${y}" class="${cls}" text-anchor="${anchor}">${s}</text>`;
+const dash = 'stroke-dasharray="3 2.5"';
+// Make contact (NA, S00227): blade leans left, open.
+function no(x = 0, act = false, cup = false, cross = false) {
+  let s = L(x, -40, x, -14) + L(x, 14, x, 40);
+  s += act ? L(x, 14, x, -14) : L(x, 14, x - 12, -11);
+  if (cup) s += `<path d="M${x - 4} -14 A4 4 0 0 0 ${x + 4} -14" fill="none"/>`;      // contactor function (S00284)
+  if (cross) s += L(x - 4, -18, x + 4, -10) + L(x - 4, -10, x + 4, -18);             // circuit-breaker function (S00287)
+  return s;
+}
+// Break contact (NF, S00229): fixed contact bent right, blade crosses it at rest.
+function nc(x = 0, act = false) {
+  let s = L(x, -40, x, -14) + L(x, -14, x + 8, -14) + L(x, 14, x, 40);
+  s += act ? L(x, 14, x - 12, -11) : L(x, 14, x + 10, -17);
+  return s;
+}
+// Change-over (comum NA/NF, S00230): common on top, NA lower-left, NF lower-right.
+function co(act = false) {
+  let s = L(0, -40, 0, -14) + L(-14, 40, -14, 14) + L(14, 40, 14, 14) + L(14, 14, 7, 14);
+  s += act ? L(0, -14, -14, 14) : L(0, -14, 9, 16);
+  return s;
+}
+const link = (x1 = -6, x2 = -24, y = 0) => L(x1, y, x2, y, dash);
+// Operators
+const opPush = (x = -24) => L(x, -7, x, 7) + L(x, -7, x + 4, -7) + L(x, 7, x + 4, 7);                 // push, spring return (S00256): E
+const opMushroom = (x = -24) => `<path d="M${x} -9 A9 9 0 0 0 ${x} 9 Z" fill="currentColor"/>` + L(x + 3, -4, x + 7, 0) + L(x + 3, 4, x + 7, 0); // mushroom head + latch (S00258/S00259)
+const opTurn = (x = -24) => L(x - 4, -7, x, -7) + L(x, -7, x, 7) + L(x, 7, x + 4, 7);                // turn/rotary (S00257)
+const opThermal = (x = -24) => `<path d="M${x - 10} 5 V-5 H${x - 3} V5 H${x}" fill="none"/>`;       // thermal effect (S00151)
+const opDelay = (x = -16) => `<path d="M${x} -7 A7 7 0 0 0 ${x} 7" fill="none"/>` + L(x - 7, 0, x, 0); // delayed operation (S00249)
+const opMagThermal = (x = -24) => `<rect x="${x - 16}" y="-9" width="16" height="18" fill="none"/>` + T(x - 8, 3, 'I&gt;', 'it sm') ; // overcurrent release
+function proxBox(kind, act, nf) {
+  // Proximity switch (S00360): box, rhombus actuator, inductive "Fe" or capacitive plates
+  let s = `<rect x="-34" y="-24" width="46" height="48" fill="none"/>`;
+  s += `<path d="M-24 -18 L-17 -11 L-24 -4 L-31 -11 Z" fill="none"/>` + L(-27, -11, -21, -11);
+  s += kind === 'cap' ? L(-29, 9, -29, 17) + L(-25, 9, -25, 17) + L(-33, 13, -29, 13) + L(-25, 13, -21, 13) : T(-24, 18, 'Fe', 'it sm');
+  s += L(0, -40, 0, -24) + L(0, 24, 0, 40);
+  s += nf ? L(0, -24, 0, -12) + L(0, -12, 6, -12) + L(0, 24, 0, 12) + (act ? L(0, 12, -8, -9) : L(0, 12, 8, -14))
+          : L(0, -24, 0, -12) + L(0, 24, 0, 12) + (act ? L(0, 12, 0, -12) : L(0, 12, -8, -9));
+  s += L(-17, -11, -6, -11, dash);
+  return s;
+}
+const coilBox = (on, x = 0) => `<rect x="${x - 18}" y="-12" width="36" height="24" fill="${on ? 'var(--gold)' : 'none'}" ${on ? 'filter="url(#glow)"' : ''}/>`;
+const P2 = { a: [0, -40], b: [0, 40] };
+const two = act => act ? [['a', 'b']] : [];
+const twoNC = act => act ? [] : [['a', 'b']];
+const BOX2 = [-34, -44, 68, 88];
+
+// =====================================================================
+// Component library
+//  terms: name -> [x,y] (local), nums: name -> terminal marking
+//  act(c,s): actuated?  pairs(act,c,s): terminal pairs closed
+//  src(c,s): {term: potential}   loads: [[t1,t2,kind]]
+//  inter: 'push' | 'toggle' | 'trip' (interaction during simulation)
+// =====================================================================
+const actPush = (c, s) => s.pressed.has(c.id);
+const actToggle = (c, s) => s.toggled.has(c.id);
+const actTrip = (c, s) => s.tripped.has(c.tag);
+const actCoil = (c, s) => !!s.coils[c.tag];
+const actTimer = (c, s) => !!s.timerDone[c.tag];
 
 const TYPES = {
-  fase:     { name: 'Fase (L)', cat: 'Alimentação', pre: 'L', terms: { a: [0, 20] }, nums: ['L'],
-              draw: () => `<circle r="7" fill="var(--live)" stroke="none"/>${L(0,7,0,20)}<text x="-18" y="5" class="sl" fill="var(--live)">L</text>` },
-  neutro:   { name: 'Neutro (N)', cat: 'Alimentação', pre: 'N', terms: { a: [0, -20] }, nums: ['N'],
-              draw: () => `${L(0,-20,0,-7)}<circle r="7" fill="var(--neutral)" stroke="none"/><text x="-19" y="5" class="sl" fill="var(--neutral)">N</text>` },
-  disjuntor:{ name: 'Disjuntor', cat: 'Proteção', pre: 'Q', terms: { a: [0, -40], b: [0, 40] }, nums: ['1', '2'], inter: 'toggle',
-              closed: (c, s) => !s.toggled.has(c.id),
-              draw: (c, st) => leads() + blade(st.closed) + L(-5, -19, 5, -9) + L(-5, -9, 5, -19) + link(0) + `<path d="M-24 -6 l-6 6 l6 6" fill="none"/>` },
-  fusivel:  { name: 'Fusível', cat: 'Proteção', pre: 'F', terms: { a: [0, -40], b: [0, 40] }, nums: ['1', '2'], inter: 'toggle',
-              closed: (c, s) => !s.toggled.has(c.id),
-              draw: (c, st) => L(0, -40, 0, -18) + L(0, 18, 0, 40) + `<rect x="-6" y="-18" width="12" height="36" fill="${st.closed ? 'none' : 'var(--live)'}" fill-opacity=".25"/>` + (st.closed ? L(0, -18, 0, 18) : L(0, -18, 0, -6) + L(0, 6, 0, 18)) },
-  ft_nf:    { name: 'Contato do relé térmico NF', cat: 'Proteção', pre: 'FT', terms: { a: [0, -40], b: [0, 40] }, nums: ['95', '96'], inter: 'trip',
-              closed: (c, s) => !s.tripped.has(c.tag),
-              draw: (c, st) => leads() + nfTick() + blade(st.closed, true) + link(0) + thermal() },
-  ft_na:    { name: 'Contato do relé térmico NA', cat: 'Proteção', pre: 'FT', terms: { a: [0, -40], b: [0, 40] }, nums: ['97', '98'], inter: 'trip',
-              closed: (c, s) => s.tripped.has(c.tag),
-              draw: (c, st) => leads() + blade(st.closed) + link(0) + thermal() },
-  botao_na: { name: 'Botão NA (liga)', cat: 'Comando', pre: 'S', terms: { a: [0, -40], b: [0, 40] }, nums: ['13', '14'], inter: 'push',
-              closed: (c, s) => s.pressed.has(c.id),
-              draw: (c, st) => leads() + blade(st.closed) + link(0) + push() },
-  botao_nf: { name: 'Botão NF (desliga)', cat: 'Comando', pre: 'S', terms: { a: [0, -40], b: [0, 40] }, nums: ['11', '12'], inter: 'push',
-              closed: (c, s) => !s.pressed.has(c.id),
-              draw: (c, st) => leads() + nfTick() + blade(st.closed, true) + link(0) + push() },
-  emergencia:{ name: 'Botão de emergência NF', cat: 'Comando', pre: 'SE', terms: { a: [0, -40], b: [0, 40] }, nums: ['11', '12'], inter: 'toggle',
-              closed: (c, s) => !s.toggled.has(c.id),
-              draw: (c, st) => leads() + nfTick() + blade(st.closed, true) + link(0) + L(-24, -8, -24, 8) + mushroom() },
-  seletora: { name: 'Chave seletora NA', cat: 'Comando', pre: 'S', terms: { a: [0, -40], b: [0, 40] }, nums: ['13', '14'], inter: 'toggle',
-              closed: (c, s) => s.toggled.has(c.id),
-              draw: (c, st) => leads() + blade(st.closed) + link(0) + selector() },
-  sensor:   { name: 'Sensor indutivo NA', cat: 'Comando', pre: 'B', terms: { a: [0, -40], b: [0, 40] }, nums: ['BN', 'BK'], inter: 'toggle',
-              closed: (c, s) => s.toggled.has(c.id),
-              draw: (c, st) => leads() + blade(st.closed) + L(-7, 0, -21, 0, 'stroke-dasharray="3 3"') + rhombus() },
-  bobina:   { name: 'Bobina de contator', cat: 'Contatores e relés', pre: 'K', terms: { a: [0, -40], b: [0, 40] }, nums: ['A1', 'A2'], load: 'coil',
-              draw: (c, st) => leads(12) + `<rect x="-18" y="-12" width="36" height="24" fill="${st.on ? 'var(--gold)' : 'none'}" ${st.on ? 'filter="url(#glow)"' : ''}/>` },
-  contato_na:{ name: 'Contato auxiliar NA', cat: 'Contatores e relés', pre: 'K', terms: { a: [0, -40], b: [0, 40] }, nums: ['13', '14'], ref: 'coil',
-              closed: (c, s) => !!s.coils[c.tag],
-              draw: (c, st) => leads() + blade(st.closed) },
-  contato_nf:{ name: 'Contato auxiliar NF', cat: 'Contatores e relés', pre: 'K', terms: { a: [0, -40], b: [0, 40] }, nums: ['21', '22'], ref: 'coil',
-              closed: (c, s) => !s.coils[c.tag],
-              draw: (c, st) => leads() + nfTick() + blade(st.closed, true) },
-  temporizador:{ name: 'Bobina temporizada (retardo na energização)', cat: 'Contatores e relés', pre: 'KT', terms: { a: [0, -40], b: [0, 40] }, nums: ['A1', 'A2'], load: 'timer',
-              draw: (c, st) => leads(12) + `<rect x="-18" y="-12" width="36" height="24" fill="${st.on ? 'var(--gold)' : 'none'}" ${st.on ? 'filter="url(#glow)"' : ''}/>` +
-                `<rect x="-32" y="-12" width="14" height="24" fill="none"/>${L(-32,-12,-18,12)}${L(-32,12,-18,-12)}` +
-                (st.on ? `<rect x="-18" y="14" width="${Math.round(36 * st.progress)}" height="3" fill="var(--ok)" stroke="none"/>` : '') },
-  temp_na:  { name: 'Contato temporizado NA', cat: 'Contatores e relés', pre: 'KT', terms: { a: [0, -40], b: [0, 40] }, nums: ['67', '68'], ref: 'timer',
-              closed: (c, s) => !!s.timerDone[c.tag],
-              draw: (c, st) => leads() + blade(st.closed) + link(0) + parachute() },
-  temp_nf:  { name: 'Contato temporizado NF', cat: 'Contatores e relés', pre: 'KT', terms: { a: [0, -40], b: [0, 40] }, nums: ['55', '56'], ref: 'timer',
-              closed: (c, s) => !s.timerDone[c.tag],
-              draw: (c, st) => leads() + nfTick() + blade(st.closed, true) + link(0) + parachute() },
-  sinaleiro:{ name: 'Sinaleiro', cat: 'Sinalização', pre: 'H', terms: { a: [0, -40], b: [0, 40] }, nums: ['X1', 'X2'], load: 'lamp',
-              draw: (c, st) => leads(14) + `<circle r="14" fill="${st.on ? (LAMP_COLORS[c.color] || LAMP_COLORS.verde) : 'none'}" ${st.on ? 'filter="url(#glow)"' : ''}/>` + L(-10, -10, 10, 10) + L(-10, 10, 10, -10) +
-                `<circle cx="-24" cy="-18" r="4" fill="${LAMP_COLORS[c.color] || LAMP_COLORS.verde}" stroke="none"/>` },
-  juncao:   { name: 'Ponto de conexão', cat: 'Alimentação', pre: 'X', terms: { a: [0, 0] }, nums: [''], notag: true,
-              draw: () => `<circle r="4.5" fill="currentColor" stroke="none"/>` },
+  // ---------------- Alimentação ----------------
+  fase: { name: 'Fase (L)', cat: 'Alimentação', pre: 'L', notag: true, terms: { a: [0, 20] }, nums: {}, box: [-26, -14, 52, 40],
+    src: c => ({ a: c.phase || 'L1' }),
+    draw: c => `<circle r="6" fill="var(--live)" stroke="none"/>${L(0, 6, 0, 20)}${T(-12, 5, c.phase === 'L2' || c.phase === 'L3' ? c.phase : 'L', 'sl', 'end')}` },
+  neutro: { name: 'Neutro (N)', cat: 'Alimentação', pre: 'N', notag: true, terms: { a: [0, -20] }, nums: {}, box: [-26, -26, 52, 40],
+    src: () => ({ a: 'N' }),
+    draw: () => `${L(0, -20, 0, -6)}<circle r="6" fill="var(--neutral)" stroke="none"/>${T(-12, 5, 'N', 'sl n', 'end')}` },
+  fonte_3f: { name: 'Fonte trifásica + N + PE', cat: 'Alimentação', pre: 'X', terms: { l1: [40, -40], l2: [40, -20], l3: [40, 0], n: [40, 20], pe: [40, 40] },
+    nums: {}, box: [-30, -50, 76, 100], inter: 'toggle', tagAt: [-28, -54],
+    act: actToggle, src: (c, s) => s.toggled.has(c.id) ? {} : { l1: 'L1', l2: 'L2', l3: 'L3', n: 'N', pe: 'PE' },
+    draw: (c, st) => ['L1', 'L2', 'L3', 'N', 'PE'].map((p, i) => L(-6, -40 + i * 20, 40, -40 + i * 20) + T(-10, -36 + i * 20, p, 'it', 'end')).join('') +
+      (st.act ? T(14, 58, 'DESLIGADA', 'it sm warn') : '') },
+  fonte_24: { name: 'Fonte AC/DC 24 Vcc', cat: 'Alimentação', pre: 'G', terms: { i1: [-20, -40], i2: [20, -40], o1: [-20, 40], o2: [20, 40] },
+    nums: { i1: 'L', i2: 'N', o1: '+', o2: '−' }, box: [-34, -44, 68, 88], loads: [['i1', 'i2', 'psu']], tagAt: [36, 4],
+    src: (c, s) => s.psu && s.psu[c.id] ? { o1: '+24', o2: '0V' } : {},
+    draw: (c, st) => `<rect x="-30" y="-26" width="60" height="52" fill="${st.on ? 'var(--gold-soft)' : 'none'}"/>${L(-30, 26, 30, -26)}` +
+      `<path d="M-22 -14 q4 -6 8 0 t8 0" fill="none"/>${L(8, 12, 22, 12)}${L(8, 17, 22, 17, dash)}` +
+      L(-20, -40, -20, -26) + L(20, -40, 20, -26) + L(-20, 26, -20, 40) + L(20, 26, 20, 40) },
+  trafo_3f: { name: 'Autotransformador de partida 3F', cat: 'Alimentação', pre: 'T', terms: { h1: [-40, -40], h2: [0, -40], h3: [40, -40], x1: [-40, 40], x2: [0, 40], x3: [40, 40] },
+    nums: { h1: 'H1', h2: 'H2', h3: 'H3', x1: 'X1', x2: 'X2', x3: 'X3' }, box: [-56, -44, 112, 88], tagAt: [58, 4],
+    pairs: () => [['h1', 'x1'], ['h2', 'x2'], ['h3', 'x3']],
+    draw: () => [-40, 0, 40].map(x => L(x, -40, x, -22) + `<path d="M${x} -22 a5 5 0 0 1 0 10 a5 5 0 0 1 0 10 a5 5 0 0 1 0 10 a5 5 0 0 1 0 10" fill="none"/>` + L(x, 18, x, 40)).join('') +
+      `<rect x="-52" y="-26" width="104" height="48" fill="none" ${dash}/>` + T(0, 34, '65%', 'it sm') },
+  seta_3f: { name: 'Setas de continuação 3F + N + PE', cat: 'Alimentação', pre: 'P', terms: { l1: [-40, -40], l2: [-40, -20], l3: [-40, 0], n: [-40, 20], pe: [-40, 40] },
+    nums: {}, box: [-46, -50, 84, 100], linkGroup: 'seta', tagAt: [-2, -54],
+    draw: () => ['L1', 'L2', 'L3', 'N', 'PE'].map((p, i) => { const y = -40 + i * 20; return L(-40, y, 14, y) + `<path d="M14 ${y - 5} L24 ${y} L14 ${y + 5} Z" fill="currentColor"/>` + T(30, y + 4, p, 'it', 'start'); }).join('') },
+  cabo_out: { name: 'Segmento de cabo OUT (envia)', cat: 'Alimentação', pre: 'W', terms: { a: [0, -40] }, nums: {}, box: [-24, -44, 48, 76], linkGroup: 'cabo', tagAt: [18, 22],
+    draw: () => L(0, -40, 0, 4) + `<path d="M-12 4 H12 V18 L0 28 L-12 18 Z" fill="none"/>` },
+  cabo_in: { name: 'Segmento de cabo IN (recebe)', cat: 'Alimentação', pre: 'W', terms: { a: [0, 40] }, nums: {}, box: [-24, -32, 48, 76], linkGroup: 'cabo', tagAt: [18, -12],
+    draw: () => `<path d="M-12 -28 L0 -18 L12 -28 V-4 H-12 Z" fill="none"/>` + L(0, -4, 0, 40) },
+  juncao: { name: 'Ponto de conexão', cat: 'Alimentação', pre: 'X', notag: true, terms: { a: [0, 0] }, nums: {}, box: [-12, -12, 24, 24],
+    draw: () => `<circle r="4.5" fill="currentColor" stroke="none"/>` },
+
+  // ---------------- Comando ----------------
+  botao_na: { name: 'Botão NA (liga)', cat: 'Comando', pre: 'S', terms: P2, nums: { a: '13', b: '14' }, inter: 'push', act: actPush, pairs: two,
+    draw: (c, st) => no(0, st.act) + link(-6, -20) + opPush(-24) },
+  botao_nf: { name: 'Botão NF (desliga)', cat: 'Comando', pre: 'S', terms: P2, nums: { a: '11', b: '12' }, inter: 'push', act: actPush, pairs: twoNC,
+    draw: (c, st) => nc(0, st.act) + link(-6, -20) + opPush(-24) },
+  pulsador_na_nf: { name: 'Botão pulsador NA + NF', cat: 'Comando', pre: 'S', terms: { a: [0, -40], b: [0, 40], c: [40, -40], d: [40, 40] },
+    nums: { a: '13', b: '14', c: '21', d: '22' }, box: [-34, -44, 94, 88], inter: 'push', act: actPush, tagAt: [52, 4],
+    pairs: act => act ? [['a', 'b']] : [['c', 'd']],
+    draw: (c, st) => no(0, st.act) + `<g transform="translate(40 0)">${nc(0, st.act)}</g>` + L(-6, 0, 36, 0, dash) + link(-6, -20) + opPush(-24) },
+  pulsador_comum: { name: 'Botão pulsador comutador NA/NF', cat: 'Comando', pre: 'S', terms: { c: [0, -40], na: [-14, 40], nf: [14, 40] },
+    nums: { c: '11', na: '14', nf: '12' }, box: [-40, -44, 70, 88], inter: 'push', act: actPush, tagAt: [24, -18],
+    pairs: act => act ? [['c', 'na']] : [['c', 'nf']],
+    draw: (c, st) => co(st.act) + L(-4, 0, -26, 0, dash) + opPush(-30) },
+  emergencia_na: { name: 'Botão de emergência NA', cat: 'Comando', pre: 'SE', terms: P2, nums: { a: '13', b: '14' }, inter: 'toggle', act: actToggle, pairs: two,
+    draw: (c, st) => no(0, st.act) + link(-6, -20) + opMushroom(-24) },
+  emergencia: { name: 'Botão de emergência NF', cat: 'Comando', pre: 'SE', terms: P2, nums: { a: '11', b: '12' }, inter: 'toggle', act: actToggle, pairs: twoNC,
+    draw: (c, st) => nc(0, st.act) + link(-6, -20) + opMushroom(-24) },
+  seletora: { name: 'Chave seletora NA', cat: 'Comando', pre: 'S', terms: P2, nums: { a: '13', b: '14' }, inter: 'toggle', act: actToggle, pairs: two,
+    draw: (c, st) => no(0, st.act) + link(-6, -20) + opTurn(-24) },
+  seletora_nf: { name: 'Chave seletora NF', cat: 'Comando', pre: 'S', terms: P2, nums: { a: '11', b: '12' }, inter: 'toggle', act: actToggle, pairs: twoNC,
+    draw: (c, st) => nc(0, st.act) + link(-6, -20) + opTurn(-24) },
+  sensor: { name: 'Sensor indutivo NA', cat: 'Comando', pre: 'B', terms: P2, nums: { a: 'BN', b: 'BK' }, inter: 'toggle', act: actToggle, pairs: two,
+    draw: (c, st) => proxBox('ind', st.act, false) },
+  sensor_ind_nf: { name: 'Sensor indutivo NF', cat: 'Comando', pre: 'B', terms: P2, nums: { a: 'BN', b: 'BK' }, inter: 'toggle', act: actToggle, pairs: twoNC,
+    draw: (c, st) => proxBox('ind', st.act, true) },
+  sensor_cap_na: { name: 'Sensor capacitivo NA', cat: 'Comando', pre: 'B', terms: P2, nums: { a: 'BN', b: 'BK' }, inter: 'toggle', act: actToggle, pairs: two,
+    draw: (c, st) => proxBox('cap', st.act, false) },
+  sensor_cap_nf: { name: 'Sensor capacitivo NF', cat: 'Comando', pre: 'B', terms: P2, nums: { a: 'BN', b: 'BK' }, inter: 'toggle', act: actToggle, pairs: twoNC,
+    draw: (c, st) => proxBox('cap', st.act, true) },
+
+  // ---------------- Contatores e relés ----------------
+  bobina: { name: 'Bobina de contator', cat: 'Contatores e relés', pre: 'K', terms: P2, nums: { a: 'A1', b: 'A2' }, loads: [['a', 'b', 'coil']],
+    draw: (c, st) => L(0, -40, 0, -12) + L(0, 12, 0, 40) + coilBox(st.on) },
+  temporizador: { name: 'Bobina temporizada (retardo na energização)', cat: 'Contatores e relés', pre: 'KT', terms: P2, nums: { a: 'A1', b: 'A2' }, loads: [['a', 'b', 'timer']],
+    draw: (c, st) => L(0, -40, 0, -12) + L(0, 12, 0, 40) + coilBox(st.on) +
+      `<rect x="-34" y="-12" width="16" height="24" fill="currentColor"/>` +
+      (st.on ? `<rect x="-18" y="15" width="${Math.round(36 * (st.progress || 0))}" height="3" fill="var(--ok)" stroke="none"/>` : '') },
+  contato_na: { name: 'Contato auxiliar NA', cat: 'Contatores e relés', pre: 'K', ref: 'coil', terms: P2, nums: { a: '13', b: '14' }, act: actCoil, pairs: two,
+    draw: (c, st) => no(0, st.act) },
+  contato_nf: { name: 'Contato auxiliar NF', cat: 'Contatores e relés', pre: 'K', ref: 'coil', terms: P2, nums: { a: '21', b: '22' }, act: actCoil, pairs: twoNC,
+    draw: (c, st) => nc(0, st.act) },
+  contato_comum: { name: 'Contato auxiliar comutador NA/NF', cat: 'Contatores e relés', pre: 'K', ref: 'coil', terms: { c: [0, -40], na: [-14, 40], nf: [14, 40] },
+    nums: { c: '11', na: '14', nf: '12' }, box: [-30, -44, 60, 88], act: actCoil, tagAt: [20, -18],
+    pairs: act => act ? [['c', 'na']] : [['c', 'nf']], draw: (c, st) => co(st.act) },
+  temp_na: { name: 'Contato temporizado NA', cat: 'Contatores e relés', pre: 'KT', ref: 'timer', terms: P2, nums: { a: '67', b: '68' }, act: actTimer, pairs: two,
+    draw: (c, st) => no(0, st.act) + link(-6, -16) + opDelay(-16) },
+  temp_nf: { name: 'Contato temporizado NF', cat: 'Contatores e relés', pre: 'KT', ref: 'timer', terms: P2, nums: { a: '55', b: '56' }, act: actTimer, pairs: twoNC,
+    draw: (c, st) => nc(0, st.act) + link(-6, -16) + opDelay(-16) },
+  contator_forca: { name: 'Contator de força (3 polos)', cat: 'Contatores e relés', pre: 'K', ref: 'coil',
+    terms: { l1: [-40, -40], l2: [0, -40], l3: [40, -40], t1: [-40, 40], t2: [0, 40], t3: [40, 40] },
+    nums: { l1: '1', l2: '3', l3: '5', t1: '2', t2: '4', t3: '6' }, box: [-56, -44, 112, 88], act: actCoil, tagAt: [56, 4],
+    pairs: act => act ? [['l1', 't1'], ['l2', 't2'], ['l3', 't3']] : [],
+    draw: (c, st) => no(-40, st.act, true) + no(0, st.act, true) + no(40, st.act, true) + L(-46, 0, 34, 0, dash) },
+  rele_seguranca: { name: 'Relé de segurança', cat: 'Contatores e relés', pre: 'KS',
+    terms: { a1: [-60, -60], s11: [-40, -60], s12: [-20, -60], s33: [0, -60], s34: [20, -60], o13: [40, -60], o23: [60, -60], a2: [-60, 60], o14: [40, 60], o24: [60, 60] },
+    nums: { a1: 'A1', s11: 'S11', s12: 'S12', s33: 'S33', s34: 'S34', o13: '13', o23: '23', a2: 'A2', o14: '14', o24: '24' },
+    box: [-74, -64, 148, 128], loads: [['a1', 'a2', 'sr']], tagAt: [-70, -68],
+    act: (c, s) => !!(s.sr && s.sr[c.tag]),
+    pairs: act => act ? [['o13', 'o14'], ['o23', 'o24']] : [],
+    draw: (c, st) => Object.entries(TYPES.rele_seguranca.terms).map(([, [x, y]]) => L(x, y, x, y < 0 ? -34 : 34)).join('') +
+      `<rect x="-70" y="-34" width="140" height="68" fill="none"/>` + T(-22, -6, 'RELÉ DE', 'it sm') + T(-22, 6, 'SEGURANÇA', 'it sm') +
+      `<circle cx="-22" cy="20" r="5" fill="${st.act ? 'var(--ok)' : st.on ? 'var(--warn)' : 'none'}"/>` +
+      `<g transform="translate(40 0) scale(.6)">${no(0, st.act)}</g><g transform="translate(60 0) scale(.6)">${no(0, st.act)}</g>` },
+  rff: { name: 'Relé de falta de fase', cat: 'Contatores e relés', pre: 'KF',
+    terms: { l1: [-40, -40], l2: [0, -40], l3: [40, -40], c15: [-20, 40], c16: [0, 40], c18: [20, 40] },
+    nums: { l1: 'L1', l2: 'L2', l3: 'L3', c15: '15', c16: '16', c18: '18' }, box: [-56, -44, 112, 88], tagAt: [58, 4],
+    act: (c, s) => !!(s.rff && s.rff[c.id]),
+    pairs: act => act ? [['c15', 'c18']] : [['c15', 'c16']],
+    draw: (c, st) => [-40, 0, 40].map(x => L(x, -40, x, -16)).join('') + [-20, 0, 20].map(x => L(x, 16, x, 40)).join('') +
+      `<rect x="-52" y="-16" width="104" height="32" fill="${st.act ? 'var(--gold-soft)' : 'none'}"/>` + T(0, 5, 'RFF', 'it') +
+      `<circle cx="38" cy="0" r="4" fill="${st.act ? 'var(--ok)' : 'none'}"/>` },
+
+  // ---------------- Proteção ----------------
+  disjuntor: { name: 'Disjuntor monopolar', cat: 'Proteção', pre: 'Q', terms: P2, nums: { a: '1', b: '2' }, inter: 'toggle', act: actToggle, pairs: twoNC,
+    draw: (c, st) => no(0, st.running && !st.act, false, true) + link(-6, -24) + opMagThermal(-24) },
+  disjuntor_bi: { name: 'Disjuntor bipolar', cat: 'Proteção', pre: 'Q', terms: { a: [0, -40], b: [0, 40], c: [40, -40], d: [40, 40] },
+    nums: { a: '1', b: '2', c: '3', d: '4' }, box: [-44, -44, 100, 88], inter: 'toggle', act: actToggle, tagAt: [48, 4],
+    pairs: act => act ? [] : [['a', 'b'], ['c', 'd']],
+    draw: (c, st) => no(0, st.running && !st.act, false, true) + no(40, st.running && !st.act, false, true) + L(-6, 0, 34, 0, dash) + link(-6, -24) + opMagThermal(-24) },
+  disjuntor_tm3: { name: 'Disjuntor termomagnético tripolar', cat: 'Proteção', pre: 'Q',
+    terms: { l1: [-40, -40], l2: [0, -40], l3: [40, -40], t1: [-40, 40], t2: [0, 40], t3: [40, 40] },
+    nums: { l1: '1', l2: '3', l3: '5', t1: '2', t2: '4', t3: '6' }, box: [-86, -44, 142, 88], inter: 'toggle', act: actToggle, tagAt: [52, 4],
+    pairs: act => act ? [] : [['l1', 't1'], ['l2', 't2'], ['l3', 't3']],
+    draw: (c, st) => no(-40, st.running && !st.act, false, true) + no(0, st.running && !st.act, false, true) + no(40, st.running && !st.act, false, true) + L(-46, 0, 34, 0, dash) + link(-46, -64) + opMagThermal(-64) },
+  disjuntor_motor: { name: 'Disjuntor-motor', cat: 'Proteção', pre: 'Q',
+    terms: { l1: [-40, -40], l2: [0, -40], l3: [40, -40], t1: [-40, 40], t2: [0, 40], t3: [40, 40] },
+    nums: { l1: '1', l2: '3', l3: '5', t1: '2', t2: '4', t3: '6' }, box: [-96, -44, 152, 88], inter: 'toggle', act: actToggle, tagAt: [52, 4],
+    pairs: act => act ? [] : [['l1', 't1'], ['l2', 't2'], ['l3', 't3']],
+    draw: (c, st) => no(-40, st.running && !st.act, false, true) + no(0, st.running && !st.act, false, true) + no(40, st.running && !st.act, false, true) + L(-46, 0, 34, 0, dash) +
+      link(-46, -58) + opThermal(-60) + `<rect x="-90" y="-9" width="16" height="18" fill="none"/>` + T(-82, 3, 'I&gt;', 'it sm') + L(-74, 0, -70, 0, dash) },
+  fusivel: { name: 'Fusível', cat: 'Proteção', pre: 'F', terms: P2, nums: { a: '1', b: '2' }, inter: 'toggle', act: actToggle, pairs: twoNC,
+    draw: (c, st) => fuse(0, st.act) },
+  fusiveis_3: { name: 'Conjunto de fusíveis (3)', cat: 'Proteção', pre: 'F',
+    terms: { l1: [-40, -40], l2: [0, -40], l3: [40, -40], t1: [-40, 40], t2: [0, 40], t3: [40, 40] },
+    nums: { l1: '1', l2: '3', l3: '5', t1: '2', t2: '4', t3: '6' }, box: [-56, -44, 112, 88], inter: 'toggle', act: actToggle, tagAt: [56, 4],
+    pairs: act => act ? [['l1', 't1'], ['l3', 't3']] : [['l1', 't1'], ['l2', 't2'], ['l3', 't3']],
+    draw: (c, st) => fuse(-40, false) + fuse(0, st.act) + fuse(40, false) + (st.act ? T(0, 58, 'F2 queimado', 'it sm warn') : '') },
+  rele_termico: { name: 'Relé térmico (força)', cat: 'Proteção', pre: 'FT',
+    terms: { l1: [-40, -40], l2: [0, -40], l3: [40, -40], t1: [-40, 40], t2: [0, 40], t3: [40, 40] },
+    nums: { l1: '1', l2: '3', l3: '5', t1: '2', t2: '4', t3: '6' }, box: [-72, -44, 128, 88], inter: 'trip', act: actTrip, tagAt: [52, 4],
+    pairs: () => [['l1', 't1'], ['l2', 't2'], ['l3', 't3']],
+    draw: (c, st) => [-40, 0, 40].map(x => L(x, -40, x, -12) + `<path d="M${x} -12 H${x - 8} V12 H${x}" fill="none"/>` + L(x, -12, x, -4) + L(x, 4, x, 12) + L(x, 12, x, 40)).join('') +
+      L(-48, 0, -50, 0) + link(-50, -56) + opThermal(-56) + (st.act ? T(0, 60, 'DISPARADO', 'it sm warn') : '') },
+  ft_nf: { name: 'Contato do relé térmico NF', cat: 'Proteção', pre: 'FT', terms: P2, nums: { a: '95', b: '96' }, inter: 'trip', act: actTrip, pairs: twoNC,
+    draw: (c, st) => nc(0, st.act) + link(-6, -22) + opThermal(-22) },
+  ft_na: { name: 'Contato do relé térmico NA', cat: 'Proteção', pre: 'FT', terms: P2, nums: { a: '97', b: '98' }, inter: 'trip', act: actTrip, pairs: two,
+    draw: (c, st) => no(0, st.act) + link(-6, -22) + opThermal(-22) },
+
+  // ---------------- Cargas e sinalização ----------------
+  sinaleiro: { name: 'Sinaleiro', cat: 'Cargas e sinalização', pre: 'H', terms: P2, nums: { a: 'X1', b: 'X2' }, loads: [['a', 'b', 'lamp']],
+    draw: (c, st) => L(0, -40, 0, -14) + L(0, 14, 0, 40) +
+      `<circle r="14" fill="${st.on ? (LAMP_COLORS[c.color] || LAMP_COLORS.verde) : 'none'}" ${st.on ? 'filter="url(#glow)"' : ''}/>` + L(-10, -10, 10, 10) + L(-10, 10, 10, -10) +
+      `<circle cx="-24" cy="-18" r="4" fill="${LAMP_COLORS[c.color] || LAMP_COLORS.verde}" stroke="none"/>` },
+  motor_3f: { name: 'Motor trifásico', cat: 'Cargas e sinalização', pre: 'M', terms: { u: [-40, -40], v: [0, -40], w: [40, -40], pe: [80, -40] },
+    nums: { u: 'U', v: 'V', w: 'W', pe: 'PE' }, box: [-56, -44, 152, 120], tagAt: [44, 30],
+    draw: (c, st) => L(-40, -40, -40, -10) + L(-40, -10, -18, 4) + L(0, -40, 0, -6) + L(40, -40, 40, -10) + L(40, -10, 18, 4) +
+      L(80, -40, 80, 30) + L(80, 30, 26, 30) + pe(80, -24) + motorBody(st) },
+  motor_6p: { name: 'Motor trifásico 6 pontas', cat: 'Cargas e sinalização', pre: 'M',
+    terms: { u1: [-60, -40], v1: [-40, -40], w1: [-20, -40], w2: [20, -40], u2: [40, -40], v2: [60, -40] },
+    nums: { u1: 'U1', v1: 'V1', w1: 'W1', w2: 'W2', u2: 'U2', v2: 'V2' }, box: [-74, -44, 148, 120], tagAt: [46, 40],
+    draw: (c, st) => [-60, -40, -20, 20, 40, 60].map(x => L(x, -40, x, -16) + L(x, -16, x * 0.35, -2)).join('') + motorBody(st) },
 };
-const CATS = ['Alimentação', 'Comando', 'Contatores e relés', 'Proteção', 'Sinalização'];
+function fuse(x, blown) {
+  return L(x, -40, x, -18) + L(x, 18, x, 40) + `<rect x="${x - 6}" y="-18" width="12" height="36" fill="${blown ? 'var(--live)' : 'none'}" fill-opacity=".25"/>` +
+    (blown ? L(x, -18, x, -6) + L(x, 6, x, 18) : L(x, -18, x, 18));
+}
+function pe(x, y) { return L(x - 8, y, x + 8, y) + L(x - 5, y + 4, x + 5, y + 4) + L(x - 2, y + 8, x + 2, y + 8); }
+function motorBody(st) {
+  const m = st.motor || {};
+  let s = `<circle cx="0" cy="26" r="26" fill="${m.run ? 'var(--gold-soft)' : 'none'}"/>` + T(0, 24, 'M', 'it big') + T(0, 40, '3~', 'it');
+  if (m.run) s += `<g class="spin ${m.dir === 'horário' ? 'cw' : 'ccw'}" style="transform-origin:0px 26px"><path d="M0 -6 A32 32 0 0 1 28 10" fill="none" stroke="var(--ok)" stroke-width="2.5"/><path d="M28 10 l-7 -1 l5 -5 z" fill="var(--ok)" stroke="none"/></g>`;
+  if (m.msg) s += T(0, 70, m.msg, `it sm ${m.run ? 'okt' : 'warn'}`);
+  return s;
+}
+const CATS = ['Alimentação', 'Comando', 'Contatores e relés', 'Proteção', 'Cargas e sinalização'];
+for (const T0 of Object.values(TYPES)) { T0.box = T0.box || BOX2; T0.tagAt = T0.tagAt || [22, 5]; }
 
 // ---------- State ----------
-let doc = null;          // { project, author, comps:[], wires:[] }
+let doc = null;
 let nextId = 1;
-const ui = { mode: 'select', placing: null, wireColor: WIRE_COLORS[0][0], sel: null, zoom: 1, px: 0, py: 0, wireStart: null, wirePts: [], cursor: null, openPanel: null };
+const ui = { mode: 'select', placing: null, wireColor: WIRE_COLORS[0][0], sel: null, zoom: 1, px: 0, py: 0, wireStart: null, wirePts: [], cursor: null };
 const hist = { stack: [], idx: -1 };
-const sim = { running: false, t: 0, pressed: new Set(), toggled: new Set(), tripped: new Set(), coils: {}, timerAcc: {}, timerDone: {}, loads: {}, rootsL: new Set(), rootsN: new Set(), uf: null, short: false, osc: false };
+const blankSim = () => ({ running: false, t: 0, pressed: new Set(), toggled: new Set(), tripped: new Set(), coils: {}, timerOn: {}, timerAcc: {}, timerDone: {}, lamps: {},
+  psu: {}, sr: {}, rff: {}, motors: {}, potOf: null, uf: null, short: null, osc: false });
+const sim = blankSim();
 
 const $ = s => document.querySelector(s);
 const world = $('#world'), svg = $('#cv');
@@ -298,10 +467,9 @@ function termPos(c, t) {
   return [c.x + Math.round(lx * Math.cos(r) - ly * Math.sin(r)), c.y + Math.round(lx * Math.sin(r) + ly * Math.cos(r))];
 }
 const compById = id => doc.comps.find(c => c.id === id);
-
 function wirePoints(w) {
   const ca = compById(w.a.c), cb = compById(w.b.c);
-  if (!ca || !cb) return null;
+  if (!ca || !cb || !TYPES[ca.type].terms[w.a.t] || !TYPES[cb.type].terms[w.b.t]) return null;
   const A = termPos(ca, w.a.t), B = termPos(cb, w.b.t);
   if (w.pts && w.pts.length) return [A, ...w.pts, B];
   if (A[0] === B[0] || A[1] === B[1]) return [A, B];
@@ -310,13 +478,13 @@ function wirePoints(w) {
 }
 
 // ---------- History & persistence ----------
-function serialize() { return JSON.stringify({ app: PLATFORM, kind: 'comandos-eletricos', version: 1, project: doc.project, author: doc.author, comps: doc.comps, wires: doc.wires }); }
+function serialize() { return JSON.stringify({ app: PLATFORM, kind: 'comandos-eletricos', version: 2, project: doc.project, author: doc.author, comps: doc.comps, wires: doc.wires }); }
+function saveLocal() { try { localStorage.setItem('voltacademy.ce.doc', serialize()); } catch (e) {} }
 function commit() {
   hist.stack = hist.stack.slice(0, hist.idx + 1);
   hist.stack.push(serialize()); hist.idx = hist.stack.length - 1;
   if (hist.stack.length > 120) { hist.stack.shift(); hist.idx--; }
-  try { localStorage.setItem('voltacademy.ce.doc', serialize()); } catch (e) {}
-  updateButtons();
+  saveLocal(); updateButtons();
 }
 function load(json, { keepHistory = false } = {}) {
   const d = typeof json === 'string' ? JSON.parse(json) : json;
@@ -329,107 +497,183 @@ function load(json, { keepHistory = false } = {}) {
 }
 function undo() { if (hist.idx > 0) { hist.idx--; load(hist.stack[hist.idx], { keepHistory: true }); saveLocal(); render(); } }
 function redo() { if (hist.idx < hist.stack.length - 1) { hist.idx++; load(hist.stack[hist.idx], { keepHistory: true }); saveLocal(); render(); } }
-function saveLocal() { try { localStorage.setItem('voltacademy.ce.doc', serialize()); } catch (e) {} }
 
+function lastTag(types, fallback) { const k = doc.comps.filter(c => types.includes(c.type)).map(c => c.tag); return k[k.length - 1] || fallback; }
 function nextTag(type) {
-  const p = TYPES[type].pre; if (TYPES[type].notag) return '';
-  if (TYPES[type].ref === 'coil') { const k = doc.comps.filter(c => c.type === 'bobina').map(c => c.tag); return k[k.length - 1] || 'K1'; }
-  if (TYPES[type].ref === 'timer') { const k = doc.comps.filter(c => c.type === 'temporizador').map(c => c.tag); return k[k.length - 1] || 'KT1'; }
-  if (type === 'ft_na' || type === 'ft_nf') { const k = doc.comps.filter(c => c.type === 'ft_nf' || c.type === 'ft_na').map(c => c.tag); return k[0] || 'FT1'; }
+  const T0 = TYPES[type]; if (T0.notag) return '';
+  if (T0.ref === 'coil') return lastTag(['bobina'], 'K1');
+  if (T0.ref === 'timer') return lastTag(['temporizador'], 'KT1');
+  if (['ft_na', 'ft_nf', 'rele_termico'].includes(type)) return lastTag(['rele_termico', 'ft_nf', 'ft_na'], 'FT1');
+  if (type === 'cabo_in') return lastTag(['cabo_out'], 'W1');
   let n = 1; const used = new Set(doc.comps.map(c => c.tag));
-  while (used.has(p + n)) n++; return p + n;
+  while (used.has(T0.pre + n)) n++; return T0.pre + n;
 }
 function addComp(type, x, y, extra = {}) {
   const c = { id: uid('c'), type, x: snap(x), y: snap(y), rot: 0, tag: nextTag(type), ...extra };
   if (type === 'sinaleiro' && !c.color) c.color = 'verde';
   if (type === 'temporizador' && !c.preset) c.preset = 3;
+  if (type === 'fase' && !c.phase) c.phase = 'L1';
   doc.comps.push(c); return c;
 }
 function addWire(a, b, color, pts = []) { const w = { id: uid('w'), a, b, color: color || ui.wireColor, pts }; doc.wires.push(w); return w; }
 
-// ---------- Simulation ----------
+// =====================================================================
+// Simulation: nodal connectivity (union-find) + potentials
+// =====================================================================
+const norm = p => p === 'PE' ? 'N' : p;
+const sys = p => (p === '+24' || p === '0V') ? 'DC' : 'AC';
+const isPhase = p => PHASES.includes(p);
+const voltage = (p, q) => !!(p && q && norm(p) !== norm(q) && sys(p) === sys(q));
 function solve() {
   const parent = new Map();
   const f = k => { if (!parent.has(k)) parent.set(k, k); let r = k; while (parent.get(r) !== r) r = parent.get(r); let n = k; while (parent.get(n) !== r) { const nx = parent.get(n); parent.set(n, r); n = nx; } return r; };
   const u = (a, b) => { const ra = f(a), rb = f(b); if (ra !== rb) parent.set(ra, rb); };
   const key = (c, t) => c + ':' + t;
-  let coils = { ...sim.coils };
-  let iter = 0, stable = false, timerOn = {};
-  const lampOn = {};
-  for (; iter < 40 && !stable; iter++) {
+  let state = { coils: { ...sim.coils }, psu: { ...sim.psu }, sr: { ...sim.sr }, rff: { ...sim.rff } };
+  let srPowerById = {};
+  let stable = false, short = null, potOf = () => undefined, timerOn = {}, lamps = {}, rootPot = new Map();
+  for (let iter = 0; iter < 40 && !stable; iter++) {
     parent.clear();
-    for (const w of doc.wires) if (compById(w.a.c) && compById(w.b.c)) u(key(w.a.c, w.a.t), key(w.b.c, w.b.t));
-    const st = { ...sim, coils };
-    for (const c of doc.comps) { const T = TYPES[c.type]; if (T.closed && T.closed(c, st)) u(key(c.id, 'a'), key(c.id, 'b')); }
-    const rl = new Set(doc.comps.filter(c => c.type === 'fase').map(c => f(key(c.id, 'a'))));
-    const rn = new Set(doc.comps.filter(c => c.type === 'neutro').map(c => f(key(c.id, 'a'))));
-    sim.short = [...rl].some(r => rn.has(r));
-    sim.rootsL = rl; sim.rootsN = rn; sim.uf = f;
-    if (sim.short) { coils = {}; timerOn = {}; break; }
-    const next = {}; timerOn = {};
+    for (const w of doc.wires) { const ca = compById(w.a.c), cb = compById(w.b.c); if (ca && cb) u(key(w.a.c, w.a.t), key(w.b.c, w.b.t)); }
+    // sheet references: same tag links the same terminals
+    const groups = {};
+    for (const c of doc.comps) { const g = TYPES[c.type].linkGroup; if (g && c.tag) (groups[g + '|' + c.tag] = groups[g + '|' + c.tag] || []).push(c); }
+    for (const list of Object.values(groups)) for (let i = 1; i < list.length; i++) for (const t of Object.keys(TYPES[list[i].type].terms)) if (TYPES[list[0].type].terms[t]) u(key(list[0].id, t), key(list[i].id, t));
+    const ctx = { ...sim, ...state };
     for (const c of doc.comps) {
-      const T = TYPES[c.type]; if (!T.load) continue;
-      const ra = f(key(c.id, 'a')), rb = f(key(c.id, 'b'));
-      const on = (rl.has(ra) && rn.has(rb)) || (rl.has(rb) && rn.has(ra));
-      if (T.load === 'coil') next[c.tag] = next[c.tag] || on;
-      if (T.load === 'timer') timerOn[c.tag] = timerOn[c.tag] || on;
-      if (T.load === 'lamp') lampOn[c.id] = on;
+      const T0 = TYPES[c.type]; if (!T0.pairs) continue;
+      const act = T0.act ? T0.act(c, ctx) : false;
+      for (const [a, b] of T0.pairs(act, c, ctx)) u(key(c.id, a), key(c.id, b));
     }
-    stable = Object.keys({ ...next, ...coils }).every(k => !!next[k] === !!coils[k]);
-    coils = next;
+    rootPot = new Map(); short = null;
+    for (const c of doc.comps) {
+      const T0 = TYPES[c.type]; if (!T0.src) continue;
+      for (const [t, p] of Object.entries(T0.src(c, ctx))) {
+        const r = f(key(c.id, t)), q = norm(p), had = rootPot.get(r);
+        if (had && had !== q) short = short || [had, q];
+        else rootPot.set(r, q);
+      }
+    }
+    if (short) { state = { coils: {}, psu: {}, sr: {}, rff: {} }; timerOn = {}; lamps = {}; break; }
+    potOf = (cid, t) => rootPot.get(f(key(cid, t)));
+    const next = { coils: {}, psu: {}, sr: {}, rff: {} }; timerOn = {}; lamps = {};
+    const srPower = {};
+    srPowerById = {};
+    for (const c of doc.comps) {
+      const T0 = TYPES[c.type];
+      for (const [a, b, kind] of (T0.loads || [])) {
+        const on = voltage(potOf(c.id, a), potOf(c.id, b));
+        if (kind === 'coil') next.coils[c.tag] = next.coils[c.tag] || on;
+        if (kind === 'timer') timerOn[c.tag] = timerOn[c.tag] || on;
+        if (kind === 'lamp') lamps[c.id] = on;
+        if (kind === 'psu') next.psu[c.id] = on;
+        if (kind === 'sr') srPower[c.tag] = on;
+      }
+      if (c.type === 'rff') {
+        const ps = ['l1', 'l2', 'l3'].map(t => potOf(c.id, t));
+        next.rff[c.id] = ps.every(isPhase) && new Set(ps).size === 3;
+      }
+    }
+    for (const c of doc.comps) if (c.type === 'rele_seguranca') {
+      const inOk = f(key(c.id, 's11')) === f(key(c.id, 's12'));
+      const reset = f(key(c.id, 's33')) === f(key(c.id, 's34'));
+      next.sr[c.tag] = !!srPower[c.tag] && inOk && (!!sim.sr[c.tag] || reset);
+      srPowerById[c.id] = !!srPower[c.tag];
+    }
+    stable = JSON.stringify(next) === JSON.stringify(state);
+    state = next;
   }
-  sim.osc = !stable && !sim.short;
-  sim.coils = coils; sim.timerOn = timerOn; sim.lamps = lampOn;
+  sim.osc = !stable && !short;
+  sim.short = short;
+  Object.assign(sim, state, { timerOn, lamps, srPowerById, uf: f, rootPot, potOf: short ? () => undefined : potOf });
+  // motors
+  sim.motors = {};
+  if (!short) for (const c of doc.comps) {
+    if (c.type === 'motor_3f') sim.motors[c.id] = evalMotor3(['u', 'v', 'w'].map(t => potOf(c.id, t)));
+    if (c.type === 'motor_6p') sim.motors[c.id] = evalMotor6(c, potOf, t => f(key(c.id, t)), rootPot);
+  }
+}
+function direction(ps) { const i = ps.map(p => PHASES.indexOf(p)); return ((i[1] - i[0] + 3) % 3 === 1 && (i[2] - i[1] + 3) % 3 === 1) ? 'horário' : 'anti-horário'; }
+function evalMotor3(ps) {
+  const ph = ps.filter(isPhase);
+  if (ph.length === 3 && new Set(ph).size === 3) { const dir = direction(ps); return { run: true, dir, msg: `Girando · ${dir}` }; }
+  if (ph.length) return { run: false, msg: 'Falta de fase' };
+  return { run: false };
+}
+function evalMotor6(c, potOf, rootOf, rootPot) {
+  const P = t => potOf(c.id, t);
+  const outer = ['u1', 'v1', 'w1'].map(P), inner = ['u2', 'v2', 'w2'].map(P);
+  const any = [...outer, ...inner].some(isPhase);
+  if (!any) return { run: false };
+  const three = ps => ps.every(isPhase) && new Set(ps).size === 3;
+  if (three(outer)) {
+    const ir = ['u2', 'v2', 'w2'].map(rootOf);
+    if (ir[0] === ir[1] && ir[1] === ir[2] && !isPhase(rootPot.get(ir[0]))) { const dir = direction(outer); return { run: true, dir, conn: 'estrela', msg: `Estrela (Y) · ${dir}` }; }
+    if ([0, 1, 2].every(i => isPhase(inner[i]) && inner[i] !== outer[i])) { const dir = direction(outer); return { run: true, dir, conn: 'triângulo', msg: `Triângulo (Δ) · ${dir}` }; }
+  }
+  return { run: false, msg: three(outer) ? 'Ligação incompleta' : 'Falta de fase' };
 }
 let lastTs = 0, raf = 0;
 function tick(ts) {
   if (!sim.running) return;
   const dt = lastTs ? Math.min(0.1, (ts - lastTs) / 1000) : 0; lastTs = ts;
   sim.t += dt;
-  const before = JSON.stringify(sim.timerDone);
+  let changed = false;
   for (const c of doc.comps) if (c.type === 'temporizador') {
-    const on = sim.timerOn && sim.timerOn[c.tag];
-    sim.timerAcc[c.tag] = on ? (sim.timerAcc[c.tag] || 0) + dt : 0;
-    sim.timerDone[c.tag] = on && sim.timerAcc[c.tag] >= (+c.preset || 0);
+    const on = !!sim.timerOn[c.tag];
+    const acc = on ? (sim.timerAcc[c.tag] || 0) + dt : 0;
+    sim.timerAcc[c.tag] = acc;
+    const done = on && acc >= (+c.preset || 0);
+    if (done !== !!sim.timerDone[c.tag]) { sim.timerDone[c.tag] = done; changed = true; }
+    if (on) changed = changed || !done;
   }
-  if (JSON.stringify(sim.timerDone) !== before || doc.comps.some(c => c.type === 'temporizador' && sim.timerOn && sim.timerOn[c.tag])) { solve(); render(); }
+  if (changed) { solve(); render(); }
   $('#clock').textContent = fmtTime(sim.t);
-  if (sim.short) { stopSim('Curto-circuito: a fase está ligada direto ao neutro, sem carga no caminho. Confira a fiação e simule de novo.'); return; }
+  if (sim.short) { stopSim(shortMsg()); return; }
   raf = requestAnimationFrame(tick);
 }
+function shortMsg() { const [a, b] = sim.short || []; return `Curto-circuito entre ${a} e ${b}: dois potenciais diferentes ficaram ligados sem carga no caminho. Confira a fiação e simule de novo.`; }
 function fmtTime(t) { const m = Math.floor(t / 60), s = t - m * 60; return String(m).padStart(2, '0') + ':' + s.toFixed(1).padStart(4, '0'); }
 function startSim() {
-  Object.assign(sim, { running: true, t: 0, pressed: new Set(), toggled: new Set(), tripped: new Set(), coils: {}, timerAcc: {}, timerDone: {}, short: false, osc: false });
+  Object.assign(sim, blankSim(), { running: true });
   ui.wireStart = null; ui.wirePts = []; ui.placing = null;
   showBanner(null); solve();
-  if (sim.short) { stopSim('Curto-circuito: a fase está ligada direto ao neutro, sem carga no caminho. Confira a fiação e simule de novo.'); return; }
+  if (sim.short) { stopSim(shortMsg()); return; }
   lastTs = 0; raf = requestAnimationFrame(tick); render();
 }
 function stopSim(msg) {
-  sim.running = false; cancelAnimationFrame(raf);
-  sim.coils = {}; sim.timerDone = {}; sim.timerOn = {}; sim.lamps = {}; sim.pressed.clear();
+  cancelAnimationFrame(raf);
+  Object.assign(sim, blankSim());
   showBanner(msg || null); render();
 }
 function showBanner(msg) { const b = $('#banner'); b.hidden = !msg; b.textContent = msg || ''; }
+function interact(c) {
+  const T0 = TYPES[c.type];
+  if (T0.inter === 'toggle') sim.toggled.has(c.id) ? sim.toggled.delete(c.id) : sim.toggled.add(c.id);
+  else if (T0.inter === 'trip') sim.tripped.has(c.tag) ? sim.tripped.delete(c.tag) : sim.tripped.add(c.tag);
+  solve(); render();
+  if (sim.short) stopSim(shortMsg());
+}
 
 // ---------- Rendering ----------
+const EMPTY = { pressed: new Set(), toggled: new Set(), tripped: new Set(), coils: {}, timerDone: {}, sr: {}, rff: {}, psu: {} };
 function compState(c) {
-  const T = TYPES[c.type];
-  const st = {};
+  const T0 = TYPES[c.type], s = sim.running ? sim : EMPTY, st = { running: sim.running };
+  st.act = T0.act ? T0.act(c, s) : false;
   if (sim.running) {
-    if (T.closed) st.closed = T.closed(c, sim);
-    if (T.load === 'coil') st.on = !!sim.coils[c.tag];
-    if (T.load === 'timer') { st.on = !!(sim.timerOn && sim.timerOn[c.tag]); st.progress = Math.min(1, (sim.timerAcc[c.tag] || 0) / Math.max(0.1, +c.preset || 0.1)); }
-    if (T.load === 'lamp') st.on = !!(sim.lamps && sim.lamps[c.id]);
-  } else if (T.closed) {
-    st.closed = T.closed(c, { pressed: new Set(), toggled: new Set(), tripped: new Set(), coils: {}, timerDone: {} });
+    if (T0.loads) {
+      const k = T0.loads[0][2];
+      st.on = k === 'coil' ? !!sim.coils[c.tag] : k === 'timer' ? !!sim.timerOn[c.tag] : k === 'lamp' ? !!sim.lamps[c.id] : k === 'psu' ? !!sim.psu[c.id] : k === 'sr' ? !!(sim.srPowerById && sim.srPowerById[c.id]) : false;
+    }
+    if (c.type === 'temporizador') st.progress = Math.min(1, (sim.timerAcc[c.tag] || 0) / Math.max(0.1, +c.preset || 0.1));
+    if (sim.motors[c.id]) st.motor = sim.motors[c.id];
   }
   return st;
 }
-function netClass(c, t) {
-  if (!sim.running || !sim.uf) return '';
-  const r = sim.uf(c + ':' + t);
-  return sim.rootsL.has(r) ? 'live' : sim.rootsN.has(r) ? 'neu' : '';
+function netClass(cid, t) {
+  if (!sim.running || !sim.uf || sim.short) return '';
+  const p = sim.rootPot.get(sim.uf(cid + ':' + t));
+  return isPhase(p) ? 'live' : p === 'N' ? 'neu' : p === '+24' ? 'dcp' : p === '0V' ? 'dcn' : '';
 }
 function renderSheet() {
   const cols = 12, rows = 6, x0 = 40, y0 = 40, x1 = SHEET.w - 20, y1 = SHEET.h - 20;
@@ -451,78 +695,81 @@ function renderSheet() {
     <text x="${bx + 410}" y="${by + bh / 2 + 16}" class="sk">FOLHA</text><text x="${bx + 410}" y="${by + bh / 2 + 34}" class="sv">1/1</text></g>`;
   return s;
 }
+function symbolSVG(c, st) {
+  const T0 = TYPES[c.type];
+  let s = `<g class="sym">${T0.draw(c, st)}</g>`;
+  for (const [t, [x, y]] of Object.entries(T0.terms)) {
+    const n = T0.nums[t]; if (!n) continue;
+    s += `<text x="${x + 5}" y="${y < 0 ? y + 12 : y - 4}" class="num">${n}</text>`;
+  }
+  return s;
+}
 function render() {
-  const z = ui.zoom;
-  let s = `<g transform="translate(${ui.px} ${ui.py}) scale(${z})"><g id="bgHit">${renderSheet()}</g>`;
-  // wires
-  s += '<g class="wires">';
+  let s = `<g transform="translate(${ui.px} ${ui.py}) scale(${ui.zoom})"><g id="bgHit">${renderSheet()}</g><g class="wires">`;
   for (const w of doc.wires) {
     const P = wirePoints(w); if (!P) continue;
     const d = 'M' + P.map(p => p.join(' ')).join(' L');
-    const nc = netClass(w.a.c, w.a.t);
+    const nc0 = netClass(w.a.c, w.a.t);
     const selw = ui.sel && ui.sel.kind === 'wire' && ui.sel.id === w.id;
     s += `<path d="${d}" class="whit" data-wire="${w.id}"/>`;
-    if (nc) s += `<path d="${d}" class="wglow ${nc}"/>`;
+    if (nc0) s += `<path d="${d}" class="wglow ${nc0}"/>`;
     s += `<path d="${d}" class="w${selw ? ' wsel' : ''}" stroke="${w.color}" data-wire="${w.id}"/>`;
   }
   s += '</g>';
-  // components
   for (const c of doc.comps) {
-    const T = TYPES[c.type], st = compState(c);
+    const T0 = TYPES[c.type], st = compState(c);
     const sel = ui.sel && ui.sel.kind === 'comp' && ui.sel.id === c.id;
-    const live = sim.running && (T.inter) ? ' inter' : '';
-    s += `<g class="comp${sel ? ' sel' : ''}${live}" data-comp="${c.id}" transform="translate(${c.x} ${c.y}) rotate(${c.rot || 0})">`;
-    s += `<rect class="chit" x="-34" y="-44" width="68" height="88" rx="6"/>`;
-    s += `<g class="sym">${T.draw(c, st)}</g>`;
-    if (!T.notag && c.type !== 'fase' && c.type !== 'neutro') s += `<text x="22" y="5" class="tag">${esc(c.tag)}</text>`;
+    const inter = sim.running && T0.inter ? ' inter' : '';
+    const [bx, by, bw, bh] = T0.box;
+    s += `<g class="comp${sel ? ' sel' : ''}${inter}" data-comp="${c.id}" transform="translate(${c.x} ${c.y}) rotate(${c.rot || 0})">`;
+    s += `<rect class="chit" x="${bx}" y="${by}" width="${bw}" height="${bh}" rx="6"/>`;
+    s += symbolSVG(c, st);
+    if (!T0.notag) s += `<text x="${T0.tagAt[0]}" y="${T0.tagAt[1]}" class="tag">${esc(c.tag)}</text>`;
     if (c.type === 'temporizador') s += `<text x="22" y="20" class="num">${(+c.preset || 0).toFixed(1)} s</text>`;
-    const tn = Object.keys(T.terms);
-    tn.forEach((t, i) => { const [x, y] = T.terms[t]; if (T.nums[i] && tn.length > 1) s += `<text x="7" y="${y < 0 ? y + 14 : y - 6}" class="num">${T.nums[i]}</text>`; });
-    for (const t of tn) { const [x, y] = T.terms[t]; s += `<circle class="term ${netClass(c.id, t)}" cx="${x}" cy="${y}" r="4" data-term="${c.id}|${t}"/>`; }
+    for (const [t, [x, y]] of Object.entries(T0.terms)) s += `<circle class="term ${netClass(c.id, t)}" cx="${x}" cy="${y}" r="4" data-term="${c.id}|${t}"/>`;
     s += '</g>';
   }
-  // wire preview
   if (ui.wireStart && ui.cursor) {
-    const c = compById(ui.wireStart.c); if (c) {
-      const P = [termPos(c, ui.wireStart.t), ...ui.wirePts, ui.cursor];
-      s += `<path d="M${P.map(p => p.join(' ')).join(' L')}" class="wprev" stroke="${ui.wireColor}"/>`;
-    }
+    const c = compById(ui.wireStart.c);
+    if (c) { const P = [termPos(c, ui.wireStart.t), ...ui.wirePts, ui.cursor]; s += `<path d="M${P.map(p => p.join(' ')).join(' L')}" class="wprev" stroke="${ui.wireColor}"/>`; }
   }
-  if (ui.placing && ui.cursor) {
-    const T = TYPES[ui.placing];
-    s += `<g class="ghost" transform="translate(${snap(ui.cursor[0])} ${snap(ui.cursor[1])})"><g class="sym">${T.draw({ color: 'verde' }, { closed: false })}</g></g>`;
-  }
+  if (ui.placing && ui.cursor) s += `<g class="ghost" transform="translate(${snap(ui.cursor[0])} ${snap(ui.cursor[1])})">${symbolSVG({ type: ui.placing, color: 'verde', tag: '' }, {})}</g>`;
   s += '</g>';
   world.innerHTML = s;
-  $('#zoomv').textContent = Math.round(z * 100) + '%';
+  $('#zoomv').textContent = Math.round(ui.zoom * 100) + '%';
   renderStatus(); renderInspector(); updateHint(); updateButtons();
 }
 
 function renderStatus() {
   const coilTags = [...new Set(doc.comps.filter(c => c.type === 'bobina').map(c => c.tag))];
   const timers = doc.comps.filter(c => c.type === 'temporizador');
+  const motors = doc.comps.filter(c => c.type.startsWith('motor'));
   const warns = problems();
   let h = `<span class="muted">${sim.running ? 'Simulando' : 'Edição'}</span>`;
   h += coilTags.map(t => `<span class="chip${sim.coils[t] ? ' on' : ''}"><span class="dot"></span>${esc(t)}</span>`).join('');
   h += timers.map(c => `<span class="chip${sim.timerDone[c.tag] ? ' on' : ''}"><span class="dot"></span>${esc(c.tag)} ${sim.running ? Math.min(+c.preset, sim.timerAcc[c.tag] || 0).toFixed(1) : '0.0'}/${(+c.preset).toFixed(1)} s</span>`).join('');
+  h += motors.map(c => { const m = sim.motors[c.id] || {}; return `<span class="chip${m.run ? ' on' : m.msg ? ' warn' : ''}"><span class="dot"></span>${esc(c.tag)} ${esc(m.msg || 'parado')}</span>`; }).join('');
   if (sim.osc) h += `<span class="chip warn">Circuito oscilando: confira os contatos de selo e intertravamento</span>`;
-  if (warns.length) h += `<span class="chip warn" title="${esc(warns.join(' · '))}">${warns.length} aviso${warns.length > 1 ? 's' : ''} na lista de tags</span>`;
+  if (warns.length) h += `<span class="chip warn" title="${esc(warns.join(' · '))}">${warns.length} aviso${warns.length > 1 ? 's' : ''} no projeto</span>`;
   h += `<span class="muted" style="margin-left:auto">${doc.comps.length} componentes · ${doc.wires.length} fios</span>`;
   $('#status').innerHTML = h;
 }
 function problems() {
   const out = [];
-  const coils = new Set(doc.comps.filter(c => c.type === 'bobina').map(c => c.tag));
-  const timers = new Set(doc.comps.filter(c => c.type === 'temporizador').map(c => c.tag));
+  const tagsOf = types => new Set(doc.comps.filter(c => types.includes(c.type)).map(c => c.tag));
+  const coils = tagsOf(['bobina']), timers = tagsOf(['temporizador']);
+  const outs = tagsOf(['cabo_out']), ins = tagsOf(['cabo_in']);
   for (const c of doc.comps) {
-    const T = TYPES[c.type];
-    if (T.ref === 'coil' && !coils.has(c.tag)) out.push(`${c.tag}: contato sem bobina com essa tag`);
-    if (T.ref === 'timer' && !timers.has(c.tag)) out.push(`${c.tag}: contato sem bobina temporizada com essa tag`);
-    const linked = Object.keys(T.terms).some(t => doc.wires.some(w => (w.a.c === c.id && w.a.t === t) || (w.b.c === c.id && w.b.t === t)));
-    if (!linked) out.push(`${c.tag || T.name}: sem nenhuma ligação`);
+    const T0 = TYPES[c.type];
+    if (T0.ref === 'coil' && !coils.has(c.tag)) out.push(`${c.tag}: contato sem bobina com essa tag`);
+    if (T0.ref === 'timer' && !timers.has(c.tag)) out.push(`${c.tag}: contato sem bobina temporizada com essa tag`);
+    if (c.type === 'cabo_in' && !outs.has(c.tag)) out.push(`${c.tag}: segmento IN sem um OUT com a mesma tag`);
+    if (c.type === 'cabo_out' && !ins.has(c.tag)) out.push(`${c.tag}: segmento OUT sem um IN com a mesma tag`);
+    if (c.type === 'juncao' || T0.linkGroup) continue;
+    const linked = Object.keys(T0.terms).some(t => doc.wires.some(w => (w.a.c === c.id && w.a.t === t) || (w.b.c === c.id && w.b.t === t)));
+    if (!linked) out.push(`${c.tag || T0.name}: sem nenhuma ligação`);
   }
-  if (!doc.comps.some(c => c.type === 'fase')) out.push('Falta a alimentação: insira a Fase (L)');
-  if (!doc.comps.some(c => c.type === 'neutro')) out.push('Falta o retorno: insira o Neutro (N)');
+  if (!doc.comps.some(c => TYPES[c.type].src && c.type !== 'fonte_24')) out.push('Falta alimentação: insira Fase (L) e Neutro (N) ou a fonte trifásica');
   return out;
 }
 
@@ -531,18 +778,22 @@ function renderInspector() {
   let h = '';
   if (ui.sel && ui.sel.kind === 'comp') {
     const c = compById(ui.sel.id); if (!c) { ui.sel = null; return renderInspector(); }
-    const T = TYPES[c.type];
-    h += `<div><p class="h">Componente</p><p class="title-lg">${esc(T.name)}</p></div>`;
-    if (!T.notag && c.type !== 'fase' && c.type !== 'neutro') h += `<div class="field"><label for="fTag">Tag ${T.ref ? '(igual à da bobina que comanda este contato)' : ''}</label><input id="fTag" class="mono" value="${esc(c.tag)}" ${sim.running ? 'disabled' : ''}></div>`;
-    if (c.type === 'sinaleiro') h += `<div class="field"><label for="fColor">Cor do sinaleiro</label><select id="fColor" ${sim.running ? 'disabled' : ''}>${Object.keys(LAMP_COLORS).map(k => `<option value="${k}" ${c.color === k ? 'selected' : ''}>${k[0].toUpperCase() + k.slice(1)}</option>`).join('')}</select></div>`;
-    if (c.type === 'temporizador') h += `<div class="field"><label for="fPreset">Tempo de retardo (segundos)</label><input id="fPreset" type="number" min="0.1" max="600" step="0.1" value="${+c.preset}" ${sim.running ? 'disabled' : ''}></div>`;
-    if (T.nums.length > 1) h += `<div class="field"><label>Bornes</label><div class="mono">${T.nums.join(' — ')}</div></div>`;
+    const T0 = TYPES[c.type], dis = sim.running ? 'disabled' : '';
+    h += `<div><p class="h">Componente</p><p class="title-lg">${esc(T0.name)}</p></div>`;
+    if (!T0.notag) h += `<div class="field"><label for="fTag">Tag ${T0.ref ? '(igual à da bobina que comanda este contato)' : T0.linkGroup ? '(igual à da outra ponta da ligação)' : ''}</label><input id="fTag" class="mono" value="${esc(c.tag)}" ${dis}></div>`;
+    if (c.type === 'fase') h += `<div class="field"><label for="fPhase">Fase</label><select id="fPhase" ${dis}>${PHASES.map(p => `<option ${c.phase === p ? 'selected' : ''}>${p}</option>`).join('')}</select></div>`;
+    if (c.type === 'sinaleiro') h += `<div class="field"><label for="fColor">Cor do sinaleiro</label><select id="fColor" ${dis}>${Object.keys(LAMP_COLORS).map(k => `<option value="${k}" ${c.color === k ? 'selected' : ''}>${k[0].toUpperCase() + k.slice(1)}</option>`).join('')}</select></div>`;
+    if (c.type === 'temporizador') h += `<div class="field"><label for="fPreset">Tempo de retardo (segundos)</label><input id="fPreset" type="number" min="0.1" max="600" step="0.1" value="${+c.preset}" ${dis}></div>`;
+    const nums = Object.values(T0.nums).filter(Boolean);
+    if (nums.length > 1) h += `<div class="field"><label>Bornes</label><div class="mono">${nums.join(' · ')}</div></div>`;
+    if (sim.motors[c.id]) h += `<div class="card"><p class="h">Estado do motor</p><p style="margin:0">${esc(sim.motors[c.id].msg || 'Parado')}</p></div>`;
     if (!sim.running) h += `<div class="row"><button class="btn" id="aRot">Girar 90°</button><button class="btn" id="aDup">Duplicar</button><button class="btn danger" id="aDel">Excluir</button></div>`;
-    else if (T.inter) h += `<p class="muted">${T.inter === 'push' ? 'Mantenha pressionado no desenho para acionar.' : T.inter === 'trip' ? 'Clique no desenho para disparar ou rearmar o relé térmico.' : 'Clique no desenho para alternar.'}</p>`;
+    else if (T0.inter) h += `<p class="muted">${T0.inter === 'push' ? 'Mantenha pressionado no desenho para acionar.' : T0.inter === 'trip' ? 'Clique no desenho para disparar ou rearmar o relé térmico.' : 'Clique no desenho para alternar.'}</p>`;
   } else if (ui.sel && ui.sel.kind === 'wire') {
     const w = doc.wires.find(x => x.id === ui.sel.id); if (!w) { ui.sel = null; return renderInspector(); }
     const ca = compById(w.a.c), cb = compById(w.b.c);
-    h += `<div><p class="h">Fio</p><p class="title-lg">${esc(ca?.tag || ca?.type)} → ${esc(cb?.tag || cb?.type)}</p></div>`;
+    const lbl = (c, t) => `${c?.tag || TYPES[c?.type]?.name || '?'}${TYPES[c?.type]?.nums[t] ? ':' + TYPES[c.type].nums[t] : ''}`;
+    h += `<div><p class="h">Fio</p><p class="title-lg">${esc(lbl(ca, w.a.t))} → ${esc(lbl(cb, w.b.t))}</p></div>`;
     h += `<div class="field"><label>Cor</label><div class="swatches">${WIRE_COLORS.map(([col, n]) => `<button class="sw${w.color === col ? ' act' : ''}" data-wcol="${col}" title="${n}" aria-label="${n}" style="background:${col}"></button>`).join('')}</div></div>`;
     if (!sim.running) h += `<div class="row">${w.pts.length ? '<button class="btn" id="aAuto">Rota automática</button>' : ''}<button class="btn danger" id="aDelW">Excluir fio</button></div>`;
   } else {
@@ -550,15 +801,15 @@ function renderInspector() {
       <div class="field"><label for="fProj">Nome do projeto</label><input id="fProj" value="${esc(doc.project)}"></div>
       <div class="field"><label for="fAuth">Autor</label><input id="fAuth" value="${esc(doc.author)}" placeholder="Seu nome"></div>`;
     const tags = {};
-    for (const c of doc.comps) if (!TYPES[c.type].notag && c.type !== 'fase' && c.type !== 'neutro') (tags[c.tag] = tags[c.tag] || []).push(TYPES[c.type].name);
+    for (const c of doc.comps) if (!TYPES[c.type].notag) (tags[c.tag] = tags[c.tag] || []).push(TYPES[c.type].name);
     h += `<div><p class="h">Lista de tags</p><ul class="list">${Object.entries(tags).sort().map(([t, l]) => `<li><span class="mono">${esc(t)}</span><span class="muted" style="text-align:right">${l.length > 1 ? l.length + ' itens' : esc(l[0])}</span></li>`).join('') || '<li class="muted">Nenhum componente ainda.</li>'}</ul></div>`;
     const pr = problems();
     if (pr.length) h += `<div class="card"><p class="h" style="color:var(--warn)">Avisos</p><ul class="list">${pr.map(p => `<li>${esc(p)}</li>`).join('')}</ul></div>`;
     h += `<div class="card"><p class="h">Como usar</p><ul class="list help" style="font-size:12.5px">
       <li>Toque num componente da paleta e depois na folha para inserir.</li>
       <li>Ferramenta Fio: toque num borne, nos pontos de dobra (opcional) e no borne final.</li>
-      <li>Contatos usam a mesma tag da bobina (K1, KT1).</li>
-      <li>Em SIMULAR, segure os botões e toque nas chaves, sensores, disjuntores e no relé térmico.</li>
+      <li>Contatos usam a mesma tag da bobina (K1, KT1). Setas e segmentos de cabo com a mesma tag ficam ligados entre si.</li>
+      <li>Em SIMULAR, segure os botões e toque nas chaves, sensores, disjuntores, fusíveis, fonte e relé térmico.</li>
       <li><span class="kbd">R</span> gira · <span class="kbd">Del</span> exclui · <span class="kbd">Esc</span> cancela · <span class="kbd">Ctrl+Z</span> desfaz</li></ul></div>`;
   }
   el.innerHTML = h;
@@ -568,12 +819,12 @@ function bindInspector() {
   const on = (id, ev, fn) => { const e = document.getElementById(id); if (e) e.addEventListener(ev, fn); };
   const c = ui.sel && ui.sel.kind === 'comp' ? compById(ui.sel.id) : null;
   on('fTag', 'change', e => { const v = e.target.value.trim().toUpperCase().slice(0, 8); if (v) { c.tag = v; commit(); render(); } });
+  on('fPhase', 'change', e => { c.phase = e.target.value; commit(); render(); });
   on('fColor', 'change', e => { c.color = e.target.value; commit(); render(); });
   on('fPreset', 'change', e => { const v = Math.max(0.1, Math.min(600, +e.target.value || 1)); c.preset = Math.round(v * 10) / 10; commit(); render(); });
   on('aRot', 'click', () => { c.rot = ((c.rot || 0) + 90) % 360; commit(); render(); });
-  on('aDup', 'click', () => { const n = addComp(c.type, c.x + 80, c.y, { color: c.color, preset: c.preset, rot: c.rot }); if (TYPES[c.type].ref) n.tag = c.tag; ui.sel = { kind: 'comp', id: n.id }; commit(); render(); });
-  on('aDel', 'click', () => deleteSel());
-  on('aDelW', 'click', () => deleteSel());
+  on('aDup', 'click', () => { const n = addComp(c.type, c.x + 80, c.y, { color: c.color, preset: c.preset, rot: c.rot, phase: c.phase }); if (TYPES[c.type].ref || TYPES[c.type].linkGroup) n.tag = c.tag; ui.sel = { kind: 'comp', id: n.id }; commit(); render(); });
+  on('aDel', 'click', deleteSel); on('aDelW', 'click', deleteSel);
   on('aAuto', 'click', () => { const w = doc.wires.find(x => x.id === ui.sel.id); w.pts = []; commit(); render(); });
   on('fProj', 'change', e => { doc.project = e.target.value.slice(0, 60) || 'Projeto sem nome'; commit(); render(); });
   on('fAuth', 'change', e => { doc.author = e.target.value.slice(0, 60); commit(); render(); });
@@ -586,11 +837,11 @@ function deleteSel() {
   ui.sel = null; commit(); render();
 }
 function updateHint() {
-  let t = '';
-  if (sim.running) t = 'Simulação em andamento: segure os botões, toque em chaves, sensores, disjuntores e relé térmico. A edição fica bloqueada.';
+  let t;
+  if (sim.running) t = 'Simulação em andamento: segure os botões e toque em chaves, sensores, proteções e fonte. A edição fica bloqueada.';
   else if (ui.placing) t = `Toque na folha para inserir: ${TYPES[ui.placing].name}. Esc cancela.`;
   else if (ui.mode === 'wire') t = ui.wireStart ? 'Toque nos pontos de dobra ou direto no borne de destino. Esc cancela.' : 'Toque num borne para começar o fio.';
-  else if (ui.mode === 'pan') t = 'Arraste para mover a folha. Use os botões ou a roda do mouse para o zoom.';
+  else if (ui.mode === 'pan') t = 'Arraste para mover a folha. Use os botões, a roda do mouse ou a pinça para o zoom.';
   else t = 'Arraste componentes para mover. Arraste o fundo para mover a folha.';
   $('#hint').textContent = t;
 }
@@ -607,9 +858,12 @@ function buildPalette() {
   $('#swatches').innerHTML = WIRE_COLORS.map(([c, n]) => `<button class="sw${c === ui.wireColor ? ' act' : ''}" data-color="${c}" title="Fio ${n}" aria-label="Fio ${n}" style="background:${c}"></button>`).join('');
   let h = '';
   for (const cat of CATS) {
-    const items = Object.entries(TYPES).filter(([, T]) => T.cat === cat);
-    h += `<p class="h" style="margin-top:4px">${cat}</p><div class="grid2">` + items.map(([k, T]) =>
-      `<button class="part" data-part="${k}" title="${T.name}"><svg viewBox="-46 -50 92 100"><g class="sym">${T.draw({ color: 'verde' }, { closed: false })}</g></svg>${T.name.replace(' (retardo na energização)', '')}</button>`).join('') + '</div>';
+    const items = Object.entries(TYPES).filter(([, T0]) => T0.cat === cat);
+    h += `<p class="h" style="margin-top:4px">${cat}</p><div class="grid2">` + items.map(([k, T0]) => {
+      const [bx, by, bw, bh] = T0.box, m = 6, side = Math.max(bw, bh) + 2 * m;
+      const vb = `${bx + bw / 2 - side / 2} ${by + bh / 2 - side / 2} ${side} ${side}`;
+      return `<button class="part" data-part="${k}" title="${T0.name}"><svg viewBox="${vb}"><g class="sym">${T0.draw({ color: 'verde' }, {})}</g></svg>${T0.name.replace(' (retardo na energização)', '')}</button>`;
+    }).join('') + '</div>';
   }
   $('#palette').innerHTML = h;
 }
@@ -622,6 +876,7 @@ function toWorld(ev) {
 }
 let drag = null;
 const touches = new Map(); let pinch = null;
+function orth(a, b) { return Math.abs(b[0] - a[0]) > Math.abs(b[1] - a[1]) ? [b[0], a[1]] : [a[0], b[1]]; }
 svg.addEventListener('pointerdown', ev => {
   touches.set(ev.pointerId, [ev.clientX, ev.clientY]);
   if (touches.size === 2) {
@@ -633,10 +888,9 @@ svg.addEventListener('pointerdown', ev => {
   const termEl = ev.target.closest('[data-term]'), compEl = ev.target.closest('[data-comp]'), wireEl = ev.target.closest('[data-wire]');
   if (sim.running) {
     if (compEl) {
-      const c = compById(compEl.dataset.comp), T = TYPES[c.type];
-      if (T.inter === 'push') { sim.pressed.add(c.id); solve(); render(); svg.setPointerCapture(ev.pointerId); drag = { kind: 'press' }; return; }
-      if (T.inter === 'toggle') { sim.toggled.has(c.id) ? sim.toggled.delete(c.id) : sim.toggled.add(c.id); solve(); render(); return; }
-      if (T.inter === 'trip') { sim.tripped.has(c.tag) ? sim.tripped.delete(c.tag) : sim.tripped.add(c.tag); solve(); render(); return; }
+      const c = compById(compEl.dataset.comp), T0 = TYPES[c.type];
+      if (T0.inter === 'push') { sim.pressed.add(c.id); solve(); render(); if (sim.short) { stopSim(shortMsg()); return; } svg.setPointerCapture(ev.pointerId); drag = { kind: 'press' }; return; }
+      if (T0.inter) { interact(c); return; }
       ui.sel = { kind: 'comp', id: c.id }; render(); return;
     }
     drag = { kind: 'pan', sx: ev.clientX, sy: ev.clientY, px: ui.px, py: ui.py }; svg.setPointerCapture(ev.pointerId); return;
@@ -651,11 +905,11 @@ svg.addEventListener('pointerdown', ev => {
       const [cid, t] = termEl.dataset.term.split('|');
       if (!ui.wireStart) { ui.wireStart = { c: cid, t }; ui.wirePts = []; ui.cursor = p; render(); return; }
       if (ui.wireStart.c === cid && ui.wireStart.t === t) { ui.wireStart = null; render(); return; }
-      const exists = doc.wires.some(w => (w.a.c === ui.wireStart.c && w.a.t === ui.wireStart.t && w.b.c === cid && w.b.t === t) || (w.b.c === ui.wireStart.c && w.b.t === ui.wireStart.t && w.a.c === cid && w.a.t === t));
-      if (!exists) { addWire(ui.wireStart, { c: cid, t }, ui.wireColor, ui.wirePts.map(q => [...q])); commit(); }
+      const same = w => (w.a.c === ui.wireStart.c && w.a.t === ui.wireStart.t && w.b.c === cid && w.b.t === t) || (w.b.c === ui.wireStart.c && w.b.t === ui.wireStart.t && w.a.c === cid && w.a.t === t);
+      if (!doc.wires.some(same)) { addWire(ui.wireStart, { c: cid, t }, ui.wireColor, ui.wirePts.map(q => [...q])); commit(); }
       ui.wireStart = null; ui.wirePts = []; render(); return;
     }
-    if (ui.wireStart) { const last = ui.wirePts.length ? ui.wirePts[ui.wirePts.length - 1] : termPos(compById(ui.wireStart.c), ui.wireStart.t); const q = orth(last, [snap(p[0]), snap(p[1])]); ui.wirePts.push(q); render(); return; }
+    if (ui.wireStart) { const last = ui.wirePts.length ? ui.wirePts[ui.wirePts.length - 1] : termPos(compById(ui.wireStart.c), ui.wireStart.t); ui.wirePts.push(orth(last, [snap(p[0]), snap(p[1])])); render(); return; }
   }
   if (ui.mode === 'select') {
     if (compEl) {
@@ -667,7 +921,6 @@ svg.addEventListener('pointerdown', ev => {
   }
   drag = { kind: 'pan', sx: ev.clientX, sy: ev.clientY, px: ui.px, py: ui.py }; svg.setPointerCapture(ev.pointerId);
 });
-function orth(a, b) { return Math.abs(b[0] - a[0]) > Math.abs(b[1] - a[1]) ? [b[0], a[1]] : [a[0], b[1]]; }
 svg.addEventListener('pointermove', ev => {
   if (touches.has(ev.pointerId)) touches.set(ev.pointerId, [ev.clientX, ev.clientY]);
   if (pinch && touches.size === 2) {
@@ -699,7 +952,7 @@ svg.addEventListener('pointerup', endDrag); svg.addEventListener('pointercancel'
 svg.addEventListener('wheel', ev => { ev.preventDefault(); zoomAt(ev.deltaY < 0 ? 1.12 : 1 / 1.12, ev.clientX, ev.clientY); }, { passive: false });
 function zoomAt(k, cx, cy) {
   const r = svg.getBoundingClientRect(); cx = cx ?? r.left + r.width / 2; cy = cy ?? r.top + r.height / 2;
-  const nz = Math.max(0.25, Math.min(3, ui.zoom * k)); const mx = cx - r.left, my = cy - r.top;
+  const nz = Math.max(0.2, Math.min(3, ui.zoom * k)); const mx = cx - r.left, my = cy - r.top;
   ui.px = mx - (mx - ui.px) * nz / ui.zoom; ui.py = my - (my - ui.py) * nz / ui.zoom; ui.zoom = nz; render();
 }
 function fit() {
@@ -739,11 +992,12 @@ document.addEventListener('keydown', ev => {
 function openModal(html) { $('#sheet').innerHTML = html; $('#modal').hidden = false; }
 function closeModal() { $('#modal').hidden = true; }
 $('#modal').addEventListener('click', ev => { if (ev.target.id === 'modal' || ev.target.closest('[data-close]')) closeModal(); });
+function loadKeepingHistory(src) { if (sim.running) stopSim(); const keep = hist.stack.slice(0, hist.idx + 1); load(src); hist.stack = keep.concat(hist.stack); hist.idx = hist.stack.length - 1; saveLocal(); closeModal(); fit(); }
 function openExamples() {
   openModal(`<div class="row" style="justify-content:space-between;align-items:center"><p class="title-lg">Circuitos de exemplo</p><button class="btn" data-close>Fechar</button></div>
   <p class="muted" style="margin:0">Carregue um circuito pronto, aperte SIMULAR e siga o roteiro. O exemplo substitui o desenho atual; use Desfazer para voltar.</p>
   <div class="ex">${EXAMPLES.map((e, i) => `<div class="card"><h4>${e.title}</h4><p>${e.text}</p><p><b>Teste:</b> ${e.test}</p><button class="btn pri" data-ex="${i}">Carregar exemplo</button></div>`).join('')}</div>`);
-  document.querySelectorAll('[data-ex]').forEach(b => b.addEventListener('click', () => { if (sim.running) stopSim(); const e = EXAMPLES[+b.dataset.ex]; const keep = hist.stack.slice(0, hist.idx + 1); load(e.build()); hist.stack = keep.concat(hist.stack); hist.idx = hist.stack.length - 1; saveLocal(); closeModal(); fit(); }));
+  document.querySelectorAll('[data-ex]').forEach(b => b.addEventListener('click', () => loadKeepingHistory(EXAMPLES[+b.dataset.ex].build())));
 }
 function openFile() {
   openModal(`<div class="row" style="justify-content:space-between;align-items:center"><p class="title-lg">Projeto</p><button class="btn" data-close>Fechar</button></div>
@@ -753,8 +1007,8 @@ function openFile() {
   <label class="btn" for="fFile">Abrir arquivo .json</label><input id="fFile" type="file" accept=".json,application/json" hidden><button class="btn danger" id="aNew">Nova folha em branco</button></div>
   <p id="fileMsg" class="muted" style="margin:0"></p>`);
   const msg = t => { $('#fileMsg').textContent = t; };
-  const tryLoad = txt => { try { if (sim.running) stopSim(); const keep = hist.stack.slice(0, hist.idx + 1); load(txt); hist.stack = keep.concat(hist.stack); hist.idx = hist.stack.length - 1; saveLocal(); closeModal(); fit(); } catch (e) { msg('Não foi possível abrir: ' + e.message); } };
-  $('#aCopy').addEventListener('click', () => { const ta = $('#fJson'); navigator.clipboard?.writeText(ta.value).then(() => msg('Código copiado.'), () => { ta.select(); msg('Selecionei o código: use Ctrl+C para copiar.'); }) ?? (ta.select(), msg('Selecionei o código: use Ctrl+C para copiar.')); });
+  const tryLoad = src => { try { loadKeepingHistory(src); } catch (e) { msg('Não foi possível abrir: ' + e.message); } };
+  $('#aCopy').addEventListener('click', () => { const ta = $('#fJson'); const sel = () => { ta.select(); msg('Selecionei o código: use Ctrl+C para copiar.'); }; if (navigator.clipboard) navigator.clipboard.writeText(ta.value).then(() => msg('Código copiado.'), sel); else sel(); });
   $('#aLoadTxt').addEventListener('click', () => tryLoad($('#fJson').value));
   $('#fFile').addEventListener('change', ev => { const f = ev.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = () => tryLoad(r.result); r.readAsText(f); });
   $('#aNew').addEventListener('click', () => tryLoad({ project: 'Novo projeto', author: doc.author, comps: [], wires: [] }));
@@ -763,27 +1017,39 @@ function openFile() {
 // ---------- Examples ----------
 function builder(project) {
   const d = { project, author: '', comps: [], wires: [] }; let n = 1;
-  const C = (type, x, y, tag, extra = {}) => { const c = { id: 'c' + (n++), type, x, y, rot: 0, tag, ...extra }; d.comps.push(c); return c; };
-  const W = (a, ta, b, tb, color = '#C0392B') => d.wires.push({ id: 'w' + (n++), a: { c: a.id, t: ta }, b: { c: b.id, t: tb }, color, pts: [] });
+  const C = (type, x, y, tag, extra = {}) => { const c = { id: 'c' + (n++), type, x, y, rot: 0, tag, ...extra }; if (type === 'fase') c.phase = c.phase || 'L1'; d.comps.push(c); return c; };
+  const W = (a, ta, b, tb, color = RED, pts = []) => d.wires.push({ id: 'w' + (n++), a: { c: a.id, t: ta }, b: { c: b.id, t: tb }, color, pts });
   return { d, C, W };
 }
-const RED = '#C0392B', BLUE = '#2D6BB0', BLACK = '#22231C';
+const RED = '#C0392B', BLUE = '#2D6BB0', BLACK = '#22231C', GREY = '#8E8A7A';
 const EXAMPLES = [
-  { title: 'Partida direta com selo', text: 'Liga e desliga um contator K1 por botões. O contato K1 em paralelo com S1 mantém a bobina ligada depois que você solta o botão (selo). H1 indica ligado e H2 indica falha no relé térmico.',
+  { title: 'Partida direta com selo', text: 'Liga e desliga o contator K1 por botões. O contato K1 em paralelo com S1 mantém a bobina ligada depois que você solta o botão (selo). H1 indica ligado e H2 indica falha no relé térmico.',
     test: 'Segure S1: K1 liga e continua ligado ao soltar. Segure S0 para desligar. Toque em FT1 para simular sobrecarga.',
     build() { const { d, C, W } = builder('Partida direta com selo');
-      const l = C('fase', 200, 100, 'L'), q = C('disjuntor', 200, 200, 'Q1'), ft = C('ft_nf', 200, 320, 'FT1'), s0 = C('botao_nf', 200, 440, 'S0'), s1 = C('botao_na', 200, 560, 'S1'), k1s = C('contato_na', 340, 560, 'K1'), k1 = C('bobina', 200, 700, 'K1'), n = C('neutro', 200, 840, 'N');
+      const l = C('fase', 200, 100, ''), q = C('disjuntor', 200, 200, 'Q1'), ft = C('ft_nf', 200, 320, 'FT1'), s0 = C('botao_nf', 200, 440, 'S0'), s1 = C('botao_na', 200, 560, 'S1'), k1s = C('contato_na', 340, 560, 'K1'), k1 = C('bobina', 200, 700, 'K1'), n = C('neutro', 200, 840, '');
       const k1h = C('contato_na', 520, 440, 'K1'), h1 = C('sinaleiro', 520, 700, 'H1', { color: 'verde' }), ftna = C('ft_na', 700, 320, 'FT1'), h2 = C('sinaleiro', 700, 700, 'H2', { color: 'vermelho' });
       W(l, 'a', q, 'a'); W(q, 'b', ft, 'a'); W(ft, 'b', s0, 'a'); W(s0, 'b', s1, 'a'); W(s0, 'b', k1s, 'a'); W(s1, 'b', k1, 'a'); W(k1s, 'b', k1, 'a'); W(k1, 'b', n, 'a', BLUE);
       W(ft, 'b', k1h, 'a'); W(k1h, 'b', h1, 'a'); W(h1, 'b', n, 'a', BLUE); W(q, 'b', ftna, 'a'); W(ftna, 'b', h2, 'a'); W(h2, 'b', n, 'a', BLUE);
       return d; } },
+  { title: 'Partida direta: força e comando', text: 'Circuito completo de um motor trifásico: disjuntor-motor Q1, contator K1, relé térmico FT1 e motor M1 na força; botões com selo no comando. O contato 95-96 de FT1 desliga K1 em sobrecarga.',
+    test: 'Segure S1 e veja o motor girar. Toque no relé térmico FT1 (força) para disparar: K1 cai e o motor para. Toque de novo para rearmar.',
+    build() { const { d, C, W } = builder('Partida direta: força e comando');
+      const f = C('fonte_3f', 100, 140, 'X1'), q = C('disjuntor_motor', 300, 280, 'Q1'), k = C('contator_forca', 300, 440, 'K1'), ft = C('rele_termico', 300, 600, 'FT1'), m = C('motor_3f', 300, 760, 'M1');
+      W(f, 'l1', q, 'l1', BLACK, [[260, 100]]); W(f, 'l2', q, 'l2', BLACK, [[300, 120]]); W(f, 'l3', q, 'l3', BLACK, [[340, 140]]);
+      for (const [a, b] of [['t1', 'l1'], ['t2', 'l2'], ['t3', 'l3']]) { W(q, a, k, b, BLACK); W(k, a, ft, b, BLACK); }
+      W(ft, 't1', m, 'u', BLACK); W(ft, 't2', m, 'v', BLACK); W(ft, 't3', m, 'w', BLACK); W(f, 'pe', m, 'pe', '#2E8B57', [[380, 160]]);
+      const l = C('fase', 760, 100, ''), ftc = C('ft_nf', 760, 200, 'FT1'), s0 = C('botao_nf', 760, 320, 'S0'), s1 = C('botao_na', 760, 440, 'S1'), ks = C('contato_na', 880, 440, 'K1'), kb = C('bobina', 760, 580, 'K1'), n = C('neutro', 760, 720, '');
+      const kh = C('contato_na', 1040, 440, 'K1'), h1 = C('sinaleiro', 1040, 580, 'H1', { color: 'verde' });
+      W(l, 'a', ftc, 'a'); W(ftc, 'b', s0, 'a'); W(s0, 'b', s1, 'a'); W(s0, 'b', ks, 'a'); W(s1, 'b', kb, 'a'); W(ks, 'b', kb, 'a'); W(kb, 'b', n, 'a', BLUE);
+      W(s0, 'b', kh, 'a'); W(kh, 'b', h1, 'a'); W(h1, 'b', n, 'a', BLUE);
+      return d; } },
   { title: 'Reversão com intertravamento', text: 'Dois contatores, K1 (horário) e K2 (anti-horário). O contato NF de um no circuito do outro impede que os dois liguem juntos, o que causaria curto entre fases no circuito de força.',
     test: 'Ligue S1 e tente S2: K2 não liga enquanto K1 estiver ligado. Desligue com S0 antes de inverter.',
     build() { const { d, C, W } = builder('Reversão com intertravamento');
-      const l = C('fase', 200, 100, 'L'), ft = C('ft_nf', 200, 200, 'FT1'), s0 = C('botao_nf', 200, 320, 'S0');
+      const l = C('fase', 200, 100, ''), ft = C('ft_nf', 200, 200, 'FT1'), s0 = C('botao_nf', 200, 320, 'S0');
       const s1 = C('botao_na', 200, 460, 'S1'), k1s = C('contato_na', 320, 460, 'K1'), k2i = C('contato_nf', 200, 580, 'K2'), k1 = C('bobina', 200, 700, 'K1');
       const s2 = C('botao_na', 520, 460, 'S2'), k2s = C('contato_na', 640, 460, 'K2'), k1i = C('contato_nf', 520, 580, 'K1'), k2 = C('bobina', 520, 700, 'K2');
-      const n = C('neutro', 200, 840, 'N');
+      const n = C('neutro', 200, 840, '');
       W(l, 'a', ft, 'a'); W(ft, 'b', s0, 'a'); W(s0, 'b', s1, 'a'); W(s0, 'b', k1s, 'a'); W(s0, 'b', s2, 'a'); W(s0, 'b', k2s, 'a');
       W(s1, 'b', k2i, 'a'); W(k1s, 'b', k2i, 'a'); W(k2i, 'b', k1, 'a'); W(s2, 'b', k1i, 'a'); W(k2s, 'b', k1i, 'a'); W(k1i, 'b', k2, 'a');
       W(k1, 'b', n, 'a', BLUE); W(k2, 'b', n, 'a', BLUE);
@@ -791,7 +1057,7 @@ const EXAMPLES = [
   { title: 'Partida com sinalização temporizada', text: 'S1 liga K1 com selo e energiza a bobina temporizada KT1. Depois de 3 segundos o contato KT1 fecha e acende H1, indicando que o motor chegou ao regime.',
     test: 'Segure S1 e acompanhe a contagem de KT1 na barra inferior. Altere o tempo no painel de propriedades.',
     build() { const { d, C, W } = builder('Partida com sinalização temporizada');
-      const l = C('fase', 200, 100, 'L'), s0 = C('botao_nf', 200, 220, 'S0'), s1 = C('botao_na', 200, 360, 'S1'), k1s = C('contato_na', 340, 360, 'K1'), k1 = C('bobina', 200, 520, 'K1'), kt = C('temporizador', 480, 520, 'KT1', { preset: 3 }), n = C('neutro', 200, 680, 'N');
+      const l = C('fase', 200, 100, ''), s0 = C('botao_nf', 200, 220, 'S0'), s1 = C('botao_na', 200, 360, 'S1'), k1s = C('contato_na', 340, 360, 'K1'), k1 = C('bobina', 200, 520, 'K1'), kt = C('temporizador', 480, 520, 'KT1', { preset: 3 }), n = C('neutro', 200, 680, '');
       const ktc = C('temp_na', 700, 360, 'KT1'), h1 = C('sinaleiro', 700, 520, 'H1', { color: 'amarelo' });
       W(l, 'a', s0, 'a'); W(s0, 'b', s1, 'a'); W(s0, 'b', k1s, 'a'); W(s1, 'b', k1, 'a'); W(k1s, 'b', k1, 'a'); W(k1s, 'b', kt, 'a'); W(k1, 'b', n, 'a', BLUE); W(kt, 'b', n, 'a', BLUE);
       W(s0, 'b', ktc, 'a', BLACK); W(ktc, 'b', h1, 'a', BLACK); W(h1, 'b', n, 'a', BLUE);
@@ -801,9 +1067,12 @@ const EXAMPLES = [
 // ---------- Boot ----------
 const css = document.createElement('style');
 css.textContent = `
-  #cv .sym { stroke: var(--ink); stroke-width: 2; fill: none; color: var(--ink); stroke-linecap: round; }
-  #cv .comp .sym { color: #2A2C24; stroke: #2A2C24; }
-  .part .sym { stroke: #2A2C24; stroke-width: 2.4; fill: none; color: #2A2C24; stroke-linecap: round; }
+  #cv .sym, .part .sym { stroke: #2A2C24; stroke-width: 2; fill: none; color: #2A2C24; stroke-linecap: round; stroke-linejoin: round; }
+  .part .sym { stroke-width: 2.4; }
+  .sym .it { font: 600 11px var(--font-body); fill: #2A2C24; stroke: none; }
+  .sym .it.sm { font-size: 9px; } .sym .it.big { font-size: 16px; font-weight: 700; }
+  .sym .it.warn { fill: var(--live); } .sym .it.okt { fill: var(--ok); }
+  .sym .sl { font: 700 14px var(--font-body); fill: var(--live); stroke: none; } .sym .sl.n { fill: var(--neutral); }
   #cv .chit { fill: transparent; stroke: none; }
   #cv .comp { cursor: move; }
   #cv .comp.sel .chit { fill: rgba(201,150,47,.10); stroke: var(--gold); stroke-width: 1.5; stroke-dasharray: 5 4; }
@@ -811,24 +1080,25 @@ css.textContent = `
   #cv .comp.inter .chit { fill: rgba(201,150,47,.07); }
   #cv .comp.inter:hover .chit { fill: rgba(201,150,47,.16); }
   #cv .term { fill: var(--paper); stroke: #2A2C24; stroke-width: 1.4; cursor: crosshair; }
-  #cv .term.live { fill: var(--live); stroke: var(--live); }
-  #cv .term.neu { fill: var(--neutral); stroke: var(--neutral); }
+  #cv .term.live { fill: var(--live); stroke: var(--live); } #cv .term.neu { fill: var(--neutral); stroke: var(--neutral); }
+  #cv .term.dcp { fill: #D9822B; stroke: #D9822B; } #cv .term.dcn { fill: #22231C; stroke: #22231C; }
   #cv .w { fill: none; stroke-width: 2.6; stroke-linejoin: round; stroke-linecap: round; }
   #cv .wsel { stroke-width: 4; stroke-dasharray: 8 5; }
   #cv .whit { fill: none; stroke: transparent; stroke-width: 14; cursor: pointer; }
   #cv .wglow { fill: none; stroke-width: 9; stroke-linejoin: round; opacity: .28; pointer-events: none; }
-  #cv .wglow.live { stroke: var(--live); } #cv .wglow.neu { stroke: var(--neutral); }
+  #cv .wglow.live { stroke: var(--live); } #cv .wglow.neu { stroke: var(--neutral); } #cv .wglow.dcp { stroke: #D9822B; } #cv .wglow.dcn { stroke: #22231C; }
   #cv .wprev { fill: none; stroke-width: 2.4; stroke-dasharray: 6 5; pointer-events: none; }
   #cv .ghost { opacity: .45; pointer-events: none; }
   #cv .tag { font: 500 13px var(--font-mono); fill: #2A2C24; stroke: none; }
   #cv .num { font: 500 9.5px var(--font-mono); fill: #77735F; stroke: none; }
-  #cv .sl { font: 700 14px var(--font-body); stroke: none; }
   #cv .rul line, #cv .rul rect { stroke: var(--frame); stroke-width: 1; }
   #cv .rul text { font: 500 11px var(--font-mono); fill: #77735F; }
   #cv .stamp rect, #cv .stamp line { stroke: var(--frame); stroke-width: 1.2; }
   #cv .stamp .sb { font: 800 20px var(--font-display); fill: #26281F; letter-spacing: 2px; }
   #cv .stamp .sk { font: 600 9px var(--font-body); fill: #77735F; letter-spacing: 1.2px; }
   #cv .stamp .sv { font: 500 14px var(--font-body); fill: #2A2C24; }
+  .spin.cw { animation: spin 1.2s linear infinite; } .spin.ccw { animation: spin 1.2s linear infinite reverse; }
+  @keyframes spin { to { transform: rotate(360deg); } }
 `;
 document.head.appendChild(css);
 
@@ -839,7 +1109,7 @@ if (!restored) load(EXAMPLES[0].build());
 render();
 requestAnimationFrame(fit);
 window.addEventListener('resize', () => fit());
-window.__va = { doc: () => doc, sim, solve, startSim, stopSim, load, EXAMPLES };
+window.__va = { doc: () => doc, sim, solve, startSim, stopSim, load, EXAMPLES, TYPES, interact };
 })();
 </script>
 

@@ -34,7 +34,7 @@ const results = await p.evaluate(async () => {
   check('Partida direta: H2 sinaliza falha', lit('H2'));
   va.stopSim();
 
-  va.load(va.EXAMPLES[1].build()); va.startSim();
+  va.load(va.EXAMPLES[2].build()); va.startSim();
   press('S1');
   check('Reversão: K1 com selo', va.sim.coils.K1);
   va.sim.pressed.add(tag('S2').id); va.solve();
@@ -48,11 +48,81 @@ const results = await p.evaluate(async () => {
   va.startSim();
   check('Curto-circuito detectado e simulação parada', !va.sim.running && !document.getElementById('banner').hidden);
 
-  va.load(va.EXAMPLES[2].build()); va.startSim(); press('S1');
+  va.load(va.EXAMPLES[3].build()); va.startSim(); press('S1');
   check('Temporizador: H1 apagado no início', va.sim.coils.K1 && !lit('H1'));
   await new Promise(r => setTimeout(r, 3600));
   check('Temporizador: H1 acende após 3 s', va.sim.timerDone.KT1 && lit('H1'));
   va.stopSim();
+  // ---- Circuito de força ----
+  va.load(va.EXAMPLES[1].build()); va.startSim();
+  const M = () => va.sim.motors[va.doc().comps.find(c => c.type === 'motor_3f').id];
+  check('Força: motor parado em repouso', !M().run);
+  press('S1');
+  check('Força: S1 liga K1 e o motor gira no sentido horário', va.sim.coils.K1 && M().run && M().dir === 'horário');
+  va.sim.tripped.add('FT1'); va.solve();
+  check('Força: relé térmico derruba K1 e para o motor', !va.sim.coils.K1 && !M().run);
+  va.sim.tripped.clear(); va.solve(); press('S1');
+  { const d = va.doc(), m = d.comps.find(c => c.type === 'motor_3f');
+    const wu = d.wires.find(w => w.b.c === m.id && w.b.t === 'u'), wv = d.wires.find(w => w.b.c === m.id && w.b.t === 'v');
+    wu.b.t = 'v'; wv.b.t = 'u'; va.solve();
+    check('Força: inverter duas fases inverte o giro', M().run && M().dir === 'anti-horário');
+    d.wires = d.wires.filter(w => !(w.b.c === m.id && w.b.t === 'w')); va.solve();
+    check('Força: falta de fase detectada no motor', !M().run && M().msg === 'Falta de fase'); }
+  va.stopSim();
+
+  const mk = (comps, wires) => va.load({ project: 't', comps: comps.map(([id, type, tag, extra]) => ({ id, type, x: 400, y: 400, rot: 0, tag, ...(extra || {}) })),
+    wires: wires.map(([a, ta, b, tb], i) => ({ id: 'w' + (i + 100), a: { c: a, t: ta }, b: { c: b, t: tb }, color: '#000', pts: [] })) });
+  const M6 = () => va.sim.motors.m;
+
+  mk([['f', 'fonte_3f', 'X1'], ['m', 'motor_6p', 'M1'], ['j', 'juncao', '']],
+     [['f', 'l1', 'm', 'u1'], ['f', 'l2', 'm', 'v1'], ['f', 'l3', 'm', 'w1'], ['m', 'u2', 'j', 'a'], ['m', 'v2', 'j', 'a'], ['m', 'w2', 'j', 'a']]);
+  va.startSim();
+  check('Motor 6 pontas: ligação estrela reconhecida', M6().run && M6().conn === 'estrela');
+  va.stopSim();
+  mk([['f', 'fonte_3f', 'X1'], ['m', 'motor_6p', 'M1']],
+     [['f', 'l1', 'm', 'u1'], ['f', 'l2', 'm', 'v1'], ['f', 'l3', 'm', 'w1'], ['f', 'l1', 'm', 'w2'], ['f', 'l2', 'm', 'u2'], ['f', 'l3', 'm', 'v2']]);
+  va.startSim();
+  check('Motor 6 pontas: ligação triângulo reconhecida', M6().run && M6().conn === 'triângulo');
+  va.stopSim();
+
+  mk([['f', 'fonte_3f', 'X1'], ['j', 'juncao', '']], [['f', 'l1', 'j', 'a'], ['f', 'l2', 'j', 'a']]);
+  va.startSim();
+  check('Curto entre fases L1 e L2 detectado', !va.sim.running && /L1 e L2/.test(document.getElementById('banner').textContent));
+
+  mk([['f', 'fonte_3f', 'X1'], ['r', 'rff', 'KF1'], ['l', 'fase', ''], ['n', 'neutro', ''], ['h', 'sinaleiro', 'H1']],
+     [['f', 'l1', 'r', 'l1'], ['f', 'l2', 'r', 'l2'], ['f', 'l3', 'r', 'l3'], ['l', 'a', 'r', 'c15'], ['r', 'c18', 'h', 'a'], ['h', 'b', 'n', 'a']]);
+  va.startSim();
+  check('Relé de falta de fase: três fases presentes fecha 15-18', lit('H1'));
+  va.doc().wires = va.doc().wires.filter(w => !(w.b.t === 'l3' && w.b.c === 'r')); va.solve();
+  check('Relé de falta de fase: falta de L3 abre 15-18', !lit('H1'));
+  va.stopSim();
+
+  mk([['l', 'fase', ''], ['n', 'neutro', ''], ['g', 'fonte_24', 'G1'], ['k', 'bobina', 'K9']],
+     [['l', 'a', 'g', 'i1'], ['n', 'a', 'g', 'i2'], ['g', 'o1', 'k', 'a'], ['g', 'o2', 'k', 'b']]);
+  va.startSim();
+  check('Fonte 24 Vcc alimenta bobina em corrente contínua', va.sim.coils.K9 && va.sim.running);
+  va.stopSim();
+
+  mk([['l', 'fase', ''], ['n', 'neutro', ''], ['ks', 'rele_seguranca', 'KS1'], ['e', 'emergencia', 'SE1'], ['r', 'botao_na', 'R1'], ['h', 'sinaleiro', 'H1']],
+     [['l', 'a', 'ks', 'a1'], ['ks', 'a2', 'n', 'a'], ['ks', 's11', 'e', 'a'], ['e', 'b', 'ks', 's12'], ['ks', 's33', 'r', 'a'], ['r', 'b', 'ks', 's34'],
+      ['l', 'a', 'ks', 'o13'], ['ks', 'o14', 'h', 'a'], ['h', 'b', 'n', 'a']]);
+  va.startSim();
+  check('Relé de segurança: aguarda rearme ao energizar', !lit('H1'));
+  press('R1');
+  check('Relé de segurança: rearme fecha 13-14', lit('H1'));
+  va.interact(va.doc().comps.find(c => c.id === 'e'));
+  check('Relé de segurança: emergência abre a saída', !lit('H1'));
+  va.interact(va.doc().comps.find(c => c.id === 'e'));
+  check('Relé de segurança: soltar a emergência exige novo rearme', !lit('H1'));
+  va.stopSim();
+
+  mk([['l', 'fase', ''], ['n', 'neutro', ''], ['o', 'cabo_out', 'W1'], ['i', 'cabo_in', 'W1'], ['h', 'sinaleiro', 'H1']],
+     [['l', 'a', 'o', 'a'], ['i', 'a', 'h', 'a'], ['h', 'b', 'n', 'a']]);
+  va.startSim();
+  check('Segmentos de cabo OUT/IN com a mesma tag ficam ligados', lit('H1'));
+  va.stopSim();
+
+  check('Biblioteca com 43 componentes', Object.keys(va.TYPES).length === 43);
   return out;
 });
 
