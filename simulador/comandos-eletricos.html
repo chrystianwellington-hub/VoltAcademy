@@ -1,0 +1,837 @@
+<title>VoltAcademy Comandos Elétricos</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: one-screen workbench — dark brand toolbar, component palette left, drawing sheet center, inspector right; palette/inspector become drawers on phones. */
+:root {
+  --bg: #E7E5DE; --panel: #F7F6F1; --panel-2: #EEECE5; --line: #D5D1C5; --fg: #1F2119; --muted: #67685C;
+  --brand: #26281F; --brand-2: #33362A; --brand-fg: #F2EAD3; --brand-muted: #B9B29C;
+  --gold: #C9962F; --gold-ink: #7E5B12; --gold-soft: #F3E4BF;
+  --live: #CF3F25; --neutral: #2D6BB0; --ok: #2E8B57; --warn: #B7791F;
+  --paper: #FCFBF6; --ink: #2A2C24; --grid: #E6E2D6; --frame: #9A9585;
+  --font-display: "Archivo", "Arial Narrow", system-ui, sans-serif;
+  --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #15160F; --panel: #1E2018; --panel-2: #262920; --line: #363929; --fg: #ECE8DA; --muted: #A29E8A;
+  --brand: #101109; --brand-2: #23251B; --gold-ink: #E8BE62; --gold-soft: #3A3220; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #15160F; --panel: #1E2018; --panel-2: #262920; --line: #363929; --fg: #ECE8DA; --muted: #A29E8A;
+  --brand: #101109; --brand-2: #23251B; --gold-ink: #E8BE62; --gold-soft: #3A3220; color-scheme: dark; }
+[hidden] { display: none !important; }
+html, body { height: 100%; }
+body { background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 14px; overflow: hidden; }
+* { box-sizing: border-box; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+.app { height: 100%; display: grid; grid-template-rows: auto 1fr auto; }
+/* Toolbar */
+.bar { background: var(--brand); color: var(--brand-fg); display: flex; align-items: center; gap: 10px;
+  padding-block: 8px; padding-left: max(12px, env(safe-area-inset-left, 0px)); padding-right: max(12px, env(safe-area-inset-right, 0px)); min-width: 0; }
+.brand { display: flex; align-items: center; gap: 9px; flex: none; }
+.logo { width: 32px; height: 32px; border-radius: 8px; background: #2F3127; display: grid; place-items: center; flex: none; }
+.brand b { font-family: var(--font-display); font-weight: 800; letter-spacing: .04em; font-size: 15px; }
+.brand small { display: block; color: var(--brand-muted); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; }
+.bar .grow { flex: 1; min-width: 8px; }
+.tb { display: flex; align-items: center; gap: 4px; }
+.ib { height: 34px; min-width: 34px; padding: 0 9px; border-radius: 8px; border: 1px solid #45483A; background: var(--brand-2);
+  color: var(--brand-fg); display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-size: 13px; }
+.ib:hover { border-color: var(--gold); }
+.ib[disabled] { opacity: .4; cursor: default; }
+.ib svg { width: 17px; height: 17px; }
+.run { height: 36px; padding: 0 16px; border-radius: 9px; border: 0; background: var(--ok); color: #fff; font-weight: 600;
+  letter-spacing: .06em; display: inline-flex; align-items: center; gap: 8px; }
+.run.on { background: var(--live); }
+.clock { font-family: var(--font-mono); background: #15160F; color: #F2EAD3; border: 1px solid #45483A; border-radius: 8px;
+  padding: 7px 10px; font-size: 13px; font-variant-numeric: tabular-nums; }
+.zoomv { font-family: var(--font-mono); font-size: 12px; min-width: 44px; text-align: center; color: var(--brand-muted); }
+
+/* Body */
+.main { display: grid; grid-template-columns: 236px 1fr 264px; min-height: 0; }
+.pane { background: var(--panel); min-height: 0; overflow: auto; }
+.pal { border-right: 1px solid var(--line); padding: 12px; display: flex; flex-direction: column; gap: 14px; }
+.insp { border-left: 1px solid var(--line); padding: 14px; display: flex; flex-direction: column; gap: 14px; }
+.h { font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 0 0 6px; }
+.tools { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.tool { border: 1px solid var(--line); background: var(--panel-2); border-radius: 8px; padding: 7px 4px; font-size: 12px; font-weight: 500;
+  display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.tool svg { width: 18px; height: 18px; }
+.tool.act { border-color: var(--gold); background: var(--gold-soft); color: var(--gold-ink); }
+.swatches { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+.sw { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--panel); box-shadow: 0 0 0 1px var(--line); }
+.sw.act { box-shadow: 0 0 0 2px var(--gold); }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.part { border: 1px solid var(--line); background: var(--paper); color: #2A2C24; border-radius: 8px; padding: 4px 4px 6px; display: flex; flex-direction: column;
+  align-items: center; gap: 2px; font-size: 11.5px; line-height: 1.2; text-align: center; min-height: 86px; }
+.part:hover { border-color: var(--gold); }
+.part.act { border-color: var(--gold); box-shadow: 0 0 0 2px var(--gold-soft); }
+.part svg { width: 54px; height: 54px; flex: none; }
+
+.stage { position: relative; min-width: 0; min-height: 0; background: var(--bg); overflow: hidden; touch-action: none; }
+#cv { width: 100%; height: 100%; display: block; user-select: none; -webkit-user-select: none; }
+.banner { position: absolute; left: 50%; top: 12px; transform: translateX(-50%); max-width: calc(100% - 24px); background: var(--live); color: #fff;
+  padding: 9px 14px; border-radius: 9px; font-weight: 500; box-shadow: 0 6px 20px rgba(0,0,0,.18); }
+.hint { position: absolute; left: 12px; bottom: 12px; right: 12px; pointer-events: none; display: flex; }
+.hint span { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; font-size: 12.5px; color: var(--muted); max-width: 100%; }
+
+.status { background: var(--panel); border-top: 1px solid var(--line); display: flex; align-items: center; gap: 12px; min-width: 0; overflow-x: auto;
+  padding-block: 6px; padding-left: max(12px, env(safe-area-inset-left, 0px)); padding-right: max(12px, env(safe-area-inset-right, 0px)); font-size: 12.5px; }
+.chip { font-family: var(--font-mono); font-size: 12px; border: 1px solid var(--line); border-radius: 999px; padding: 2px 9px; display: inline-flex; gap: 6px; align-items: center; white-space: nowrap; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--line); }
+.chip.on .dot { background: var(--gold); box-shadow: 0 0 6px var(--gold); }
+.chip.warn { border-color: var(--warn); color: var(--warn); }
+
+/* Inspector */
+.field { display: flex; flex-direction: column; gap: 4px; }
+.field label { font-size: 12px; color: var(--muted); }
+.field input, .field select, .field textarea { background: var(--panel-2); border: 1px solid var(--line); border-radius: 7px; padding: 7px 9px; width: 100%; }
+.row { display: flex; gap: 6px; flex-wrap: wrap; }
+.btn { border: 1px solid var(--line); background: var(--panel-2); border-radius: 8px; padding: 7px 11px; font-size: 13px; }
+.btn:hover { border-color: var(--gold); }
+.btn.pri { background: var(--brand); color: var(--brand-fg); border-color: var(--brand); }
+.btn.danger { color: var(--live); }
+.card { border: 1px solid var(--line); border-radius: 10px; padding: 12px; background: var(--panel-2); }
+.title-lg { font-family: var(--font-display); font-weight: 800; font-size: 18px; margin: 0; text-wrap: balance; }
+.muted { color: var(--muted); }
+.kbd { font-family: var(--font-mono); font-size: 11.5px; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 5px; padding: 0 5px; }
+.list { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.list li { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; }
+.mono { font-family: var(--font-mono); }
+.list.help li { display: block; line-height: 1.5; }
+
+/* Modal */
+.modal { position: fixed; inset: 0; background: rgba(15,16,10,.55); display: grid; place-items: center; z-index: 50;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 16px; }
+.sheet { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; width: min(760px, 100%); max-height: 100%; overflow: auto; padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+.ex { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+.ex .card { display: flex; flex-direction: column; gap: 8px; }
+.ex h4 { margin: 0; font-size: 15px; }
+.ex p { margin: 0; font-size: 13px; color: var(--muted); line-height: 1.45; }
+textarea.json { font-family: var(--font-mono); font-size: 12px; min-height: 220px; }
+
+.only-m { display: none; }
+@media (max-width: 1100px) { .main { grid-template-columns: 220px 1fr; } .insp { display: none; } .insp.open { display: flex; } }
+@media (max-width: 760px) {
+  .main { grid-template-columns: 1fr; }
+  .pal, .insp { position: fixed; z-index: 40; left: 0; right: 0; bottom: 0; max-height: 62%; border: 0; border-top: 1px solid var(--line);
+    box-shadow: 0 -10px 30px rgba(0,0,0,.2); border-radius: 14px 14px 0 0; display: none;
+    padding-left: max(14px, env(safe-area-inset-left, 0px)); padding-right: max(14px, env(safe-area-inset-right, 0px)); padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px)); }
+  .pal.open, .insp.open { display: flex; }
+  .grid2 { grid-template-columns: repeat(3, 1fr); }
+  .only-m { display: inline-flex; }
+  .hide-m { display: none !important; }
+  .brand > div:last-child, .zoomv, #bZoomIn, #bZoomOut, #bFit { display: none; }
+  .bar { gap: 6px; }
+  .run { padding: 0 12px; }
+  .clock { padding: 7px 8px; }
+}
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+
+<div class="app">
+  <header class="bar">
+    <div class="brand">
+      <div class="logo" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#E2B656" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 5 13h6l-1 9 8-12h-6z"/></svg>
+      </div>
+      <div><b>VOLTACADEMY</b><small>Comandos elétricos</small></div>
+    </div>
+    <button class="ib only-m" id="bPal" aria-label="Componentes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+    <div class="grow"></div>
+    <button class="run" id="bRun"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M7 4v16l13-8z"/></svg><span>SIMULAR</span></button>
+    <span class="clock" id="clock">00:00.0</span>
+    <div class="grow hide-m"></div>
+    <div class="tb">
+      <button class="ib hide-m" id="bUndo" title="Desfazer (Ctrl+Z)" aria-label="Desfazer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/></svg></button>
+      <button class="ib hide-m" id="bRedo" title="Refazer (Ctrl+Y)" aria-label="Refazer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 14 5-5-5-5"/><path d="M20 9H9a5 5 0 0 0 0 10h3"/></svg></button>
+      <button class="ib" id="bZoomOut" aria-label="Diminuir zoom"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/></svg></button>
+      <span class="zoomv" id="zoomv">100%</span>
+      <button class="ib" id="bZoomIn" aria-label="Aumentar zoom"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></button>
+      <button class="ib" id="bFit" title="Enquadrar folha" aria-label="Enquadrar folha"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+      <button class="ib" id="bEx" title="Circuitos de exemplo e aulas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 7l10-4 10 4-10 4z"/><path d="M6 9v5c3 2 9 2 12 0V9"/></svg><span class="hide-m">Exemplos</span></button>
+      <button class="ib hide-m" id="bFile" title="Salvar ou abrir projeto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 3h11l3 3v15H5z"/><path d="M8 3v6h8V3M8 21v-7h8v7"/></svg><span>Projeto</span></button>
+      <button class="ib only-m" id="bInsp" aria-label="Propriedades"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9 7 7M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/></svg></button>
+    </div>
+  </header>
+
+  <div class="main">
+    <aside class="pane pal" id="pal">
+      <section>
+        <p class="h">Ferramentas</p>
+        <div class="tools">
+          <button class="tool act" data-mode="select"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 3 14 8-6 2-2 6z"/></svg>Selecionar</button>
+          <button class="tool" data-mode="wire"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="19" r="2"/><circle cx="19" cy="5" r="2"/><path d="M6.5 17.5 12 12h0V7h5.5"/></svg>Fio</button>
+          <button class="tool" data-mode="pan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v18M3 12h18M12 3l-3 3m3-3 3 3M12 21l-3-3m3 3 3-3M3 12l3-3m-3 3 3 3M21 12l-3-3m3 3-3 3"/></svg>Mover tela</button>
+        </div>
+        <div class="swatches" id="swatches" aria-label="Cor do fio"></div>
+      </section>
+      <section id="palette"></section>
+    </aside>
+
+    <div class="stage" id="stage">
+      <svg id="cv" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <pattern id="gridp" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="0" cy="0" r="1.1" fill="#D9D4C6"/></pattern>
+          <filter id="glow" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        </defs>
+        <g id="world"></g>
+      </svg>
+      <div class="banner" id="banner" hidden></div>
+      <div class="hint"><span id="hint"></span></div>
+    </div>
+
+    <aside class="pane insp" id="insp"></aside>
+  </div>
+
+  <footer class="status" id="status"></footer>
+</div>
+
+<div class="modal" id="modal" hidden><div class="sheet" id="sheet"></div></div>
+
+<script>
+(() => {
+'use strict';
+const PLATFORM = 'VoltAcademy';
+const SHEET = { w: 1600, h: 1000 };
+const GRID = 20;
+const WIRE_COLORS = [['#C0392B','Vermelho'],['#22231C','Preto'],['#2D6BB0','Azul'],['#2E8B57','Verde'],['#D9822B','Laranja'],['#C9A227','Amarelo'],['#7D4CB0','Violeta'],['#8E8A7A','Cinza']];
+const LAMP_COLORS = { verde: '#35B26B', vermelho: '#E2442F', amarelo: '#F2C230', azul: '#3D86E0', branco: '#F4F1E6' };
+
+// ---------- Symbol drawing (IEC 60617 style, vertical, terminals a=top b=bottom) ----------
+const L = (x1, y1, x2, y2, extra = '') => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" ${extra}/>`;
+const leads = (t = 14) => L(0, -40, 0, -t) + L(0, t, 0, 40);
+const blade = (closed, nf) => closed ? L(0, 14, nf ? 9 : 0, nf ? -15 : -14) : L(0, 14, -14, -12);
+const nfTick = () => L(0, -14, 10, -14);
+const link = (y = 0) => L(-7, y, -24, y, 'stroke-dasharray="3 3"');
+const push = () => L(-24, -8, -24, 8) + L(-24, -8, -29, -8) + L(-24, 8, -29, 8);
+const mushroom = () => `<path d="M-24 -11 A 11 11 0 0 0 -24 11 Z" fill="currentColor"/>`;
+const selector = () => L(-24, -8, -24, 8) + L(-24, -8, -29, -8) + L(-24, 8, -19, 8);
+const parachute = () => `<path d="M-14 -6 A 8 8 0 0 1 -14 6" fill="none"/>` + L(-14, -6, -14, 6);
+const thermal = () => `<rect x="-36" y="-7" width="12" height="14" fill="none"/>` + `<path d="M-33 4 v-4 h6 v-4" fill="none"/>`;
+const rhombus = () => `<path d="M-30 -9 L-21 0 L-30 9 L-39 0 Z" fill="none"/>` + L(-35, -3, -26, 3) ;
+
+const TYPES = {
+  fase:     { name: 'Fase (L)', cat: 'Alimentação', pre: 'L', terms: { a: [0, 20] }, nums: ['L'],
+              draw: () => `<circle r="7" fill="var(--live)" stroke="none"/>${L(0,7,0,20)}<text x="-18" y="5" class="sl" fill="var(--live)">L</text>` },
+  neutro:   { name: 'Neutro (N)', cat: 'Alimentação', pre: 'N', terms: { a: [0, -20] }, nums: ['N'],
+              draw: () => `${L(0,-20,0,-7)}<circle r="7" fill="var(--neutral)" stroke="none"/><text x="-19" y="5" class="sl" fill="var(--neutral)">N</text>` },
+  disjuntor:{ name: 'Disjuntor', cat: 'Proteção', pre: 'Q', terms: { a: [0, -40], b: [0, 40] }, nums: ['1', '2'], inter: 'toggle',
+              closed: (c, s) => !s.toggled.has(c.id),
+              draw: (c, st) => leads() + blade(st.closed) + L(-5, -19, 5, -9) + L(-5, -9, 5, -19) + link(0) + `<path d="M-24 -6 l-6 6 l6 6" fill="none"/>` },
+  fusivel:  { name: 'Fusível', cat: 'Proteção', pre: 'F', terms: { a: [0, -40], b: [0, 40] }, nums: ['1', '2'], inter: 'toggle',
+              closed: (c, s) => !s.toggled.has(c.id),
+              draw: (c, st) => L(0, -40, 0, -18) + L(0, 18, 0, 40) + `<rect x="-6" y="-18" width="12" height="36" fill="${st.closed ? 'none' : 'var(--live)'}" fill-opacity=".25"/>` + (st.closed ? L(0, -18, 0, 18) : L(0, -18, 0, -6) + L(0, 6, 0, 18)) },
+  ft_nf:    { name: 'Contato do relé térmico NF', cat: 'Proteção', pre: 'FT', terms: { a: [0, -40], b: [0, 40] }, nums: ['95', '96'], inter: 'trip',
+              closed: (c, s) => !s.tripped.has(c.tag),
+              draw: (c, st) => leads() + nfTick() + blade(st.closed, true) + link(0) + thermal() },
+  ft_na:    { name: 'Contato do relé térmico NA', cat: 'Proteção', pre: 'FT', terms: { a: [0, -40], b: [0, 40] }, nums: ['97', '98'], inter: 'trip',
+              closed: (c, s) => s.tripped.has(c.tag),
+              draw: (c, st) => leads() + blade(st.closed) + link(0) + thermal() },
+  botao_na: { name: 'Botão NA (liga)', cat: 'Comando', pre: 'S', terms: { a: [0, -40], b: [0, 40] }, nums: ['13', '14'], inter: 'push',
+              closed: (c, s) => s.pressed.has(c.id),
+              draw: (c, st) => leads() + blade(st.closed) + link(0) + push() },
+  botao_nf: { name: 'Botão NF (desliga)', cat: 'Comando', pre: 'S', terms: { a: [0, -40], b: [0, 40] }, nums: ['11', '12'], inter: 'push',
+              closed: (c, s) => !s.pressed.has(c.id),
+              draw: (c, st) => leads() + nfTick() + blade(st.closed, true) + link(0) + push() },
+  emergencia:{ name: 'Botão de emergência NF', cat: 'Comando', pre: 'SE', terms: { a: [0, -40], b: [0, 40] }, nums: ['11', '12'], inter: 'toggle',
+              closed: (c, s) => !s.toggled.has(c.id),
+              draw: (c, st) => leads() + nfTick() + blade(st.closed, true) + link(0) + L(-24, -8, -24, 8) + mushroom() },
+  seletora: { name: 'Chave seletora NA', cat: 'Comando', pre: 'S', terms: { a: [0, -40], b: [0, 40] }, nums: ['13', '14'], inter: 'toggle',
+              closed: (c, s) => s.toggled.has(c.id),
+              draw: (c, st) => leads() + blade(st.closed) + link(0) + selector() },
+  sensor:   { name: 'Sensor indutivo NA', cat: 'Comando', pre: 'B', terms: { a: [0, -40], b: [0, 40] }, nums: ['BN', 'BK'], inter: 'toggle',
+              closed: (c, s) => s.toggled.has(c.id),
+              draw: (c, st) => leads() + blade(st.closed) + L(-7, 0, -21, 0, 'stroke-dasharray="3 3"') + rhombus() },
+  bobina:   { name: 'Bobina de contator', cat: 'Contatores e relés', pre: 'K', terms: { a: [0, -40], b: [0, 40] }, nums: ['A1', 'A2'], load: 'coil',
+              draw: (c, st) => leads(12) + `<rect x="-18" y="-12" width="36" height="24" fill="${st.on ? 'var(--gold)' : 'none'}" ${st.on ? 'filter="url(#glow)"' : ''}/>` },
+  contato_na:{ name: 'Contato auxiliar NA', cat: 'Contatores e relés', pre: 'K', terms: { a: [0, -40], b: [0, 40] }, nums: ['13', '14'], ref: 'coil',
+              closed: (c, s) => !!s.coils[c.tag],
+              draw: (c, st) => leads() + blade(st.closed) },
+  contato_nf:{ name: 'Contato auxiliar NF', cat: 'Contatores e relés', pre: 'K', terms: { a: [0, -40], b: [0, 40] }, nums: ['21', '22'], ref: 'coil',
+              closed: (c, s) => !s.coils[c.tag],
+              draw: (c, st) => leads() + nfTick() + blade(st.closed, true) },
+  temporizador:{ name: 'Bobina temporizada (retardo na energização)', cat: 'Contatores e relés', pre: 'KT', terms: { a: [0, -40], b: [0, 40] }, nums: ['A1', 'A2'], load: 'timer',
+              draw: (c, st) => leads(12) + `<rect x="-18" y="-12" width="36" height="24" fill="${st.on ? 'var(--gold)' : 'none'}" ${st.on ? 'filter="url(#glow)"' : ''}/>` +
+                `<rect x="-32" y="-12" width="14" height="24" fill="none"/>${L(-32,-12,-18,12)}${L(-32,12,-18,-12)}` +
+                (st.on ? `<rect x="-18" y="14" width="${Math.round(36 * st.progress)}" height="3" fill="var(--ok)" stroke="none"/>` : '') },
+  temp_na:  { name: 'Contato temporizado NA', cat: 'Contatores e relés', pre: 'KT', terms: { a: [0, -40], b: [0, 40] }, nums: ['67', '68'], ref: 'timer',
+              closed: (c, s) => !!s.timerDone[c.tag],
+              draw: (c, st) => leads() + blade(st.closed) + link(0) + parachute() },
+  temp_nf:  { name: 'Contato temporizado NF', cat: 'Contatores e relés', pre: 'KT', terms: { a: [0, -40], b: [0, 40] }, nums: ['55', '56'], ref: 'timer',
+              closed: (c, s) => !s.timerDone[c.tag],
+              draw: (c, st) => leads() + nfTick() + blade(st.closed, true) + link(0) + parachute() },
+  sinaleiro:{ name: 'Sinaleiro', cat: 'Sinalização', pre: 'H', terms: { a: [0, -40], b: [0, 40] }, nums: ['X1', 'X2'], load: 'lamp',
+              draw: (c, st) => leads(14) + `<circle r="14" fill="${st.on ? (LAMP_COLORS[c.color] || LAMP_COLORS.verde) : 'none'}" ${st.on ? 'filter="url(#glow)"' : ''}/>` + L(-10, -10, 10, 10) + L(-10, 10, 10, -10) +
+                `<circle cx="-24" cy="-18" r="4" fill="${LAMP_COLORS[c.color] || LAMP_COLORS.verde}" stroke="none"/>` },
+  juncao:   { name: 'Ponto de conexão', cat: 'Alimentação', pre: 'X', terms: { a: [0, 0] }, nums: [''], notag: true,
+              draw: () => `<circle r="4.5" fill="currentColor" stroke="none"/>` },
+};
+const CATS = ['Alimentação', 'Comando', 'Contatores e relés', 'Proteção', 'Sinalização'];
+
+// ---------- State ----------
+let doc = null;          // { project, author, comps:[], wires:[] }
+let nextId = 1;
+const ui = { mode: 'select', placing: null, wireColor: WIRE_COLORS[0][0], sel: null, zoom: 1, px: 0, py: 0, wireStart: null, wirePts: [], cursor: null, openPanel: null };
+const hist = { stack: [], idx: -1 };
+const sim = { running: false, t: 0, pressed: new Set(), toggled: new Set(), tripped: new Set(), coils: {}, timerAcc: {}, timerDone: {}, loads: {}, rootsL: new Set(), rootsN: new Set(), uf: null, short: false, osc: false };
+
+const $ = s => document.querySelector(s);
+const world = $('#world'), svg = $('#cv');
+const uid = p => p + (nextId++);
+const snap = v => Math.round(v / GRID) * GRID;
+const esc = s => String(s ?? '').replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
+
+function termPos(c, t) {
+  const [lx, ly] = TYPES[c.type].terms[t];
+  const r = (c.rot || 0) * Math.PI / 180;
+  return [c.x + Math.round(lx * Math.cos(r) - ly * Math.sin(r)), c.y + Math.round(lx * Math.sin(r) + ly * Math.cos(r))];
+}
+const compById = id => doc.comps.find(c => c.id === id);
+
+function wirePoints(w) {
+  const ca = compById(w.a.c), cb = compById(w.b.c);
+  if (!ca || !cb) return null;
+  const A = termPos(ca, w.a.t), B = termPos(cb, w.b.t);
+  if (w.pts && w.pts.length) return [A, ...w.pts, B];
+  if (A[0] === B[0] || A[1] === B[1]) return [A, B];
+  const my = snap((A[1] + B[1]) / 2);
+  return [A, [A[0], my], [B[0], my], B];
+}
+
+// ---------- History & persistence ----------
+function serialize() { return JSON.stringify({ app: PLATFORM, kind: 'comandos-eletricos', version: 1, project: doc.project, author: doc.author, comps: doc.comps, wires: doc.wires }); }
+function commit() {
+  hist.stack = hist.stack.slice(0, hist.idx + 1);
+  hist.stack.push(serialize()); hist.idx = hist.stack.length - 1;
+  if (hist.stack.length > 120) { hist.stack.shift(); hist.idx--; }
+  try { localStorage.setItem('voltacademy.ce.doc', serialize()); } catch (e) {}
+  updateButtons();
+}
+function load(json, { keepHistory = false } = {}) {
+  const d = typeof json === 'string' ? JSON.parse(json) : json;
+  if (!d || !Array.isArray(d.comps) || !Array.isArray(d.wires)) throw new Error('Arquivo sem componentes ou fios.');
+  for (const c of d.comps) if (!TYPES[c.type]) throw new Error(`Componente desconhecido: ${c.type}`);
+  doc = { project: d.project || 'Projeto sem nome', author: d.author || '', comps: d.comps.map(c => ({ ...c })), wires: d.wires.map(w => ({ ...w, pts: w.pts ? w.pts.map(p => [...p]) : [] })) };
+  nextId = 1 + Math.max(0, ...doc.comps.map(c => +String(c.id).replace(/\D/g, '') || 0), ...doc.wires.map(w => +String(w.id).replace(/\D/g, '') || 0));
+  ui.sel = null;
+  if (!keepHistory) { hist.stack = []; hist.idx = -1; commit(); }
+}
+function undo() { if (hist.idx > 0) { hist.idx--; load(hist.stack[hist.idx], { keepHistory: true }); saveLocal(); render(); } }
+function redo() { if (hist.idx < hist.stack.length - 1) { hist.idx++; load(hist.stack[hist.idx], { keepHistory: true }); saveLocal(); render(); } }
+function saveLocal() { try { localStorage.setItem('voltacademy.ce.doc', serialize()); } catch (e) {} }
+
+function nextTag(type) {
+  const p = TYPES[type].pre; if (TYPES[type].notag) return '';
+  if (TYPES[type].ref === 'coil') { const k = doc.comps.filter(c => c.type === 'bobina').map(c => c.tag); return k[k.length - 1] || 'K1'; }
+  if (TYPES[type].ref === 'timer') { const k = doc.comps.filter(c => c.type === 'temporizador').map(c => c.tag); return k[k.length - 1] || 'KT1'; }
+  if (type === 'ft_na' || type === 'ft_nf') { const k = doc.comps.filter(c => c.type === 'ft_nf' || c.type === 'ft_na').map(c => c.tag); return k[0] || 'FT1'; }
+  let n = 1; const used = new Set(doc.comps.map(c => c.tag));
+  while (used.has(p + n)) n++; return p + n;
+}
+function addComp(type, x, y, extra = {}) {
+  const c = { id: uid('c'), type, x: snap(x), y: snap(y), rot: 0, tag: nextTag(type), ...extra };
+  if (type === 'sinaleiro' && !c.color) c.color = 'verde';
+  if (type === 'temporizador' && !c.preset) c.preset = 3;
+  doc.comps.push(c); return c;
+}
+function addWire(a, b, color, pts = []) { const w = { id: uid('w'), a, b, color: color || ui.wireColor, pts }; doc.wires.push(w); return w; }
+
+// ---------- Simulation ----------
+function solve() {
+  const parent = new Map();
+  const f = k => { if (!parent.has(k)) parent.set(k, k); let r = k; while (parent.get(r) !== r) r = parent.get(r); let n = k; while (parent.get(n) !== r) { const nx = parent.get(n); parent.set(n, r); n = nx; } return r; };
+  const u = (a, b) => { const ra = f(a), rb = f(b); if (ra !== rb) parent.set(ra, rb); };
+  const key = (c, t) => c + ':' + t;
+  let coils = { ...sim.coils };
+  let iter = 0, stable = false, timerOn = {};
+  const lampOn = {};
+  for (; iter < 40 && !stable; iter++) {
+    parent.clear();
+    for (const w of doc.wires) if (compById(w.a.c) && compById(w.b.c)) u(key(w.a.c, w.a.t), key(w.b.c, w.b.t));
+    const st = { ...sim, coils };
+    for (const c of doc.comps) { const T = TYPES[c.type]; if (T.closed && T.closed(c, st)) u(key(c.id, 'a'), key(c.id, 'b')); }
+    const rl = new Set(doc.comps.filter(c => c.type === 'fase').map(c => f(key(c.id, 'a'))));
+    const rn = new Set(doc.comps.filter(c => c.type === 'neutro').map(c => f(key(c.id, 'a'))));
+    sim.short = [...rl].some(r => rn.has(r));
+    sim.rootsL = rl; sim.rootsN = rn; sim.uf = f;
+    if (sim.short) { coils = {}; timerOn = {}; break; }
+    const next = {}; timerOn = {};
+    for (const c of doc.comps) {
+      const T = TYPES[c.type]; if (!T.load) continue;
+      const ra = f(key(c.id, 'a')), rb = f(key(c.id, 'b'));
+      const on = (rl.has(ra) && rn.has(rb)) || (rl.has(rb) && rn.has(ra));
+      if (T.load === 'coil') next[c.tag] = next[c.tag] || on;
+      if (T.load === 'timer') timerOn[c.tag] = timerOn[c.tag] || on;
+      if (T.load === 'lamp') lampOn[c.id] = on;
+    }
+    stable = Object.keys({ ...next, ...coils }).every(k => !!next[k] === !!coils[k]);
+    coils = next;
+  }
+  sim.osc = !stable && !sim.short;
+  sim.coils = coils; sim.timerOn = timerOn; sim.lamps = lampOn;
+}
+let lastTs = 0, raf = 0;
+function tick(ts) {
+  if (!sim.running) return;
+  const dt = lastTs ? Math.min(0.1, (ts - lastTs) / 1000) : 0; lastTs = ts;
+  sim.t += dt;
+  const before = JSON.stringify(sim.timerDone);
+  for (const c of doc.comps) if (c.type === 'temporizador') {
+    const on = sim.timerOn && sim.timerOn[c.tag];
+    sim.timerAcc[c.tag] = on ? (sim.timerAcc[c.tag] || 0) + dt : 0;
+    sim.timerDone[c.tag] = on && sim.timerAcc[c.tag] >= (+c.preset || 0);
+  }
+  if (JSON.stringify(sim.timerDone) !== before || doc.comps.some(c => c.type === 'temporizador' && sim.timerOn && sim.timerOn[c.tag])) { solve(); render(); }
+  $('#clock').textContent = fmtTime(sim.t);
+  if (sim.short) { stopSim('Curto-circuito: a fase está ligada direto ao neutro, sem carga no caminho. Confira a fiação e simule de novo.'); return; }
+  raf = requestAnimationFrame(tick);
+}
+function fmtTime(t) { const m = Math.floor(t / 60), s = t - m * 60; return String(m).padStart(2, '0') + ':' + s.toFixed(1).padStart(4, '0'); }
+function startSim() {
+  Object.assign(sim, { running: true, t: 0, pressed: new Set(), toggled: new Set(), tripped: new Set(), coils: {}, timerAcc: {}, timerDone: {}, short: false, osc: false });
+  ui.wireStart = null; ui.wirePts = []; ui.placing = null;
+  showBanner(null); solve();
+  if (sim.short) { stopSim('Curto-circuito: a fase está ligada direto ao neutro, sem carga no caminho. Confira a fiação e simule de novo.'); return; }
+  lastTs = 0; raf = requestAnimationFrame(tick); render();
+}
+function stopSim(msg) {
+  sim.running = false; cancelAnimationFrame(raf);
+  sim.coils = {}; sim.timerDone = {}; sim.timerOn = {}; sim.lamps = {}; sim.pressed.clear();
+  showBanner(msg || null); render();
+}
+function showBanner(msg) { const b = $('#banner'); b.hidden = !msg; b.textContent = msg || ''; }
+
+// ---------- Rendering ----------
+function compState(c) {
+  const T = TYPES[c.type];
+  const st = {};
+  if (sim.running) {
+    if (T.closed) st.closed = T.closed(c, sim);
+    if (T.load === 'coil') st.on = !!sim.coils[c.tag];
+    if (T.load === 'timer') { st.on = !!(sim.timerOn && sim.timerOn[c.tag]); st.progress = Math.min(1, (sim.timerAcc[c.tag] || 0) / Math.max(0.1, +c.preset || 0.1)); }
+    if (T.load === 'lamp') st.on = !!(sim.lamps && sim.lamps[c.id]);
+  } else if (T.closed) {
+    st.closed = T.closed(c, { pressed: new Set(), toggled: new Set(), tripped: new Set(), coils: {}, timerDone: {} });
+  }
+  return st;
+}
+function netClass(c, t) {
+  if (!sim.running || !sim.uf) return '';
+  const r = sim.uf(c + ':' + t);
+  return sim.rootsL.has(r) ? 'live' : sim.rootsN.has(r) ? 'neu' : '';
+}
+function renderSheet() {
+  const cols = 12, rows = 6, x0 = 40, y0 = 40, x1 = SHEET.w - 20, y1 = SHEET.h - 20;
+  const cw = (x1 - x0) / cols, rh = (y1 - y0) / rows;
+  let s = `<rect x="0" y="0" width="${SHEET.w}" height="${SHEET.h}" fill="var(--paper)" stroke="var(--frame)" stroke-width="1"/>`;
+  s += `<rect x="${x0}" y="${y0}" width="${x1 - x0}" height="${y1 - y0}" fill="url(#gridp)" stroke="var(--frame)" stroke-width="1.4"/>`;
+  s += `<g class="rul">`;
+  for (let i = 0; i < cols; i++) { const x = x0 + i * cw; s += `<line x1="${x}" y1="20" x2="${x}" y2="${y0}"/><text x="${x + cw / 2}" y="34" text-anchor="middle">${i + 1}</text>`; }
+  for (let j = 0; j < rows; j++) { const y = y0 + j * rh; s += `<line x1="20" y1="${y}" x2="${x0}" y2="${y}"/><text x="30" y="${y + rh / 2 + 4}" text-anchor="middle">${'ABCDEF'[j]}</text>`; }
+  s += `<rect x="20" y="20" width="${x1 - 20}" height="${y1 - 20}" fill="none"/></g>`;
+  const bw = 520, bh = 84, bx = x1 - bw, by = y1 - bh;
+  const today = new Date().toLocaleDateString('pt-BR');
+  s += `<g class="stamp"><rect x="${bx}" y="${by}" width="${bw}" height="${bh}" fill="var(--paper)"/>
+    <line x1="${bx + 150}" y1="${by}" x2="${bx + 150}" y2="${y1}"/><line x1="${bx + 150}" y1="${by + bh / 2}" x2="${x1}" y2="${by + bh / 2}"/><line x1="${bx + 400}" y1="${by}" x2="${bx + 400}" y2="${y1}"/>
+    <text x="${bx + 75}" y="${by + 38}" text-anchor="middle" class="sb">VOLT</text><text x="${bx + 75}" y="${by + 62}" text-anchor="middle" class="sb">ACADEMY</text>
+    <text x="${bx + 160}" y="${by + 16}" class="sk">PROJETO</text><text x="${bx + 160}" y="${by + 34}" class="sv">${esc(doc.project).slice(0, 34)}</text>
+    <text x="${bx + 160}" y="${by + bh / 2 + 16}" class="sk">AUTOR</text><text x="${bx + 160}" y="${by + bh / 2 + 34}" class="sv">${esc(doc.author || '—').slice(0, 34)}</text>
+    <text x="${bx + 410}" y="${by + 16}" class="sk">DATA</text><text x="${bx + 410}" y="${by + 34}" class="sv">${today}</text>
+    <text x="${bx + 410}" y="${by + bh / 2 + 16}" class="sk">FOLHA</text><text x="${bx + 410}" y="${by + bh / 2 + 34}" class="sv">1/1</text></g>`;
+  return s;
+}
+function render() {
+  const z = ui.zoom;
+  let s = `<g transform="translate(${ui.px} ${ui.py}) scale(${z})"><g id="bgHit">${renderSheet()}</g>`;
+  // wires
+  s += '<g class="wires">';
+  for (const w of doc.wires) {
+    const P = wirePoints(w); if (!P) continue;
+    const d = 'M' + P.map(p => p.join(' ')).join(' L');
+    const nc = netClass(w.a.c, w.a.t);
+    const selw = ui.sel && ui.sel.kind === 'wire' && ui.sel.id === w.id;
+    s += `<path d="${d}" class="whit" data-wire="${w.id}"/>`;
+    if (nc) s += `<path d="${d}" class="wglow ${nc}"/>`;
+    s += `<path d="${d}" class="w${selw ? ' wsel' : ''}" stroke="${w.color}" data-wire="${w.id}"/>`;
+  }
+  s += '</g>';
+  // components
+  for (const c of doc.comps) {
+    const T = TYPES[c.type], st = compState(c);
+    const sel = ui.sel && ui.sel.kind === 'comp' && ui.sel.id === c.id;
+    const live = sim.running && (T.inter) ? ' inter' : '';
+    s += `<g class="comp${sel ? ' sel' : ''}${live}" data-comp="${c.id}" transform="translate(${c.x} ${c.y}) rotate(${c.rot || 0})">`;
+    s += `<rect class="chit" x="-34" y="-44" width="68" height="88" rx="6"/>`;
+    s += `<g class="sym">${T.draw(c, st)}</g>`;
+    if (!T.notag && c.type !== 'fase' && c.type !== 'neutro') s += `<text x="22" y="5" class="tag">${esc(c.tag)}</text>`;
+    if (c.type === 'temporizador') s += `<text x="22" y="20" class="num">${(+c.preset || 0).toFixed(1)} s</text>`;
+    const tn = Object.keys(T.terms);
+    tn.forEach((t, i) => { const [x, y] = T.terms[t]; if (T.nums[i] && tn.length > 1) s += `<text x="7" y="${y < 0 ? y + 14 : y - 6}" class="num">${T.nums[i]}</text>`; });
+    for (const t of tn) { const [x, y] = T.terms[t]; s += `<circle class="term ${netClass(c.id, t)}" cx="${x}" cy="${y}" r="4" data-term="${c.id}|${t}"/>`; }
+    s += '</g>';
+  }
+  // wire preview
+  if (ui.wireStart && ui.cursor) {
+    const c = compById(ui.wireStart.c); if (c) {
+      const P = [termPos(c, ui.wireStart.t), ...ui.wirePts, ui.cursor];
+      s += `<path d="M${P.map(p => p.join(' ')).join(' L')}" class="wprev" stroke="${ui.wireColor}"/>`;
+    }
+  }
+  if (ui.placing && ui.cursor) {
+    const T = TYPES[ui.placing];
+    s += `<g class="ghost" transform="translate(${snap(ui.cursor[0])} ${snap(ui.cursor[1])})"><g class="sym">${T.draw({ color: 'verde' }, { closed: false })}</g></g>`;
+  }
+  s += '</g>';
+  world.innerHTML = s;
+  $('#zoomv').textContent = Math.round(z * 100) + '%';
+  renderStatus(); renderInspector(); updateHint(); updateButtons();
+}
+
+function renderStatus() {
+  const coilTags = [...new Set(doc.comps.filter(c => c.type === 'bobina').map(c => c.tag))];
+  const timers = doc.comps.filter(c => c.type === 'temporizador');
+  const warns = problems();
+  let h = `<span class="muted">${sim.running ? 'Simulando' : 'Edição'}</span>`;
+  h += coilTags.map(t => `<span class="chip${sim.coils[t] ? ' on' : ''}"><span class="dot"></span>${esc(t)}</span>`).join('');
+  h += timers.map(c => `<span class="chip${sim.timerDone[c.tag] ? ' on' : ''}"><span class="dot"></span>${esc(c.tag)} ${sim.running ? Math.min(+c.preset, sim.timerAcc[c.tag] || 0).toFixed(1) : '0.0'}/${(+c.preset).toFixed(1)} s</span>`).join('');
+  if (sim.osc) h += `<span class="chip warn">Circuito oscilando: confira os contatos de selo e intertravamento</span>`;
+  if (warns.length) h += `<span class="chip warn" title="${esc(warns.join(' · '))}">${warns.length} aviso${warns.length > 1 ? 's' : ''} na lista de tags</span>`;
+  h += `<span class="muted" style="margin-left:auto">${doc.comps.length} componentes · ${doc.wires.length} fios</span>`;
+  $('#status').innerHTML = h;
+}
+function problems() {
+  const out = [];
+  const coils = new Set(doc.comps.filter(c => c.type === 'bobina').map(c => c.tag));
+  const timers = new Set(doc.comps.filter(c => c.type === 'temporizador').map(c => c.tag));
+  for (const c of doc.comps) {
+    const T = TYPES[c.type];
+    if (T.ref === 'coil' && !coils.has(c.tag)) out.push(`${c.tag}: contato sem bobina com essa tag`);
+    if (T.ref === 'timer' && !timers.has(c.tag)) out.push(`${c.tag}: contato sem bobina temporizada com essa tag`);
+    const linked = Object.keys(T.terms).some(t => doc.wires.some(w => (w.a.c === c.id && w.a.t === t) || (w.b.c === c.id && w.b.t === t)));
+    if (!linked) out.push(`${c.tag || T.name}: sem nenhuma ligação`);
+  }
+  if (!doc.comps.some(c => c.type === 'fase')) out.push('Falta a alimentação: insira a Fase (L)');
+  if (!doc.comps.some(c => c.type === 'neutro')) out.push('Falta o retorno: insira o Neutro (N)');
+  return out;
+}
+
+function renderInspector() {
+  const el = $('#insp');
+  let h = '';
+  if (ui.sel && ui.sel.kind === 'comp') {
+    const c = compById(ui.sel.id); if (!c) { ui.sel = null; return renderInspector(); }
+    const T = TYPES[c.type];
+    h += `<div><p class="h">Componente</p><p class="title-lg">${esc(T.name)}</p></div>`;
+    if (!T.notag && c.type !== 'fase' && c.type !== 'neutro') h += `<div class="field"><label for="fTag">Tag ${T.ref ? '(igual à da bobina que comanda este contato)' : ''}</label><input id="fTag" class="mono" value="${esc(c.tag)}" ${sim.running ? 'disabled' : ''}></div>`;
+    if (c.type === 'sinaleiro') h += `<div class="field"><label for="fColor">Cor do sinaleiro</label><select id="fColor" ${sim.running ? 'disabled' : ''}>${Object.keys(LAMP_COLORS).map(k => `<option value="${k}" ${c.color === k ? 'selected' : ''}>${k[0].toUpperCase() + k.slice(1)}</option>`).join('')}</select></div>`;
+    if (c.type === 'temporizador') h += `<div class="field"><label for="fPreset">Tempo de retardo (segundos)</label><input id="fPreset" type="number" min="0.1" max="600" step="0.1" value="${+c.preset}" ${sim.running ? 'disabled' : ''}></div>`;
+    if (T.nums.length > 1) h += `<div class="field"><label>Bornes</label><div class="mono">${T.nums.join(' — ')}</div></div>`;
+    if (!sim.running) h += `<div class="row"><button class="btn" id="aRot">Girar 90°</button><button class="btn" id="aDup">Duplicar</button><button class="btn danger" id="aDel">Excluir</button></div>`;
+    else if (T.inter) h += `<p class="muted">${T.inter === 'push' ? 'Mantenha pressionado no desenho para acionar.' : T.inter === 'trip' ? 'Clique no desenho para disparar ou rearmar o relé térmico.' : 'Clique no desenho para alternar.'}</p>`;
+  } else if (ui.sel && ui.sel.kind === 'wire') {
+    const w = doc.wires.find(x => x.id === ui.sel.id); if (!w) { ui.sel = null; return renderInspector(); }
+    const ca = compById(w.a.c), cb = compById(w.b.c);
+    h += `<div><p class="h">Fio</p><p class="title-lg">${esc(ca?.tag || ca?.type)} → ${esc(cb?.tag || cb?.type)}</p></div>`;
+    h += `<div class="field"><label>Cor</label><div class="swatches">${WIRE_COLORS.map(([col, n]) => `<button class="sw${w.color === col ? ' act' : ''}" data-wcol="${col}" title="${n}" aria-label="${n}" style="background:${col}"></button>`).join('')}</div></div>`;
+    if (!sim.running) h += `<div class="row">${w.pts.length ? '<button class="btn" id="aAuto">Rota automática</button>' : ''}<button class="btn danger" id="aDelW">Excluir fio</button></div>`;
+  } else {
+    h += `<div><p class="h">Projeto</p></div>
+      <div class="field"><label for="fProj">Nome do projeto</label><input id="fProj" value="${esc(doc.project)}"></div>
+      <div class="field"><label for="fAuth">Autor</label><input id="fAuth" value="${esc(doc.author)}" placeholder="Seu nome"></div>`;
+    const tags = {};
+    for (const c of doc.comps) if (!TYPES[c.type].notag && c.type !== 'fase' && c.type !== 'neutro') (tags[c.tag] = tags[c.tag] || []).push(TYPES[c.type].name);
+    h += `<div><p class="h">Lista de tags</p><ul class="list">${Object.entries(tags).sort().map(([t, l]) => `<li><span class="mono">${esc(t)}</span><span class="muted" style="text-align:right">${l.length > 1 ? l.length + ' itens' : esc(l[0])}</span></li>`).join('') || '<li class="muted">Nenhum componente ainda.</li>'}</ul></div>`;
+    const pr = problems();
+    if (pr.length) h += `<div class="card"><p class="h" style="color:var(--warn)">Avisos</p><ul class="list">${pr.map(p => `<li>${esc(p)}</li>`).join('')}</ul></div>`;
+    h += `<div class="card"><p class="h">Como usar</p><ul class="list help" style="font-size:12.5px">
+      <li>Toque num componente da paleta e depois na folha para inserir.</li>
+      <li>Ferramenta Fio: toque num borne, nos pontos de dobra (opcional) e no borne final.</li>
+      <li>Contatos usam a mesma tag da bobina (K1, KT1).</li>
+      <li>Em SIMULAR, segure os botões e toque nas chaves, sensores, disjuntores e no relé térmico.</li>
+      <li><span class="kbd">R</span> gira · <span class="kbd">Del</span> exclui · <span class="kbd">Esc</span> cancela · <span class="kbd">Ctrl+Z</span> desfaz</li></ul></div>`;
+  }
+  el.innerHTML = h;
+  bindInspector();
+}
+function bindInspector() {
+  const on = (id, ev, fn) => { const e = document.getElementById(id); if (e) e.addEventListener(ev, fn); };
+  const c = ui.sel && ui.sel.kind === 'comp' ? compById(ui.sel.id) : null;
+  on('fTag', 'change', e => { const v = e.target.value.trim().toUpperCase().slice(0, 8); if (v) { c.tag = v; commit(); render(); } });
+  on('fColor', 'change', e => { c.color = e.target.value; commit(); render(); });
+  on('fPreset', 'change', e => { const v = Math.max(0.1, Math.min(600, +e.target.value || 1)); c.preset = Math.round(v * 10) / 10; commit(); render(); });
+  on('aRot', 'click', () => { c.rot = ((c.rot || 0) + 90) % 360; commit(); render(); });
+  on('aDup', 'click', () => { const n = addComp(c.type, c.x + 80, c.y, { color: c.color, preset: c.preset, rot: c.rot }); if (TYPES[c.type].ref) n.tag = c.tag; ui.sel = { kind: 'comp', id: n.id }; commit(); render(); });
+  on('aDel', 'click', () => deleteSel());
+  on('aDelW', 'click', () => deleteSel());
+  on('aAuto', 'click', () => { const w = doc.wires.find(x => x.id === ui.sel.id); w.pts = []; commit(); render(); });
+  on('fProj', 'change', e => { doc.project = e.target.value.slice(0, 60) || 'Projeto sem nome'; commit(); render(); });
+  on('fAuth', 'change', e => { doc.author = e.target.value.slice(0, 60); commit(); render(); });
+  document.querySelectorAll('[data-wcol]').forEach(b => b.addEventListener('click', () => { const w = doc.wires.find(x => x.id === ui.sel.id); w.color = b.dataset.wcol; commit(); render(); }));
+}
+function deleteSel() {
+  if (!ui.sel || sim.running) return;
+  if (ui.sel.kind === 'comp') { const id = ui.sel.id; doc.comps = doc.comps.filter(c => c.id !== id); doc.wires = doc.wires.filter(w => w.a.c !== id && w.b.c !== id); }
+  else doc.wires = doc.wires.filter(w => w.id !== ui.sel.id);
+  ui.sel = null; commit(); render();
+}
+function updateHint() {
+  let t = '';
+  if (sim.running) t = 'Simulação em andamento: segure os botões, toque em chaves, sensores, disjuntores e relé térmico. A edição fica bloqueada.';
+  else if (ui.placing) t = `Toque na folha para inserir: ${TYPES[ui.placing].name}. Esc cancela.`;
+  else if (ui.mode === 'wire') t = ui.wireStart ? 'Toque nos pontos de dobra ou direto no borne de destino. Esc cancela.' : 'Toque num borne para começar o fio.';
+  else if (ui.mode === 'pan') t = 'Arraste para mover a folha. Use os botões ou a roda do mouse para o zoom.';
+  else t = 'Arraste componentes para mover. Arraste o fundo para mover a folha.';
+  $('#hint').textContent = t;
+}
+function updateButtons() {
+  $('#bUndo').disabled = hist.idx <= 0 || sim.running; $('#bRedo').disabled = hist.idx >= hist.stack.length - 1 || sim.running;
+  const r = $('#bRun'); r.classList.toggle('on', sim.running); r.querySelector('span').textContent = sim.running ? 'PARAR' : 'SIMULAR';
+  r.querySelector('svg').innerHTML = sim.running ? '<rect x="6" y="6" width="12" height="12"/>' : '<path d="M7 4v16l13-8z"/>';
+  document.querySelectorAll('[data-mode]').forEach(b => b.classList.toggle('act', b.dataset.mode === ui.mode && !ui.placing));
+  document.querySelectorAll('[data-part]').forEach(b => b.classList.toggle('act', b.dataset.part === ui.placing));
+}
+
+// ---------- Palette ----------
+function buildPalette() {
+  $('#swatches').innerHTML = WIRE_COLORS.map(([c, n]) => `<button class="sw${c === ui.wireColor ? ' act' : ''}" data-color="${c}" title="Fio ${n}" aria-label="Fio ${n}" style="background:${c}"></button>`).join('');
+  let h = '';
+  for (const cat of CATS) {
+    const items = Object.entries(TYPES).filter(([, T]) => T.cat === cat);
+    h += `<p class="h" style="margin-top:4px">${cat}</p><div class="grid2">` + items.map(([k, T]) =>
+      `<button class="part" data-part="${k}" title="${T.name}"><svg viewBox="-46 -50 92 100"><g class="sym">${T.draw({ color: 'verde' }, { closed: false })}</g></svg>${T.name.replace(' (retardo na energização)', '')}</button>`).join('') + '</div>';
+  }
+  $('#palette').innerHTML = h;
+}
+
+// ---------- Pointer handling ----------
+function toWorld(ev) {
+  const pt = svg.createSVGPoint(); pt.x = ev.clientX; pt.y = ev.clientY;
+  const p = pt.matrixTransform(svg.getScreenCTM().inverse());
+  return [(p.x - ui.px) / ui.zoom, (p.y - ui.py) / ui.zoom];
+}
+let drag = null;
+const touches = new Map(); let pinch = null;
+svg.addEventListener('pointerdown', ev => {
+  touches.set(ev.pointerId, [ev.clientX, ev.clientY]);
+  if (touches.size === 2) {
+    const [a, b] = [...touches.values()];
+    if (drag && drag.kind === 'press') { sim.pressed.clear(); solve(); }
+    drag = null; pinch = { d: Math.hypot(a[0] - b[0], a[1] - b[1]) }; return;
+  }
+  const p = toWorld(ev);
+  const termEl = ev.target.closest('[data-term]'), compEl = ev.target.closest('[data-comp]'), wireEl = ev.target.closest('[data-wire]');
+  if (sim.running) {
+    if (compEl) {
+      const c = compById(compEl.dataset.comp), T = TYPES[c.type];
+      if (T.inter === 'push') { sim.pressed.add(c.id); solve(); render(); svg.setPointerCapture(ev.pointerId); drag = { kind: 'press' }; return; }
+      if (T.inter === 'toggle') { sim.toggled.has(c.id) ? sim.toggled.delete(c.id) : sim.toggled.add(c.id); solve(); render(); return; }
+      if (T.inter === 'trip') { sim.tripped.has(c.tag) ? sim.tripped.delete(c.tag) : sim.tripped.add(c.tag); solve(); render(); return; }
+      ui.sel = { kind: 'comp', id: c.id }; render(); return;
+    }
+    drag = { kind: 'pan', sx: ev.clientX, sy: ev.clientY, px: ui.px, py: ui.py }; svg.setPointerCapture(ev.pointerId); return;
+  }
+  if (ui.placing) {
+    const c = addComp(ui.placing, p[0], p[1]); ui.sel = { kind: 'comp', id: c.id };
+    if (!ev.shiftKey) ui.placing = null;
+    commit(); render(); return;
+  }
+  if (ui.mode === 'wire') {
+    if (termEl) {
+      const [cid, t] = termEl.dataset.term.split('|');
+      if (!ui.wireStart) { ui.wireStart = { c: cid, t }; ui.wirePts = []; ui.cursor = p; render(); return; }
+      if (ui.wireStart.c === cid && ui.wireStart.t === t) { ui.wireStart = null; render(); return; }
+      const exists = doc.wires.some(w => (w.a.c === ui.wireStart.c && w.a.t === ui.wireStart.t && w.b.c === cid && w.b.t === t) || (w.b.c === ui.wireStart.c && w.b.t === ui.wireStart.t && w.a.c === cid && w.a.t === t));
+      if (!exists) { addWire(ui.wireStart, { c: cid, t }, ui.wireColor, ui.wirePts.map(q => [...q])); commit(); }
+      ui.wireStart = null; ui.wirePts = []; render(); return;
+    }
+    if (ui.wireStart) { const last = ui.wirePts.length ? ui.wirePts[ui.wirePts.length - 1] : termPos(compById(ui.wireStart.c), ui.wireStart.t); const q = orth(last, [snap(p[0]), snap(p[1])]); ui.wirePts.push(q); render(); return; }
+  }
+  if (ui.mode === 'select') {
+    if (compEl) {
+      const c = compById(compEl.dataset.comp); ui.sel = { kind: 'comp', id: c.id };
+      drag = { kind: 'move', id: c.id, ox: p[0] - c.x, oy: p[1] - c.y, moved: false }; svg.setPointerCapture(ev.pointerId); render(); return;
+    }
+    if (wireEl) { ui.sel = { kind: 'wire', id: wireEl.dataset.wire }; render(); return; }
+    ui.sel = null; render();
+  }
+  drag = { kind: 'pan', sx: ev.clientX, sy: ev.clientY, px: ui.px, py: ui.py }; svg.setPointerCapture(ev.pointerId);
+});
+function orth(a, b) { return Math.abs(b[0] - a[0]) > Math.abs(b[1] - a[1]) ? [b[0], a[1]] : [a[0], b[1]]; }
+svg.addEventListener('pointermove', ev => {
+  if (touches.has(ev.pointerId)) touches.set(ev.pointerId, [ev.clientX, ev.clientY]);
+  if (pinch && touches.size === 2) {
+    const [a, b] = [...touches.values()]; const d = Math.hypot(a[0] - b[0], a[1] - b[1]);
+    if (d > 0 && pinch.d > 0) { zoomAt(d / pinch.d, (a[0] + b[0]) / 2, (a[1] + b[1]) / 2); pinch.d = d; }
+    return;
+  }
+  const p = toWorld(ev);
+  if (drag && drag.kind === 'pan') { ui.px = drag.px + (ev.clientX - drag.sx); ui.py = drag.py + (ev.clientY - drag.sy); render(); return; }
+  if (drag && drag.kind === 'move') {
+    const c = compById(drag.id); const nx = snap(p[0] - drag.ox), ny = snap(p[1] - drag.oy);
+    if (nx !== c.x || ny !== c.y) { c.x = Math.max(40, Math.min(SHEET.w - 40, nx)); c.y = Math.max(40, Math.min(SHEET.h - 40, ny)); drag.moved = true; render(); }
+    return;
+  }
+  if (ui.placing || ui.wireStart) {
+    if (ui.wireStart) { const last = ui.wirePts.length ? ui.wirePts[ui.wirePts.length - 1] : termPos(compById(ui.wireStart.c), ui.wireStart.t); ui.cursor = orth(last, p); }
+    else ui.cursor = p;
+    render();
+  }
+});
+const endDrag = ev => {
+  touches.delete(ev.pointerId); if (touches.size < 2) pinch = null;
+  if (!drag) return;
+  if (drag.kind === 'press') { sim.pressed.clear(); solve(); render(); }
+  if (drag.kind === 'move' && drag.moved) commit();
+  drag = null;
+};
+svg.addEventListener('pointerup', endDrag); svg.addEventListener('pointercancel', endDrag);
+svg.addEventListener('wheel', ev => { ev.preventDefault(); zoomAt(ev.deltaY < 0 ? 1.12 : 1 / 1.12, ev.clientX, ev.clientY); }, { passive: false });
+function zoomAt(k, cx, cy) {
+  const r = svg.getBoundingClientRect(); cx = cx ?? r.left + r.width / 2; cy = cy ?? r.top + r.height / 2;
+  const nz = Math.max(0.25, Math.min(3, ui.zoom * k)); const mx = cx - r.left, my = cy - r.top;
+  ui.px = mx - (mx - ui.px) * nz / ui.zoom; ui.py = my - (my - ui.py) * nz / ui.zoom; ui.zoom = nz; render();
+}
+function fit() {
+  const r = svg.getBoundingClientRect(); if (!r.width) return;
+  const z = Math.min((r.width - 24) / SHEET.w, (r.height - 24) / SHEET.h);
+  ui.zoom = Math.max(0.2, z); ui.px = (r.width - SHEET.w * ui.zoom) / 2; ui.py = (r.height - SHEET.h * ui.zoom) / 2; render();
+}
+
+// ---------- Toolbar & keyboard ----------
+$('#bRun').addEventListener('click', () => sim.running ? stopSim() : startSim());
+$('#bUndo').addEventListener('click', undo); $('#bRedo').addEventListener('click', redo);
+$('#bZoomIn').addEventListener('click', () => zoomAt(1.2)); $('#bZoomOut').addEventListener('click', () => zoomAt(1 / 1.2));
+$('#bFit').addEventListener('click', fit);
+$('#bEx').addEventListener('click', openExamples); $('#bFile').addEventListener('click', openFile);
+$('#bPal').addEventListener('click', () => togglePanel('pal')); $('#bInsp').addEventListener('click', () => togglePanel('insp'));
+function togglePanel(id) { const el = $('#' + id); const open = !el.classList.contains('open'); $('#pal').classList.remove('open'); $('#insp').classList.remove('open'); el.classList.toggle('open', open); }
+$('#pal').addEventListener('click', ev => {
+  const m = ev.target.closest('[data-mode]'), part = ev.target.closest('[data-part]'), col = ev.target.closest('[data-color]');
+  if (sim.running && (m || part)) { showBanner('Pare a simulação para editar o circuito.'); setTimeout(() => showBanner(null), 2200); return; }
+  if (m) { ui.mode = m.dataset.mode; ui.placing = null; ui.wireStart = null; render(); }
+  if (part) { ui.placing = ui.placing === part.dataset.part ? null : part.dataset.part; ui.wireStart = null; if (matchMedia('(max-width: 760px)').matches) $('#pal').classList.remove('open'); render(); }
+  if (col) { ui.wireColor = col.dataset.color; buildPalette(); updateButtons(); }
+});
+document.addEventListener('keydown', ev => {
+  if (ev.target.closest('input,textarea,select')) return;
+  if (ev.key === 'Escape') { ui.placing = null; ui.wireStart = null; ui.wirePts = []; closeModal(); render(); }
+  else if ((ev.key === 'Delete' || ev.key === 'Backspace') && ui.sel) { ev.preventDefault(); deleteSel(); }
+  else if ((ev.key === 'r' || ev.key === 'R') && ui.sel && ui.sel.kind === 'comp' && !sim.running) { const c = compById(ui.sel.id); c.rot = ((c.rot || 0) + 90) % 360; commit(); render(); }
+  else if ((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === 'z' && !sim.running) { ev.preventDefault(); ev.shiftKey ? redo() : undo(); }
+  else if ((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === 'y' && !sim.running) { ev.preventDefault(); redo(); }
+  else if (ev.key === ' ' && !ev.repeat) { ev.preventDefault(); sim.running ? stopSim() : startSim(); }
+  else if (ev.key === 'w' || ev.key === 'W') { ui.mode = 'wire'; ui.placing = null; render(); }
+  else if (ev.key === 'v' || ev.key === 'V') { ui.mode = 'select'; ui.placing = null; ui.wireStart = null; render(); }
+});
+
+// ---------- Modals ----------
+function openModal(html) { $('#sheet').innerHTML = html; $('#modal').hidden = false; }
+function closeModal() { $('#modal').hidden = true; }
+$('#modal').addEventListener('click', ev => { if (ev.target.id === 'modal' || ev.target.closest('[data-close]')) closeModal(); });
+function openExamples() {
+  openModal(`<div class="row" style="justify-content:space-between;align-items:center"><p class="title-lg">Circuitos de exemplo</p><button class="btn" data-close>Fechar</button></div>
+  <p class="muted" style="margin:0">Carregue um circuito pronto, aperte SIMULAR e siga o roteiro. O exemplo substitui o desenho atual; use Desfazer para voltar.</p>
+  <div class="ex">${EXAMPLES.map((e, i) => `<div class="card"><h4>${e.title}</h4><p>${e.text}</p><p><b>Teste:</b> ${e.test}</p><button class="btn pri" data-ex="${i}">Carregar exemplo</button></div>`).join('')}</div>`);
+  document.querySelectorAll('[data-ex]').forEach(b => b.addEventListener('click', () => { if (sim.running) stopSim(); const e = EXAMPLES[+b.dataset.ex]; const keep = hist.stack.slice(0, hist.idx + 1); load(e.build()); hist.stack = keep.concat(hist.stack); hist.idx = hist.stack.length - 1; saveLocal(); closeModal(); fit(); }));
+}
+function openFile() {
+  openModal(`<div class="row" style="justify-content:space-between;align-items:center"><p class="title-lg">Projeto</p><button class="btn" data-close>Fechar</button></div>
+  <p class="muted" style="margin:0">O projeto fica salvo neste navegador automaticamente. Para levar a outro computador, copie o código abaixo ou carregue um arquivo .json.</p>
+  <div class="field"><label for="fJson">Código do projeto (JSON)</label><textarea id="fJson" class="json">${esc(serialize())}</textarea></div>
+  <div class="row"><button class="btn pri" id="aCopy">Copiar código</button><button class="btn" id="aLoadTxt">Abrir o código colado</button>
+  <label class="btn" for="fFile">Abrir arquivo .json</label><input id="fFile" type="file" accept=".json,application/json" hidden><button class="btn danger" id="aNew">Nova folha em branco</button></div>
+  <p id="fileMsg" class="muted" style="margin:0"></p>`);
+  const msg = t => { $('#fileMsg').textContent = t; };
+  const tryLoad = txt => { try { if (sim.running) stopSim(); const keep = hist.stack.slice(0, hist.idx + 1); load(txt); hist.stack = keep.concat(hist.stack); hist.idx = hist.stack.length - 1; saveLocal(); closeModal(); fit(); } catch (e) { msg('Não foi possível abrir: ' + e.message); } };
+  $('#aCopy').addEventListener('click', () => { const ta = $('#fJson'); navigator.clipboard?.writeText(ta.value).then(() => msg('Código copiado.'), () => { ta.select(); msg('Selecionei o código: use Ctrl+C para copiar.'); }) ?? (ta.select(), msg('Selecionei o código: use Ctrl+C para copiar.')); });
+  $('#aLoadTxt').addEventListener('click', () => tryLoad($('#fJson').value));
+  $('#fFile').addEventListener('change', ev => { const f = ev.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = () => tryLoad(r.result); r.readAsText(f); });
+  $('#aNew').addEventListener('click', () => tryLoad({ project: 'Novo projeto', author: doc.author, comps: [], wires: [] }));
+}
+
+// ---------- Examples ----------
+function builder(project) {
+  const d = { project, author: '', comps: [], wires: [] }; let n = 1;
+  const C = (type, x, y, tag, extra = {}) => { const c = { id: 'c' + (n++), type, x, y, rot: 0, tag, ...extra }; d.comps.push(c); return c; };
+  const W = (a, ta, b, tb, color = '#C0392B') => d.wires.push({ id: 'w' + (n++), a: { c: a.id, t: ta }, b: { c: b.id, t: tb }, color, pts: [] });
+  return { d, C, W };
+}
+const RED = '#C0392B', BLUE = '#2D6BB0', BLACK = '#22231C';
+const EXAMPLES = [
+  { title: 'Partida direta com selo', text: 'Liga e desliga um contator K1 por botões. O contato K1 em paralelo com S1 mantém a bobina ligada depois que você solta o botão (selo). H1 indica ligado e H2 indica falha no relé térmico.',
+    test: 'Segure S1: K1 liga e continua ligado ao soltar. Segure S0 para desligar. Toque em FT1 para simular sobrecarga.',
+    build() { const { d, C, W } = builder('Partida direta com selo');
+      const l = C('fase', 200, 100, 'L'), q = C('disjuntor', 200, 200, 'Q1'), ft = C('ft_nf', 200, 320, 'FT1'), s0 = C('botao_nf', 200, 440, 'S0'), s1 = C('botao_na', 200, 560, 'S1'), k1s = C('contato_na', 340, 560, 'K1'), k1 = C('bobina', 200, 700, 'K1'), n = C('neutro', 200, 840, 'N');
+      const k1h = C('contato_na', 520, 440, 'K1'), h1 = C('sinaleiro', 520, 700, 'H1', { color: 'verde' }), ftna = C('ft_na', 700, 320, 'FT1'), h2 = C('sinaleiro', 700, 700, 'H2', { color: 'vermelho' });
+      W(l, 'a', q, 'a'); W(q, 'b', ft, 'a'); W(ft, 'b', s0, 'a'); W(s0, 'b', s1, 'a'); W(s0, 'b', k1s, 'a'); W(s1, 'b', k1, 'a'); W(k1s, 'b', k1, 'a'); W(k1, 'b', n, 'a', BLUE);
+      W(ft, 'b', k1h, 'a'); W(k1h, 'b', h1, 'a'); W(h1, 'b', n, 'a', BLUE); W(q, 'b', ftna, 'a'); W(ftna, 'b', h2, 'a'); W(h2, 'b', n, 'a', BLUE);
+      return d; } },
+  { title: 'Reversão com intertravamento', text: 'Dois contatores, K1 (horário) e K2 (anti-horário). O contato NF de um no circuito do outro impede que os dois liguem juntos, o que causaria curto entre fases no circuito de força.',
+    test: 'Ligue S1 e tente S2: K2 não liga enquanto K1 estiver ligado. Desligue com S0 antes de inverter.',
+    build() { const { d, C, W } = builder('Reversão com intertravamento');
+      const l = C('fase', 200, 100, 'L'), ft = C('ft_nf', 200, 200, 'FT1'), s0 = C('botao_nf', 200, 320, 'S0');
+      const s1 = C('botao_na', 200, 460, 'S1'), k1s = C('contato_na', 320, 460, 'K1'), k2i = C('contato_nf', 200, 580, 'K2'), k1 = C('bobina', 200, 700, 'K1');
+      const s2 = C('botao_na', 520, 460, 'S2'), k2s = C('contato_na', 640, 460, 'K2'), k1i = C('contato_nf', 520, 580, 'K1'), k2 = C('bobina', 520, 700, 'K2');
+      const n = C('neutro', 200, 840, 'N');
+      W(l, 'a', ft, 'a'); W(ft, 'b', s0, 'a'); W(s0, 'b', s1, 'a'); W(s0, 'b', k1s, 'a'); W(s0, 'b', s2, 'a'); W(s0, 'b', k2s, 'a');
+      W(s1, 'b', k2i, 'a'); W(k1s, 'b', k2i, 'a'); W(k2i, 'b', k1, 'a'); W(s2, 'b', k1i, 'a'); W(k2s, 'b', k1i, 'a'); W(k1i, 'b', k2, 'a');
+      W(k1, 'b', n, 'a', BLUE); W(k2, 'b', n, 'a', BLUE);
+      return d; } },
+  { title: 'Partida com sinalização temporizada', text: 'S1 liga K1 com selo e energiza a bobina temporizada KT1. Depois de 3 segundos o contato KT1 fecha e acende H1, indicando que o motor chegou ao regime.',
+    test: 'Segure S1 e acompanhe a contagem de KT1 na barra inferior. Altere o tempo no painel de propriedades.',
+    build() { const { d, C, W } = builder('Partida com sinalização temporizada');
+      const l = C('fase', 200, 100, 'L'), s0 = C('botao_nf', 200, 220, 'S0'), s1 = C('botao_na', 200, 360, 'S1'), k1s = C('contato_na', 340, 360, 'K1'), k1 = C('bobina', 200, 520, 'K1'), kt = C('temporizador', 480, 520, 'KT1', { preset: 3 }), n = C('neutro', 200, 680, 'N');
+      const ktc = C('temp_na', 700, 360, 'KT1'), h1 = C('sinaleiro', 700, 520, 'H1', { color: 'amarelo' });
+      W(l, 'a', s0, 'a'); W(s0, 'b', s1, 'a'); W(s0, 'b', k1s, 'a'); W(s1, 'b', k1, 'a'); W(k1s, 'b', k1, 'a'); W(k1s, 'b', kt, 'a'); W(k1, 'b', n, 'a', BLUE); W(kt, 'b', n, 'a', BLUE);
+      W(s0, 'b', ktc, 'a', BLACK); W(ktc, 'b', h1, 'a', BLACK); W(h1, 'b', n, 'a', BLUE);
+      return d; } },
+];
+
+// ---------- Boot ----------
+const css = document.createElement('style');
+css.textContent = `
+  #cv .sym { stroke: var(--ink); stroke-width: 2; fill: none; color: var(--ink); stroke-linecap: round; }
+  #cv .comp .sym { color: #2A2C24; stroke: #2A2C24; }
+  .part .sym { stroke: #2A2C24; stroke-width: 2.4; fill: none; color: #2A2C24; stroke-linecap: round; }
+  #cv .chit { fill: transparent; stroke: none; }
+  #cv .comp { cursor: move; }
+  #cv .comp.sel .chit { fill: rgba(201,150,47,.10); stroke: var(--gold); stroke-width: 1.5; stroke-dasharray: 5 4; }
+  #cv .comp.inter { cursor: pointer; }
+  #cv .comp.inter .chit { fill: rgba(201,150,47,.07); }
+  #cv .comp.inter:hover .chit { fill: rgba(201,150,47,.16); }
+  #cv .term { fill: var(--paper); stroke: #2A2C24; stroke-width: 1.4; cursor: crosshair; }
+  #cv .term.live { fill: var(--live); stroke: var(--live); }
+  #cv .term.neu { fill: var(--neutral); stroke: var(--neutral); }
+  #cv .w { fill: none; stroke-width: 2.6; stroke-linejoin: round; stroke-linecap: round; }
+  #cv .wsel { stroke-width: 4; stroke-dasharray: 8 5; }
+  #cv .whit { fill: none; stroke: transparent; stroke-width: 14; cursor: pointer; }
+  #cv .wglow { fill: none; stroke-width: 9; stroke-linejoin: round; opacity: .28; pointer-events: none; }
+  #cv .wglow.live { stroke: var(--live); } #cv .wglow.neu { stroke: var(--neutral); }
+  #cv .wprev { fill: none; stroke-width: 2.4; stroke-dasharray: 6 5; pointer-events: none; }
+  #cv .ghost { opacity: .45; pointer-events: none; }
+  #cv .tag { font: 500 13px var(--font-mono); fill: #2A2C24; stroke: none; }
+  #cv .num { font: 500 9.5px var(--font-mono); fill: #77735F; stroke: none; }
+  #cv .sl { font: 700 14px var(--font-body); stroke: none; }
+  #cv .rul line, #cv .rul rect { stroke: var(--frame); stroke-width: 1; }
+  #cv .rul text { font: 500 11px var(--font-mono); fill: #77735F; }
+  #cv .stamp rect, #cv .stamp line { stroke: var(--frame); stroke-width: 1.2; }
+  #cv .stamp .sb { font: 800 20px var(--font-display); fill: #26281F; letter-spacing: 2px; }
+  #cv .stamp .sk { font: 600 9px var(--font-body); fill: #77735F; letter-spacing: 1.2px; }
+  #cv .stamp .sv { font: 500 14px var(--font-body); fill: #2A2C24; }
+`;
+document.head.appendChild(css);
+
+buildPalette();
+let restored = false;
+try { const s = localStorage.getItem('voltacademy.ce.doc'); if (s) { load(s); restored = true; } } catch (e) {}
+if (!restored) load(EXAMPLES[0].build());
+render();
+requestAnimationFrame(fit);
+window.addEventListener('resize', () => fit());
+window.__va = { doc: () => doc, sim, solve, startSim, stopSim, load, EXAMPLES };
+})();
+</script>
