@@ -18,7 +18,8 @@
   --run: #1F9D55; --stop: #D23A2A; --warn: #B7791F; --ok: #1F9D55;
   --live: #CF3F25; --neutral: #2D6BB0;
   --c-power: #E2553E; --c-cmd: #2F7DE1; --c-relay: #EE9A1D; --c-prot: #23A26D; --c-load: #12A0B3;
-  --paper: #FCFBF7; --ink: #2A2C24; --frame: #9A9585;
+  --paper: #FCFBF7; --ink: #2A2C24; --frame: #9A9585; --gold: #C9962F; --gold-soft: #FBF1DC;
+  --series-1: #257de0; --series-2: #f47230; --series-3: #00b894; --critical: #dc3c3d; --good: #0aac23;
   --shadow: 0 1px 2px rgba(20,24,30,.06), 0 4px 14px rgba(20,24,30,.06);
   --font-display: "Archivo", "Arial Narrow", system-ui, sans-serif;
   --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -26,10 +27,10 @@
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
   --bg: #121418; --surface: #1B1E24; --surface-2: #22262D; --surface-3: #2A2F37; --line: #333944; --fg: #E8EAED; --muted: #9AA1AC;
-  --accent: #E0AE46; --accent-soft: #3A3120; --accent-ink: #F0C46A; --shadow: 0 1px 2px rgba(0,0,0,.3), 0 6px 18px rgba(0,0,0,.25); color-scheme: dark; } }
+  --accent: #E0AE46; --accent-soft: #3A3120; --accent-ink: #F0C46A; --shadow: 0 1px 2px rgba(0,0,0,.3), 0 6px 18px rgba(0,0,0,.25); --series-1: #338ced; --series-2: #e76624; --series-3: #00a888; color-scheme: dark; } }
 :root[data-theme="dark"] {
   --bg: #121418; --surface: #1B1E24; --surface-2: #22262D; --surface-3: #2A2F37; --line: #333944; --fg: #E8EAED; --muted: #9AA1AC;
-  --accent: #E0AE46; --accent-soft: #3A3120; --accent-ink: #F0C46A; --shadow: 0 1px 2px rgba(0,0,0,.3), 0 6px 18px rgba(0,0,0,.25); color-scheme: dark; }
+  --accent: #E0AE46; --accent-soft: #3A3120; --accent-ink: #F0C46A; --shadow: 0 1px 2px rgba(0,0,0,.3), 0 6px 18px rgba(0,0,0,.25); --series-1: #338ced; --series-2: #e76624; --series-3: #00a888; color-scheme: dark; }
 [hidden] { display: none !important; }
 * { box-sizing: border-box; }
 html, body { height: 100%; }
@@ -275,12 +276,46 @@ textarea.json { font-family: var(--font-mono); font-size: 12px; min-height: 200p
 .stamp .sv { font: 500 14px var(--font-body); fill: #2A2C24; }
 .spin.cw { animation: spin 1.2s linear infinite; } .spin.ccw { animation: spin 1.2s linear infinite reverse; }
 
+/* 2D look */
+.d2mode .term { fill: transparent !important; stroke: transparent !important; }
+.d2mode .term.live, .d2mode .term.neu, .d2mode .term.dcp, .d2mode .term.dcn { fill: none !important; stroke-width: 2.5 !important; }
+.d2mode .term.live { stroke: var(--live) !important; } .d2mode .term.neu { stroke: var(--neutral) !important; }
+.d2mode .num { fill: #4B5563; }
+.seg { display: inline-flex; background: var(--surface-2); border: 1px solid var(--line); border-radius: 9px; padding: 2px; flex: none; }
+.seg button { padding: 6px 12px; border-radius: 7px; font-size: 13px; font-weight: 500; color: var(--muted); }
+.seg button.act { background: var(--surface); color: var(--fg); box-shadow: var(--shadow); }
+.fx-badge rect { fill: var(--critical); } .fx-badge text { fill: #fff; font: 700 10px var(--font-body); letter-spacing: .06em; }
+/* readouts */
+.readouts { margin-left: auto; display: flex; gap: 6px; flex: none; }
+.ro { display: inline-flex; align-items: center; gap: 5px; font-family: var(--font-mono); font-size: 12.5px; font-variant-numeric: tabular-nums; background: var(--surface-2); border: 1px solid var(--line); border-radius: 8px; padding: 3px 9px; white-space: nowrap; }
+.ro svg { width: 14px; height: 14px; }
+.ro.st-on { color: var(--run); } .ro.st-fault { color: var(--critical); border-color: var(--critical); }
+/* monitor */
+.mgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 14px; margin-bottom: 22px; }
+.ccard { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px 14px 10px; position: relative; min-width: 0; }
+.ccard h3 { margin: 0; font-size: 14px; } .ccard .sub { margin: 2px 0 8px; font-size: 12px; color: var(--muted); }
+.legend { display: flex; gap: 12px; flex-wrap: wrap; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+.legend i { display: inline-block; width: 14px; height: 3px; border-radius: 2px; margin-right: 5px; vertical-align: middle; }
+.chart { width: 100%; height: 200px; display: block; }
+.ctip { position: absolute; pointer-events: none; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow); border-radius: 8px; padding: 6px 9px; font-size: 12px; white-space: nowrap; z-index: 2; }
+.ctip i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; }
+.tile b { font-variant-numeric: tabular-nums; font-family: var(--font-mono); }
+.faults { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; }
+.fbtn { text-align: left; background: var(--surface); border: 1.5px solid var(--line); border-radius: 12px; padding: 10px 12px; display: flex; gap: 10px; align-items: center; }
+.fbtn:hover:not([disabled]) { border-color: var(--critical); }
+.fbtn.on { border-color: var(--critical); background: rgba(220,60,61,.08); }
+.fbtn .fi { width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; background: rgba(220,60,61,.12); color: var(--critical); flex: none; font-weight: 800; }
+.fbtn small { display: block; color: var(--muted); }
+.events li.crit { color: var(--critical); font-weight: 500; }
+.events li.warn { color: var(--warn); }
+
 .only-m { display: none !important; }
 @keyframes spin { to { transform: rotate(360deg); } }
 @media (max-width: 1100px) {
   .insp.open { position: absolute; right: 60px; top: 0; bottom: 0; z-index: 20; box-shadow: var(--shadow); }
   #vDiagram { position: relative; grid-template-columns: 76px 220px 1fr 60px; }
   .tbtn { min-width: 52px; }
+  .readouts .ro.hz, .readouts .ro.v3 { display: none; }
 }
 @media (max-width: 900px) {
   #vDiagram { grid-template-columns: 64px 1fr 0 52px; }
@@ -288,6 +323,7 @@ textarea.json { font-family: var(--font-mono); font-size: 12px; min-height: 200p
   .drawer.open { display: flex; }
   .acts .hide-s { display: none; }
   .sbtn span { display: none; }
+  .readouts { display: none; }
   .brand small { display: none; }
 }
 @media (max-width: 640px) {
@@ -338,6 +374,7 @@ textarea.json { font-family: var(--font-mono); font-size: 12px; min-height: 200p
       <div class="stagewrap">
         <div class="sheetbar">
           <div class="tabs" id="tabs" role="tablist" aria-label="Folhas"></div>
+          <div class="seg" role="group" aria-label="Aparência"><button data-look="sym" class="act">Símbolos</button><button data-look="2d">2D</button></div>
           <div class="sheetacts">
             <button class="sbtn" id="sCfg" title="Configurar folha e projeto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9 7 7M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/></svg><span>Configurar</span></button>
             <button class="sbtn" id="sRen" title="Renomear folha"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg><span>Renomear</span></button>
@@ -349,6 +386,7 @@ textarea.json { font-family: var(--font-mono); font-size: 12px; min-height: 200p
           <svg id="cv" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <pattern id="gridp" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="0" cy="0" r="1.1" fill="#D9D4C6"/></pattern>
+              <pattern id="peStripe" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="5" height="10" fill="#F3C21F"/></pattern>
               <filter id="glow" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
             </defs>
             <g id="world"></g>
@@ -632,10 +670,12 @@ function pe(x, y) { return L(x - 8, y, x + 8, y) + L(x - 5, y + 4, x + 5, y + 4)
 function motorBody(st) {
   const m = st.motor || {};
   let s = `<circle cx="0" cy="26" r="26" fill="${m.run ? 'var(--gold-soft)' : 'none'}"/>` + T(0, 24, 'M', 'it big') + T(0, 40, '3~', 'it');
-  if (m.run) s += `<g class="spin ${m.dir === 'horário' ? 'cw' : 'ccw'}" style="transform-origin:0px 26px"><path d="M0 -6 A32 32 0 0 1 28 10" fill="none" stroke="var(--ok)" stroke-width="2.5"/><path d="M28 10 l-7 -1 l5 -5 z" fill="var(--ok)" stroke="none"/></g>`;
+  if (m.run) s += `<g transform="rotate(${(m.dir === 'horário' ? 1 : -1) * (st.angle || 0)} 0 26)"><path d="M0 -6 A32 32 0 0 1 28 10" fill="none" stroke="var(--ok)" stroke-width="2.5"/><path d="M28 10 l-7 -1 l5 -5 z" fill="var(--ok)" stroke="none"/></g>`;
   if (m.msg) s += T(0, 70, m.msg, `it sm ${m.run ? 'okt' : 'warn'}`);
   return s;
 }
+Object.assign(TYPES.fusivel, { prot: 1 }); Object.assign(TYPES.disjuntor, { prot: 2 }); Object.assign(TYPES.disjuntor_bi, { prot: 3 });
+Object.assign(TYPES.fusiveis_3, { prot: 4 }); Object.assign(TYPES.disjuntor_tm3, { prot: 5 }); Object.assign(TYPES.disjuntor_motor, { prot: 6 });
 const CATS = ['Alimentação', 'Comando', 'Contatores e relés', 'Proteção', 'Cargas e sinalização'];
 for (const T0 of Object.values(TYPES)) { T0.box = T0.box || BOX2; T0.tagAt = T0.tagAt || [22, 5]; }
 
@@ -646,9 +686,10 @@ for (const T0 of Object.values(TYPES)) { T0.box = T0.box || BOX2; T0.tagAt = T0.
 let doc = null;
 let nextId = 1;
 const ui = { view: 'diagram', sheet: null, mode: 'select', placing: null, wireColor: WIRE_COLORS[0][0], sel: null, zoom: 1, px: 0, py: 0,
-  wireStart: null, wirePts: [], cursor: null, folder: 'Comando', search: '', inspOpen: true };
+  wireStart: null, wirePts: [], cursor: null, folder: 'Comando', search: '', inspOpen: true, look: 'sym' };
 const hist = { stack: [], idx: -1 };
 const blankSim = () => ({ running: false, t: 0, pressed: new Set(), toggled: new Set(), tripped: new Set(), coils: {}, timerOn: {}, timerAcc: {}, timerDone: {}, lamps: {},
+  injShort: new Set(), overload: new Set(), faults: {}, heat: {}, motorStart: {}, angle: {}, series: [], marks: [], meas: {}, lastSample: -1, spike: null,
   psu: {}, sr: {}, rff: {}, motors: {}, srPowerById: {}, potOf: null, uf: null, rootPot: new Map(), flow: new Set(), short: null, osc: false, events: [] });
 const sim = blankSim();
 
@@ -730,7 +771,7 @@ const norm = p => p === 'PE' ? 'N' : p;
 const sys = p => (p === '+24' || p === '0V') ? 'DC' : 'AC';
 const isPhase = p => PHASES.includes(p);
 const voltage = (p, q) => !!(p && q && norm(p) !== norm(q) && sys(p) === sys(q));
-function solve() {
+function solve(maxIter = 40) {
   const parent = new Map();
   const f = k => { if (!parent.has(k)) parent.set(k, k); let r = k; while (parent.get(r) !== r) r = parent.get(r); let n = k; while (parent.get(n) !== r) { const nx = parent.get(n); parent.set(n, r); n = nx; } return r; };
   const u = (a, b) => { const ra = f(a), rb = f(b); if (ra !== rb) parent.set(ra, rb); };
@@ -739,7 +780,7 @@ function solve() {
   let state = { coils: { ...sim.coils }, psu: { ...sim.psu }, sr: { ...sim.sr }, rff: { ...sim.rff } };
   let srPowerById = {}, stable = false, short = null, potOf = () => undefined, timerOn = {}, lamps = {}, rootPot = new Map();
   const loadRoots = [];
-  for (let iter = 0; iter < 40 && !stable; iter++) {
+  for (let iter = 0; iter < maxIter && !stable; iter++) {
     parent.clear(); loadRoots.length = 0;
     for (const w of doc.wires) if (byId.has(w.a.c) && byId.has(w.b.c)) u(key(w.a.c, w.a.t), key(w.b.c, w.b.t));
     const groups = {};
@@ -751,6 +792,7 @@ function solve() {
       const act = T0.act ? T0.act(c, ctx) : false;
       for (const [a, b] of T0.pairs(act, c, ctx)) u(key(c.id, a), key(c.id, b));
     }
+    for (const id of sim.injShort) { const c = byId.get(id); if (!c) continue; const ts = Object.keys(TYPES[c.type].terms); u(key(id, ts[0]), key(id, ts[1])); }
     rootPot = new Map(); short = null;
     for (const c of doc.comps) {
       const T0 = TYPES[c.type]; if (!T0.src) continue;
@@ -760,7 +802,7 @@ function solve() {
         else rootPot.set(r, q);
       }
     }
-    if (short) { state = { coils: {}, psu: {}, sr: {}, rff: {} }; timerOn = {}; lamps = {}; break; }
+    if (short) { sim.shortState = JSON.parse(JSON.stringify(state)); state = { coils: {}, psu: {}, sr: {}, rff: {} }; timerOn = {}; lamps = {}; break; }
     potOf = (cid, t) => rootPot.get(f(key(cid, t)));
     const next = { coils: {}, psu: {}, sr: {}, rff: {} }; timerOn = {}; lamps = {};
     const srPower = {}; srPowerById = {};
@@ -786,7 +828,6 @@ function solve() {
     stable = JSON.stringify(next) === JSON.stringify(state);
     state = next;
   }
-  const before = snapshot();
   sim.osc = !stable && !short;
   sim.short = short;
   Object.assign(sim, state, { timerOn, lamps, srPowerById, uf: f, rootPot, potOf: short ? () => undefined : potOf });
@@ -797,7 +838,6 @@ function solve() {
     if (sim.motors[c.id] && sim.motors[c.id].run) for (const t of Object.keys(TYPES[c.type].terms)) loadRoots.push(f(key(c.id, t)));
   }
   sim.flow = new Set(short ? [] : loadRoots.filter(r => rootPot.has(r)));
-  if (sim.running) logChanges(before, snapshot());
 }
 function snapshot() {
   const s = {};
@@ -833,7 +873,102 @@ function evalMotor6(c, potOf, rootOf, rootPot) {
   }
   return { run: false, msg: three(outer) ? 'Ligação incompleta' : 'Falta de fase' };
 }
-let lastTs = 0, raf = 0;
+function resolve() {
+  const before = snapshot();
+  solve();
+  if (sim.running && sim.short) {
+    const pair = sim.short;
+    const cands = doc.comps.filter(c => TYPES[c.type].prot && !sim.toggled.has(c.id)).sort((a, b) => TYPES[a.type].prot - TYPES[b.type].prot);
+    // Contactors stay as they were at the instant of the short: only a device in the short-current path may clear it.
+    const frozen = sim.shortState, use = () => Object.assign(sim, JSON.parse(JSON.stringify(frozen)));
+    let found = null;
+    for (const c of cands) { sim.toggled.add(c.id); use(); solve(1); if (!sim.short) { found = c; break; } sim.toggled.delete(c.id); }
+    use(); solve();
+    if (found) {
+      const fuse = found.type.startsWith('fus'), what = fuse ? 'queimou' : 'desarmou';
+      sim.faults[found.id] = { t: sim.t, kind: 'curto', label: fuse ? 'QUEIMADO' : 'DESARMADO' };
+      sim.events.unshift({ t: sim.t, msg: `Curto-circuito entre ${pair[0]} e ${pair[1]}: ${found.tag} ${what}`, level: 'crit' });
+      sim.marks.push({ t: sim.t, label: `Curto · ${found.tag} ${what}` });
+      sim.spike = { t: sim.t, pair };
+    }
+  }
+  if (sim.running) logChanges(before, snapshot());
+}
+function clearFaults() {
+  for (const c of doc.comps) if (TYPES[c.type].prot) sim.toggled.delete(c.id);
+  sim.tripped.clear(); sim.injShort.clear(); sim.overload.clear(); sim.heat = {}; sim.faults = {};
+  sim.events.unshift({ t: sim.t, msg: 'Proteções rearmadas e falhas removidas' });
+  resolve(); render();
+}
+// ---- electrical quantities (didactic model: 220 V F-N, 380 V F-F, 60 Hz) ----
+const LOAD_A = { coil: 0.05, timer: 0.03, lamp: 0.02, psu: 0.15, sr: 0.04 };
+const motorIn = c => (+c.kw || 1.5) * 1000 / (Math.sqrt(3) * 380 * 0.85 * 0.85);
+function motorCurrent(c) {
+  const m = sim.motors[c.id]; if (!m) return 0;
+  const In = motorIn(c);
+  if (m.run) {
+    const age = sim.t - (sim.motorStart[c.id] ?? sim.t);
+    let i = In * (1 + 5.5 * Math.exp(-age / 0.45));
+    if (sim.overload.has(c.id)) i *= 1.6;
+    if (m.conn === 'estrela') i *= 0.58;
+    return i;
+  }
+  return m.msg === 'Falta de fase' ? In * 1.73 : 0;
+}
+function updateElectrical(dt) {
+  const pots = new Set(sim.rootPot ? sim.rootPot.values() : []);
+  const phases = [...pots].filter(isPhase).length, hasN = pots.has('N');
+  let dip = 1; if (sim.spike && sim.t - sim.spike.t < 0.35) dip = 0.25;
+  const m = { v1: phases && hasN ? 220 * dip : 0, v3: phases >= 2 ? 380 * dip : 0, iCtrl: 0, motors: {} };
+  m.hz = m.v1 || m.v3 ? 60 : 0;
+  for (const c of doc.comps) {
+    const T0 = TYPES[c.type];
+    for (const [, , kind] of (T0.loads || [])) {
+      const on = kind === 'coil' ? sim.coils[c.tag] : kind === 'timer' ? sim.timerOn[c.tag] : kind === 'lamp' ? sim.lamps[c.id] : kind === 'psu' ? sim.psu[c.id] : sim.srPowerById[c.id];
+      if (on) m.iCtrl += LOAD_A[kind];
+    }
+    if (sim.motors[c.id]) {
+      const run = sim.motors[c.id].run;
+      if (run && sim.motorStart[c.id] === undefined) sim.motorStart[c.id] = sim.t;
+      if (!run) delete sim.motorStart[c.id];
+      if (run) sim.angle[c.id] = ((sim.angle[c.id] || 0) + dt * 540) % 360;
+      m.motors[c.id] = motorCurrent(c);
+    }
+  }
+  if (sim.spike && sim.t - sim.spike.t < 0.12) m.iShort = 1250;
+  sim.meas = m;
+  // thermal overload relays (class 10, simplified)
+  let tripped = null;
+  for (const r of doc.comps) if (r.type === 'rele_termico' && !sim.tripped.has(r.tag)) {
+    const roots = ['t1', 't2', 't3'].map(t => sim.uf && sim.uf(r.id + ':' + t));
+    let ratio = 0;
+    for (const mc of doc.comps) if (sim.motors[mc.id] && Object.keys(TYPES[mc.type].terms).some(t => roots.includes(sim.uf(mc.id + ':' + t)))) {
+      const starting = sim.motors[mc.id].run && sim.t - (sim.motorStart[mc.id] ?? sim.t) < 1.5;
+      if (!starting) ratio = Math.max(ratio, m.motors[mc.id] / motorIn(mc));
+    }
+    const h = Math.max(0, (sim.heat[r.tag] || 0) + (ratio > 1.15 ? (ratio - 1.05) * 0.6 * dt : -0.2 * dt));
+    sim.heat[r.tag] = h;
+    if (h >= 1) tripped = r;
+  }
+  if (tripped) {
+    sim.tripped.add(tripped.tag); sim.heat[tripped.tag] = 0;
+    markTrip(tripped.tag, 'DISPAROU');
+    sim.events.unshift({ t: sim.t, msg: `Sobrecarga: relé térmico ${tripped.tag} disparou`, level: 'crit' });
+    sim.marks.push({ t: sim.t, label: `${tripped.tag} disparou` });
+    return true;
+  }
+  return false;
+}
+function markTrip(tag, label) { for (const c of doc.comps) if (c.type === 'rele_termico' && c.tag === tag) sim.faults[c.id] = { t: sim.t, kind: 'sobrecarga', label }; }
+function sample() {
+  if (sim.t - sim.lastSample < 0.1) return;
+  sim.lastSample = sim.t;
+  const m = sim.meas;
+  sim.series.push({ t: sim.t, v1: m.v1, v3: m.v3, iCtrl: m.iCtrl, motors: { ...m.motors } });
+  if (sim.series.length > 1200) sim.series.shift();
+}
+
+let lastTs = 0, raf = 0, lastFrame = 0;
 function tick(ts) {
   if (!sim.running) return;
   const dt = lastTs ? Math.min(0.1, (ts - lastTs) / 1000) : 0; lastTs = ts;
@@ -845,41 +980,191 @@ function tick(ts) {
     sim.timerAcc[c.tag] = acc;
     const done = on && acc >= (+c.preset || 0);
     if (done !== !!sim.timerDone[c.tag]) { sim.timerDone[c.tag] = done; changed = true; }
-    if (on && !done) changed = true;
   }
-  if (changed) { solve(); render(); }
-  $('#clock').textContent = fmtTime(sim.t);
+  if (updateElectrical(dt)) changed = true;
+  if (changed) { resolve(); updateElectrical(0); }
+  sample();
   if (sim.short) { stopSim(shortMsg()); return; }
+  if (changed) render();
+  else if (ts - lastFrame > 33) { lastFrame = ts; frameUpdate(); }
+  $('#clock').textContent = fmtTime(sim.t);
   raf = requestAnimationFrame(tick);
+}
+function frameUpdate() {
+  if (ui.view === 'diagram') { renderWorld(); renderStatus(); }
+  else if (ui.view === 'monitor') updateMonitorLive();
+  else if (ui.view === 'operate') updateReadoutsOnly();
 }
 function shortMsg() { const [a, b] = sim.short || []; return `Curto-circuito entre ${a} e ${b}: dois potenciais diferentes ficaram ligados sem carga no caminho. Confira a fiação e simule de novo.`; }
 function fmtTime(t) { const m = Math.floor(t / 60), s = t - m * 60; return String(m).padStart(2, '0') + ':' + s.toFixed(1).padStart(4, '0'); }
 function startSim() {
   Object.assign(sim, blankSim(), { running: true });
   ui.wireStart = null; ui.wirePts = []; ui.placing = null;
-  showBanner(null); solve();
+  showBanner(null);
   sim.events.unshift({ t: 0, msg: 'Simulação iniciada' });
+  resolve(); updateElectrical(0); sample();
   if (sim.short) { stopSim(shortMsg()); return; }
   lastTs = 0; raf = requestAnimationFrame(tick); render();
 }
 function stopSim(msg) {
   cancelAnimationFrame(raf);
-  const events = sim.events.slice(); const t = sim.t;
-  Object.assign(sim, blankSim());
-  sim.events = sim.running === false && events.length ? [{ t, msg: msg ? 'Simulação interrompida: curto-circuito' : 'Simulação parada' }, ...events] : [];
+  const keep = { events: sim.events.slice(), series: sim.series.slice(), marks: sim.marks.slice() }, t = sim.t;
+  Object.assign(sim, blankSim(), keep);
+  if (keep.events.length) sim.events.unshift({ t, msg: msg ? 'Simulação interrompida: curto-circuito sem proteção no caminho' : 'Simulação parada', level: msg ? 'crit' : '' });
+  sim.lastT = t;
   $('#clock').textContent = fmtTime(0);
   showBanner(msg || null); render();
 }
 function showBanner(msg) { const b = $('#banner'); b.hidden = !msg; b.textContent = msg || ''; }
 function interact(c) {
   const T0 = TYPES[c.type];
-  if (T0.inter === 'toggle') sim.toggled.has(c.id) ? sim.toggled.delete(c.id) : sim.toggled.add(c.id);
-  else if (T0.inter === 'trip') sim.tripped.has(c.tag) ? sim.tripped.delete(c.tag) : sim.tripped.add(c.tag);
-  solve(); render();
+  if (T0.inter === 'toggle') {
+    if (sim.toggled.has(c.id)) { sim.toggled.delete(c.id); delete sim.faults[c.id]; }
+    else { sim.toggled.add(c.id); if (c.type.startsWith('fus')) { sim.faults[c.id] = { t: sim.t, kind: 'manual', label: 'QUEIMADO' }; sim.events.unshift({ t: sim.t, msg: `Fusível ${c.tag} aberto (falha simulada)`, level: 'warn' }); sim.marks.push({ t: sim.t, label: `${c.tag} aberto` }); } }
+  } else if (T0.inter === 'trip') {
+    if (sim.tripped.has(c.tag)) { sim.tripped.delete(c.tag); for (const x of doc.comps) if (x.tag === c.tag) delete sim.faults[x.id]; sim.events.unshift({ t: sim.t, msg: `Relé térmico ${c.tag} rearmado` }); }
+    else { sim.tripped.add(c.tag); markTrip(c.tag, 'DISPARADO'); sim.events.unshift({ t: sim.t, msg: `Relé térmico ${c.tag} disparado`, level: 'warn' }); sim.marks.push({ t: sim.t, label: `${c.tag} disparado` }); }
+  }
+  resolve(); render();
   if (sim.short) stopSim(shortMsg());
 }
-function pressStart(c) { sim.pressed.add(c.id); solve(); render(); if (sim.short) stopSim(shortMsg()); }
-function pressEnd() { if (!sim.pressed.size) return; sim.pressed.clear(); solve(); render(); }
+function pressStart(c) { sim.pressed.add(c.id); resolve(); render(); if (sim.short) stopSim(shortMsg()); }
+function pressEnd() { if (!sim.pressed.size) return; sim.pressed.clear(); resolve(); render(); }
+
+// =====================================================================
+// 2D look — original vector drawings of real devices (not product photos)
+// =====================================================================
+const K = { body: '#F1F3F5', body2: '#DDE1E6', edge: '#7E8590', dark: '#262A31', screw: '#CDD1D7', screwE: '#6E7580', green: '#1FA45B', red: '#D8392B', yellow: '#F3C21F', grey: '#8A929D' };
+const rr = (x, y, w, h, fill, rx = 4, sw = 1.2, stroke = K.edge, extra = '') => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${rx}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}" ${extra}/>`;
+const cc = (x, y, r, fill, stroke = K.edge, sw = 1.2, extra = '') => `<circle cx="${x}" cy="${y}" r="${r}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}" ${extra}/>`;
+const tx = (x, y, str, size = 8, fill = '#262A31', w = 700, anchor = 'middle') => `<text x="${x}" y="${y}" font-size="${size}" font-weight="${w}" fill="${fill}" text-anchor="${anchor}" font-family="IBM Plex Sans, system-ui, sans-serif" stroke="none">${str}</text>`;
+const ln = (x1, y1, x2, y2, col = K.screwE, w = 2) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${col}" stroke-width="${w}" stroke-linecap="round"/>`;
+const screw = (x, y) => cc(x, y, 4.8, K.screw, K.screwE, 1.2) + ln(x - 2.6, y - 2.6, x + 2.6, y + 2.6, K.screwE, 1.3);
+const screwsOf = c => Object.values(TYPES[c.type].terms).map(([x, y]) => screw(x, y)).join('');
+const leads2 = (top = -28, bot = 28, x = 0) => ln(x, -36, x, top) + ln(x, bot, x, 36);
+const ledD = (x, y, on, col = K.green) => cc(x, y, 3.4, on ? col : '#A7ADB5', '#59606A', .8, on ? 'filter="url(#glow)"' : '');
+const shade = (x, y, w, h, rx = 4) => `<rect x="${x}" y="${y}" width="${w}" height="${h / 2}" rx="${rx}" fill="#fff" opacity=".35" stroke="none"/>`;
+function head(col, act, kind = 'flush') {
+  let s = cc(0, 0, 21, '#30353D', '#1B1E23', 1.5) + cc(0, 0, 17.5, '#4A5059', 'none', 0);
+  const r = act ? 12 : 14.5;
+  if (kind === 'mushroom') s = cc(0, 0, 23, K.yellow, '#B58F10', 1.5) + tx(0, -15.5, 'EMERGÊNCIA', 4.4, '#5B4300') + cc(0, 2, act ? 13 : 15.5, act ? '#9E2418' : K.red, '#7D1C12', 1.5) + `<ellipse cx="-4" cy="-3" rx="6" ry="3.5" fill="#fff" opacity=".35"/>`;
+  else s += cc(0, 0, r, act ? shadeHex(col, -.28) : col, shadeHex(col, -.4), 1.4) + `<ellipse cx="-3.5" cy="-4" rx="${r * .45}" ry="${r * .28}" fill="#fff" opacity=".35"/>`;
+  return s;
+}
+function shadeHex(hex, k) { const n = parseInt(hex.slice(1), 16); const f = v => Math.max(0, Math.min(255, Math.round(v + (k < 0 ? v * k : (255 - v) * k)))); return '#' + [n >> 16, (n >> 8) & 255, n & 255].map(f).map(v => v.toString(16).padStart(2, '0')).join(''); }
+const block = (x, label) => rr(x - 15, -30, 30, 60, K.body2, 4) + tx(x, -21, label, 6.5, '#4B5563');
+function dinPole(x, closed, rating = 'C10') {
+  return rr(x - 17, -33, 34, 66, '#FAFBFC', 4) + rr(x - 17, -33, 34, 9, K.body2, 4, 1) + rr(x - 17, 24, 34, 9, K.body2, 4, 1) +
+    rr(x - 8, -15, 16, 30, '#E4E7EB', 3, 1) + rr(x - 6.5, closed ? -13 : 0, 13, 13, closed ? '#30353D' : '#30353D', 2, 1, '#14171B') +
+    tx(x, closed ? -4 : 9, closed ? 'I' : 'O', 7.5, closed ? '#7CF0A8' : '#FF8A7A') + tx(x, 21, rating, 6, '#4B5563');
+}
+function fuseHolder(x, blown) {
+  return rr(x - 14, -33, 28, 66, '#D9DDE2', 4) + rr(x - 9, -20, 18, 40, '#C8CDD3', 3, 1) +
+    rr(x - 6, -17, 12, 34, blown ? '#3A2A25' : '#F4EEDC', 2, 1, '#9A8F75') + rr(x - 6, -17, 12, 5, '#B9A57A', 1, .8) + rr(x - 6, 12, 12, 5, '#B9A57A', 1, .8) +
+    (blown ? ln(x - 4, -6, x + 3, 0, '#FF6A3D', 1.6) + ln(x + 3, 0, x - 2, 6, '#FF6A3D', 1.6) + cc(x, 26, 3.2, K.red, '#7D1C12', .8) : cc(x, 26, 3.2, '#9AA1AA', '#59606A', .8));
+}
+function contactorBody(w, on, tag, aux) {
+  const x0 = -w / 2;
+  return rr(x0, -32, w, 64, K.body, 6) + rr(x0, -32, w, 13, K.body2, 6, 1) + rr(x0, 19, w, 13, K.body2, 6, 1) +
+    rr(-16, -9, 32, 18, on ? '#DDF5E6' : '#FFFFFF', 3, 1.2, on ? K.green : K.edge) + tx(0, 4, on ? 'I' : 'O', 11, on ? K.green : '#9AA1AA', 800) +
+    (aux ? tx(x0 + 6, 13, aux, 6, '#6B7280', 600, 'start') : '');
+}
+function motor2D(c, st, terms) {
+  const m = st.motor || {}, run = !!m.run, ang = (m.dir === 'anti-horário' ? -1 : 1) * (st.angle || 0);
+  const xs = terms.map(t => TYPES[c.type].terms[t][0]); const x0 = Math.min(...xs) - 12, x1 = Math.max(...xs) + 12;
+  let s = rr(x0, -34, x1 - x0, 22, '#A7AFB9', 3) + xs.map(x => ln(x, -36, x, -24, K.screwE, 2)).join('');
+  s += rr(-64, -10, 128, 60, '#7C8794', 12, 1.4, '#4E5763');
+  for (let x = -52; x <= 52; x += 8) s += ln(x, -6, x, 46, '#6A7480', 1.6);
+  s += shade(-64, -10, 128, 60, 12) + rr(64, -4, 16, 48, '#606A76', 5, 1.2, '#434B55') + rr(-78, 14, 14, 10, '#B9BFC7', 2, 1);
+  s += `<g transform="rotate(${ang} -86 19)">${cc(-86, 19, 9, '#D5D9DE', '#7E8590', 1.2)}${ln(-86, 11, -86, 27, '#4B5563', 2)}${ln(-78, 19, -94, 19, '#4B5563', 2)}</g>`;
+  s += rr(-50, 50, 24, 8, '#5E6772', 2, 1) + rr(26, 50, 24, 8, '#5E6772', 2, 1);
+  s += rr(-22, 6, 44, 22, '#E9ECEF', 3, 1) + tx(0, 16, 'M 3~', 8.5, '#262A31') + tx(0, 25, `${(+c.kw || 1.5).toFixed(1)} kW`, 6.5, '#4B5563', 600);
+  if (run) s += cc(70, 20, 4, K.green, '#0E6E3A', 1, 'filter="url(#glow)"');
+  if (m.msg) s += tx(0, 72, m.msg, 9, run ? '#137A41' : K.red, 700);
+  return s;
+}
+const D2 = {
+  fase: c => rr(-11, -16, 22, 30, '#B8432F', 3, 1.2, '#7A2A1C') + tx(0, 3, c.phase || 'L1', 8, '#fff') + ln(0, 14, 0, 16) + screw(0, 20),
+  neutro: () => screw(0, -20) + ln(0, -16, 0, -14) + rr(-11, -14, 22, 30, '#2E66B3', 3, 1.2, '#1C4378') + tx(0, 5, 'N', 9, '#fff'),
+  fonte_3f: (c, st) => [['L1', '#3A2A1E'], ['L2', '#20242A'], ['L3', '#8A929D'], ['N', '#2E66B3'], ['PE', '#2E9E52']].map(([p, col], i) => {
+      const y = -40 + i * 20, off = st.act;
+      return rr(-30, y - 6, 66, 12, off ? '#C9CED4' : col, 3, 1, '#1F2328') + (p === 'PE' && !off ? `<rect x="-30" y="${y - 6}" width="66" height="12" rx="3" fill="url(#peStripe)" stroke="none"/>` : '') + tx(-24, y + 3, p, 7, '#fff', 700, 'start');
+    }).join('') + screwsOf(c) + (st.act ? tx(4, 60, 'DESLIGADA', 8, K.red) : ''),
+  fonte_24: (c, st) => ln(-20, -36, -20, -26) + ln(20, -36, 20, -26) + ln(-20, 26, -20, 36) + ln(20, 26, 20, 36) + rr(-30, -28, 60, 56, '#D6DBE1', 5) + shade(-30, -28, 60, 56, 5) +
+      tx(0, -8, '24 V DC', 8.5) + tx(0, 4, 'POWER', 5.5, '#6B7280', 600) + ledD(0, 14, st.on) + screwsOf(c),
+  trafo_3f: c => [-40, 0, 40].map(x => ln(x, -36, x, -24) + ln(x, 24, x, 36)).join('') + rr(-54, -26, 108, 52, '#5D6570', 4, 1.2, '#363C44') +
+      [-40, 0, 40].map(x => rr(x - 12, -20, 24, 40, '#C67B3D', 6, 1, '#8A4F20') + [-12, -4, 4, 12].map(y => ln(x - 11, y, x + 11, y, '#A05F2A', 1)).join('')).join('') + screwsOf(c),
+  botao_na: (c, st) => leads2() + block(0, '13–14 NA') + head(K.green, st.act) + screwsOf(c),
+  botao_nf: (c, st) => leads2() + block(0, '11–12 NF') + head(K.red, st.act) + screwsOf(c),
+  pulsador_na_nf: (c, st) => leads2() + leads2(-28, 28, 40) + block(0, 'NA') + block(40, 'NF') + ln(14, 0, 26, 0, '#9AA1AA', 3) + head('#2F343C', st.act) + screwsOf(c),
+  pulsador_comum: (c, st) => ln(0, -36, 0, -28) + ln(-14, 28, -14, 36) + ln(14, 28, 14, 36) + rr(-24, -30, 48, 60, K.body2, 4) + tx(0, -21, '11–12–14', 6, '#4B5563') + head('#2F343C', st.act) + screwsOf(c),
+  emergencia: (c, st) => leads2() + block(0, '11–12 NF') + head(null, st.act, 'mushroom') + (st.act ? tx(0, 36, 'TRAVADO', 7, K.red) : '') + screwsOf(c),
+  emergencia_na: (c, st) => leads2() + block(0, '13–14 NA') + head(null, st.act, 'mushroom') + (st.act ? tx(0, 36, 'TRAVADO', 7, K.red) : '') + screwsOf(c),
+  seletora: (c, st) => leads2() + block(0, '0 – I') + cc(0, 0, 21, '#30353D', '#1B1E23', 1.5) + tx(-14, -10, '0', 7, '#E5E7EB') + tx(14, -10, 'I', 7, '#E5E7EB') +
+      `<g transform="rotate(${st.act ? 40 : -40})">${rr(-5.5, -16, 11, 32, '#15181C', 5, 1, '#000')}${ln(0, -14, 0, -6, '#fff', 2.2)}</g>` + screwsOf(c),
+  seletora_nf: (c, st) => D2.seletora(c, st).replace('0 – I', '0 – I (NF)'),
+  sensor: (c, st) => sensor2D(c, st, 'ind', false), sensor_ind_nf: (c, st) => sensor2D(c, st, 'ind', true),
+  sensor_cap_na: (c, st) => sensor2D(c, st, 'cap', false), sensor_cap_nf: (c, st) => sensor2D(c, st, 'cap', true),
+  bobina: (c, st) => leads2(-30, 30) + rr(-24, -30, 48, 60, K.body, 5) + rr(-24, -30, 48, 11, K.body2, 5, 1) + rr(-12, -8, 24, 16, st.on ? '#DDF5E6' : '#fff', 3, 1.2, st.on ? K.green : K.edge) +
+      tx(0, 4, st.on ? 'I' : 'O', 10, st.on ? K.green : '#9AA1AA', 800) + tx(0, 24, 'BOBINA', 5.5, '#6B7280', 600) + screwsOf(c),
+  temporizador: (c, st) => leads2(-30, 30) + rr(-24, -30, 48, 60, K.body, 5) + cc(0, -2, 13, '#fff', K.edge, 1.2) +
+      `<g transform="rotate(${-135 + 270 * (st.progress || 0)} 0 -2)">${ln(0, -2, 0, -12, K.red, 2)}</g>` + cc(0, -2, 2, K.dark, 'none', 0) +
+      tx(0, 21, `${(+c.preset || 0).toFixed(1)} s`, 6.5, '#4B5563', 600) + ledD(16, -22, st.on, K.yellow) + ledD(-16, -22, st.on && (st.progress || 0) >= 1, K.green) + screwsOf(c),
+  contato_na: (c, st) => leads2() + auxBlock('13–14', 'NA', st.act) + screwsOf(c),
+  contato_nf: (c, st) => leads2() + auxBlock('21–22', 'NF', !st.act) + screwsOf(c),
+  contato_comum: (c, st) => ln(0, -36, 0, -28) + ln(-14, 28, -14, 36) + ln(14, 28, 14, 36) + rr(-24, -28, 48, 56, K.body2, 4) + tx(0, -16, '11–12–14', 6.5, '#4B5563') +
+      tx(0, 2, st.act ? '11→14' : '11→12', 8, st.act ? K.green : '#4B5563') + screwsOf(c),
+  temp_na: (c, st) => leads2() + auxBlock('67–68', 'NA ⏱', st.act) + screwsOf(c),
+  temp_nf: (c, st) => leads2() + auxBlock('55–56', 'NF ⏱', !st.act) + screwsOf(c),
+  contator_forca: (c, st) => [-40, 0, 40].map(x => ln(x, -36, x, -30) + ln(x, 30, x, 36)).join('') + contactorBody(110, st.act, c.tag, '13 NO 14') + screwsOf(c),
+  rele_seguranca: (c, st) => Object.values(TYPES.rele_seguranca.terms).map(([x, y]) => ln(x, y, x, y < 0 ? -36 : 36)).join('') + rr(-70, -36, 140, 72, '#F3C21F', 6, 1.4, '#A88510') +
+      rr(-62, -20, 70, 40, '#FFF6CF', 4, 1, '#C7A11A') + tx(-27, -6, 'RELÉ DE', 7.5) + tx(-27, 5, 'SEGURANÇA', 7.5) +
+      ledD(20, -12, st.on) + tx(30, -9, 'PWR', 6, '#4B3B00', 700, 'start') + ledD(20, 2, st.act) + tx(30, 5, 'K1/K2', 6, '#4B3B00', 700, 'start') + screwsOf(c),
+  rff: (c, st) => [-40, 0, 40].map(x => ln(x, -36, x, -18)).join('') + [-20, 0, 20].map(x => ln(x, 18, x, 36)).join('') + rr(-54, -18, 108, 36, K.body, 5) +
+      tx(-30, 4, 'RFF', 9) + ['l1', 'l2', 'l3'].map((t, i) => ledD(2 + i * 12, -6, sim.running && sim.potOf && isPhase(sim.potOf(c.id, t)), K.yellow)).join('') + ledD(44, -6, st.act) + tx(44, 9, 'OK', 6, '#4B5563') + screwsOf(c),
+  disjuntor: (c, st) => leads2(-33, 33) + dinPole(0, st.running ? !st.act : true) + screwsOf(c),
+  disjuntor_bi: (c, st) => leads2(-33, 33) + leads2(-33, 33, 40) + dinPole(0, st.running ? !st.act : true) + dinPole(40, st.running ? !st.act : true) + rr(-6, -4, 52, 5, '#30353D', 2, 0) + screwsOf(c),
+  disjuntor_tm3: (c, st) => [-40, 0, 40].map(x => leads2(-33, 33, x) + dinPole(x, st.running ? !st.act : true, 'C16')).join('') + rr(-46, -4, 92, 5, '#30353D', 2, 0) + screwsOf(c),
+  disjuntor_motor: (c, st) => { const on = st.running ? !st.act : true; return [-40, 0, 40].map(x => leads2(-34, 34, x)).join('') + rr(-58, -34, 116, 68, '#E3E7EC', 6) +
+      rr(-58, -34, 116, 12, '#C4CAD2', 6, 1) + cc(-18, 4, 17, '#22262C', '#0F1114', 1.5) + `<g transform="rotate(${on ? 0 : -90} -18 4)">${rr(-22, -13, 8, 34, '#D8392B', 3, 1, '#7D1C12')}</g>` +
+      tx(-18, 30, on ? 'I' : 'O', 8, on ? K.green : K.red) + cc(24, 0, 10, '#fff', K.edge) + `<g transform="rotate(30 24 0)">${ln(24, 0, 24, -8, '#2E66B3', 2)}</g>` + tx(24, 22, '2,5–4 A', 6, '#4B5563', 600) + screwsOf(c); },
+  fusivel: (c, st) => leads2(-33, 33) + fuseHolder(0, st.act) + screwsOf(c),
+  fusiveis_3: (c, st) => [-40, 0, 40].map(x => leads2(-33, 33, x) + fuseHolder(x, x === 0 && st.act)).join('') + screwsOf(c),
+  rele_termico: (c, st) => [-40, 0, 40].map(x => ln(x, -36, x, -26) + ln(x, 26, x, 36)).join('') + rr(-56, -26, 112, 52, '#C7CED7', 6, 1.3, '#6E7782') +
+      cc(-30, 0, 11, '#2E66B3', '#1C4378', 1.2) + `<g transform="rotate(40 -30 0)">${ln(-30, 0, -30, -8, '#fff', 2)}</g>` + tx(-30, 21, '2,5–4 A', 6, '#2B3440', 600) +
+      cc(4, -8, 6, '#D8392B', '#7D1C12', 1) + tx(4, 10, 'RESET', 5.5, '#2B3440') + rr(22, -14, 26, 14, st.act ? '#F08A24' : '#9AA1AA', 2, 1) + tx(35, -4, st.act ? 'TRIP' : '—', 6.5, '#fff') +
+      tx(35, 14, '95-96', 5.5, '#2B3440', 600) + screwsOf(c),
+  ft_nf: (c, st) => leads2() + auxBlock('95–96', 'FT NF', !st.act) + screwsOf(c),
+  ft_na: (c, st) => leads2() + auxBlock('97–98', 'FT NA', st.act) + screwsOf(c),
+  sinaleiro: (c, st) => { const col = LAMP_COLORS[c.color] || LAMP_COLORS.verde; return leads2(-22, 22) + cc(0, 0, 22, '#30353D', '#1B1E23', 1.5) +
+      (st.on ? cc(0, 0, 25, col, 'none', 0, 'opacity=".28" filter="url(#glow)"') : '') + cc(0, 0, 15, st.on ? col : shadeHex(col, -.55), shadeHex(col, -.45), 1.4, st.on ? 'filter="url(#glow)"' : '') +
+      `<ellipse cx="-4" cy="-5" rx="6" ry="3.5" fill="#fff" opacity="${st.on ? .6 : .2}"/>` + screwsOf(c); },
+  motor_3f: (c, st) => motor2D(c, st, ['u', 'v', 'w']) + rr(68, -50, 24, 20, '#2E9E52', 3, 1, '#1F6E39') + screwsOf(c),
+  motor_6p: (c, st) => motor2D(c, st, ['u1', 'v1', 'w1', 'w2', 'u2', 'v2']) + screwsOf(c),
+};
+function sensor2D(c, st, kind, nf) {
+  let s = ln(0, -36, 0, -30) + ln(0, 30, 0, 36) + rr(-10, -30, 20, 50, kind === 'cap' ? '#CDD3DA' : '#B4BBC4', 3, 1.2, '#6E7580');
+  for (let y = -24; y <= 14; y += 5) s += ln(-10, y, 10, y, '#8D949E', 1);
+  s += rr(-10, 20, 20, 10, kind === 'cap' ? '#E7E2CF' : '#2E66B3', 2, 1, '#1C4378') + ledD(0, -24, st.act, '#F08A24');
+  return s + tx(0, 46, kind === 'cap' ? 'CAP' : 'IND', 6, '#4B5563') + tx(16, 4, nf ? 'NF' : 'NA', 6.5, '#4B5563', 700, 'start') + screwsOf(c);
+}
+function auxBlock(nums, label, closed) {
+  return rr(-15, -28, 30, 56, K.body2, 4) + tx(0, -16, nums, 6.5, '#4B5563') + tx(0, 2, label, 7, '#262A31') + rr(-9, 9, 18, 8, closed ? K.green : '#AEB4BC', 2, .8, closed ? '#0E6E3A' : '#7E8590');
+}
+function faultFX(c, f) {
+  const T0 = TYPES[c.type], age = sim.t - f.t, top = T0.box[1];
+  let s = `<g transform="translate(${c.x} ${c.y})" pointer-events="none">`;
+  if (age < 0.4) s += `<circle r="${30 + age * 80}" fill="#FFD24A" opacity="${(0.4 - age) * 1.6}"/>`;
+  if (age < 1.6) {
+    for (let k = 0; k < 3; k++) { const a = age - k * 0.25; if (a > 0 && a < 1.2) s += `<circle r="${14 + a * 70}" fill="none" stroke="#F04A2A" stroke-width="${3 * (1.2 - a)}" opacity="${(1.2 - a) / 1.2}"/>`; }
+    for (let k = 0; k < 10; k++) { const ang = k * 36 + 13, r0 = 14 + age * 40, r1 = r0 + 14 * (1.6 - age); const rad = ang * Math.PI / 180;
+      s += `<line x1="${Math.cos(rad) * r0}" y1="${Math.sin(rad) * r0}" x2="${Math.cos(rad) * r1}" y2="${Math.sin(rad) * r1}" stroke="${k % 2 ? '#FFB020' : '#FF5A2A'}" stroke-width="2.4" stroke-linecap="round" opacity="${1 - age / 1.6}"/>`; }
+  }
+  if (age < 4) for (let k = 0; k < 4; k++) { const a = age - k * 0.5; if (a > 0 && a < 2.5) s += `<circle cx="${(k - 1.5) * 9}" cy="${top - a * 26}" r="${6 + a * 6}" fill="#6B7280" opacity="${0.35 * (1 - a / 2.5)}"/>`; }
+  const blink = age < 3 && Math.floor(age * 4) % 2;
+  s += `<g class="fx-badge" transform="translate(0 ${top - 12})" opacity="${blink ? .45 : 1}"><rect x="-38" y="-10" width="76" height="18" rx="9"/><text y="3" text-anchor="middle">${f.label}</text></g>`;
+  return s + '</g>';
+}
 
 // =====================================================================
 // Rendering — diagram sheets
@@ -894,7 +1179,7 @@ function compState(c, live) {
       st.on = k === 'coil' ? !!sim.coils[c.tag] : k === 'timer' ? !!sim.timerOn[c.tag] : k === 'lamp' ? !!sim.lamps[c.id] : k === 'psu' ? !!sim.psu[c.id] : k === 'sr' ? !!sim.srPowerById[c.id] : false;
     }
     if (c.type === 'temporizador') st.progress = Math.min(1, (sim.timerAcc[c.tag] || 0) / Math.max(0.1, +c.preset || 0.1));
-    if (sim.motors[c.id]) st.motor = sim.motors[c.id];
+    if (sim.motors[c.id]) { st.motor = sim.motors[c.id]; st.angle = sim.angle[c.id] || 0; }
   }
   return st;
 }
@@ -940,10 +1225,10 @@ function crossRefs(d, c) {
   }
   return '';
 }
-function symbolSVG(c, st, d) {
-  const T0 = TYPES[c.type];
-  let s = `<g class="sym">${T0.draw(c, st)}</g>`;
-  for (const [t, [x, y]] of Object.entries(T0.terms)) { const n = T0.nums[t]; if (n) s += `<text x="${x + 5}" y="${y < 0 ? y + 12 : y - 4}" class="num">${n}</text>`; }
+function symbolSVG(c, st, d, look = ui.look) {
+  const T0 = TYPES[c.type], is2d = look === '2d' && D2[c.type];
+  let s = is2d ? `<g class="d2">${D2[c.type](c, st)}</g>` : `<g class="sym">${T0.draw(c, st)}</g>`;
+  for (const [t, [x, y]] of Object.entries(T0.terms)) { const n = T0.nums[t]; if (n) s += `<text x="${x + 6}" y="${y < 0 ? y + 12 : y - 4}" class="num">${n}</text>`; }
   if (d) s += crossRefs(d, c);
   return s;
 }
@@ -951,7 +1236,7 @@ function sheetSVG(d, sheetId, live) {
   const sheet = d.sheets.find(s => s.id === sheetId) || d.sheets[0];
   const map = new Map(d.comps.map(c => [c.id, c]));
   const comps = d.comps.filter(c => c.sheet === sheet.id);
-  let s = `<g id="bgHit">${frameSVG(d, sheet)}</g><g class="wires">`;
+  let s = `<g class="${live && ui.look === '2d' ? 'd2mode' : ''}"><g id="bgHit">${frameSVG(d, sheet)}</g><g class="wires">`;
   for (const w of d.wires) {
     const ca = map.get(w.a.c); if (!ca || ca.sheet !== sheet.id) continue;
     const P = wirePoints(w, map); if (!P) continue;
@@ -961,7 +1246,7 @@ function sheetSVG(d, sheetId, live) {
     if (live) s += `<path d="${path}" class="whit" data-wire="${w.id}"/>`;
     if (ni) s += `<path d="${path}" class="wglow ${ni}"/>`;
     s += `<path d="${path}" class="w${selw ? ' wsel' : ''}" stroke="${w.color}" ${live ? `data-wire="${w.id}"` : ''}/>`;
-    if (ni.includes('flow')) s += `<path d="${path}" class="wflow"/>`;
+    if (ni.includes('flow')) s += `<path d="${path}" class="wflow" style="stroke-dashoffset:${(-(sim.t * 32) % 16).toFixed(1)}"/>`;
   }
   s += '</g>';
   for (const c of comps) {
@@ -971,14 +1256,15 @@ function sheetSVG(d, sheetId, live) {
     const [bx, by, bw, bh] = T0.box, mark = s.length;
     s += `<g class="comp${sel ? ' sel' : ''}${inter}" data-comp="${c.id}" transform="translate(${c.x} ${c.y}) rotate(${c.rot || 0})">`;
     s += `<rect class="chit" x="${bx}" y="${by}" width="${bw}" height="${bh}" rx="6"/>`;
-    s += symbolSVG(c, st, d);
+    s += symbolSVG(c, st, d, live ? ui.look : 'sym');
     if (!T0.notag) s += `<text x="${T0.tagAt[0]}" y="${T0.tagAt[1]}" class="tag">${esc(c.tag)}</text>`;
     if (c.type === 'temporizador') s += `<text x="22" y="20" class="num">${(+c.preset || 0).toFixed(1)} s</text>`;
     for (const [t, [x, y]] of Object.entries(T0.terms)) s += `<circle class="term ${live ? netInfo(c.id, t) : ''}" cx="${x}" cy="${y}" r="4" data-term="${c.id}|${t}"/>`;
     s += '</g>';
+    if (live && sim.faults[c.id]) s += faultFX(c, sim.faults[c.id]);
     if (c.rot) { const r = -c.rot; s = s.slice(0, mark) + s.slice(mark).replace(/<text x="([-\d.]+)" y="([-\d.]+)"/g, (m0, x, y) => `<text transform="rotate(${r} ${x} ${y})" x="${x}" y="${y}"`); }
   }
-  return s;
+  return s + '</g>';
 }
 
 function render() {
@@ -991,16 +1277,20 @@ function render() {
   if (ui.view === 'home') renderHome();
   updateTop();
 }
-function renderDiagram() {
+function renderWorld() {
   let s = `<g transform="translate(${ui.px} ${ui.py}) scale(${ui.zoom})">${sheetSVG(doc, ui.sheet, true)}`;
   if (ui.wireStart && ui.cursor) {
     const c = compById(ui.wireStart.c);
     if (c) { const P = [termPos(c, ui.wireStart.t), ...ui.wirePts, ui.cursor]; s += `<path d="M${P.map(p => p.join(' ')).join(' L')}" class="wprev" stroke="${ui.wireColor}"/>`; }
   }
-  if (ui.placing && ui.cursor) s += `<g class="ghost" transform="translate(${snap(ui.cursor[0])} ${snap(ui.cursor[1])})">${symbolSVG({ type: ui.placing, color: 'verde', tag: '' }, {})}</g>`;
+  if (ui.placing && ui.cursor) s += `<g class="ghost" transform="translate(${snap(ui.cursor[0])} ${snap(ui.cursor[1])})">${symbolSVG({ type: ui.placing, color: 'verde', tag: '', kw: 1.5, preset: 3 }, {})}</g>`;
   s += '</g>';
   $('#world').innerHTML = s;
   $('#zoomv').textContent = Math.round(ui.zoom * 100) + '%';
+}
+function renderDiagram() {
+  renderWorld();
+  $$('[data-look]').forEach(b => b.classList.toggle('act', b.dataset.look === ui.look));
   renderSheetTabs(); renderInspector(); renderStatus(); updateHint(); updateTools();
 }
 function renderSheetTabs() {
@@ -1019,9 +1309,26 @@ function renderStatus() {
   h += motors.map(c => { const m = sim.motors[c.id] || {}; return `<span class="chip${m.run ? ' on' : m.msg ? ' warn' : ''}"><span class="dot"></span>${esc(c.tag)} ${esc(m.msg || 'parado')}</span>`; }).join('');
   if (sim.osc) h += `<span class="chip warn">Circuito oscilando: confira selo e intertravamento</span>`;
   if (warns.length) h += `<button class="chip warn" id="warnChip" title="${esc(warns.join(' · '))}">${warns.length} aviso${warns.length > 1 ? 's' : ''}</button>`;
+  h += readoutsHTML();
   $('#status').innerHTML = h;
   const wc = $('#warnChip'); if (wc) wc.addEventListener('click', () => { ui.sel = null; ui.inspOpen = true; render(); });
 }
+const fmtN = (v, d = 1) => (v || 0).toLocaleString('pt-BR', { minimumFractionDigits: d, maximumFractionDigits: d });
+function totalCurrent() { const m = sim.meas || {}; if (m.iShort) return m.iShort; return Object.values(m.motors || {}).reduce((a, b) => a + b, 0) + (m.iCtrl || 0); }
+function stateOf() {
+  if (!sim.running) return ['Desligado', ''];
+  if (Object.keys(sim.faults).length || sim.injShort.size) return ['Falha', 'st-fault'];
+  const anyOn = Object.values(sim.coils).some(Boolean) || Object.values(sim.lamps).some(Boolean) || Object.values(sim.motors).some(m => m.run);
+  return anyOn ? ['Ligado', 'st-on'] : ['Em espera', ''];
+}
+function readoutsHTML() {
+  const m = sim.meas || {}, [st, cls] = stateOf();
+  const bolt = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M13 2 5 13h6l-1 9 8-12h-6z"/></svg>';
+  const wave = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 12c2.5-6 5-6 7.5 0s5 6 7.5 0 3.5-4 5-2"/></svg>';
+  return `<span class="readouts"><span class="ro">${bolt}${fmtN(m.v1, 0)} V</span>${m.v3 ? `<span class="ro v3">${fmtN(m.v3, 0)} V F-F</span>` : ''}<span class="ro">${wave}${fmtN(totalCurrent(), totalCurrent() >= 100 ? 0 : 2)} A</span><span class="ro hz">${m.hz || 0} Hz</span><span class="ro ${cls}">Estado: ${st}</span></span>`;
+}
+function updateReadoutsOnly() { const r = document.querySelector('#vOperate .readouts'); if (r) r.outerHTML = readoutsHTML(); }
+
 function problems() {
   const out = [];
   const tagsOf = types => new Set(doc.comps.filter(c => types.includes(c.type)).map(c => c.tag));
@@ -1052,6 +1359,7 @@ function renderInspector() {
     if (!T0.notag) h += `<div class="field"><label for="fTag">Tag${T0.ref ? ' (igual à da bobina que comanda este contato)' : T0.linkGroup ? ' (igual à da outra ponta, em qualquer folha)' : ''}</label><input id="fTag" class="mono" value="${esc(c.tag)}" ${dis}></div>`;
     if (c.type === 'fase') h += `<div class="field"><label for="fPhase">Fase</label><select id="fPhase" ${dis}>${PHASES.map(p => `<option ${c.phase === p ? 'selected' : ''}>${p}</option>`).join('')}</select></div>`;
     if (c.type === 'sinaleiro') h += `<div class="field"><label for="fColor">Cor do sinaleiro</label><select id="fColor" ${dis}>${Object.keys(LAMP_COLORS).map(k => `<option value="${k}" ${c.color === k ? 'selected' : ''}>${k[0].toUpperCase() + k.slice(1)}</option>`).join('')}</select></div>`;
+    if (c.type.startsWith('motor')) h += `<div class="field"><label for="fKw">Potência (kW) · corrente nominal ${fmtN(motorIn(c), 2)} A em 380 V</label><input id="fKw" type="number" min="0.25" max="75" step="0.25" value="${+c.kw || 1.5}" ${dis}></div>`;
     if (c.type === 'temporizador') h += `<div class="field"><label for="fPreset">Tempo de retardo (segundos)</label><input id="fPreset" type="number" min="0.1" max="600" step="0.1" value="${+c.preset}" ${dis}></div>`;
     const nums = Object.values(T0.nums).filter(Boolean);
     if (nums.length > 1) h += `<div class="field"><label>Bornes</label><div class="mono">${nums.join(' · ')}</div></div>`;
@@ -1104,6 +1412,7 @@ function bindInspector() {
   on('fTag', 'change', e => { const v = e.target.value.trim().toUpperCase().slice(0, 8); if (v) { c.tag = v; commit(); render(); } });
   on('fPhase', 'change', e => { c.phase = e.target.value; commit(); render(); });
   on('fColor', 'change', e => { c.color = e.target.value; commit(); render(); });
+  on('fKw', 'change', e => { c.kw = Math.max(0.25, Math.min(75, +e.target.value || 1.5)); commit(); render(); });
   on('fPreset', 'change', e => { const v = Math.max(0.1, Math.min(600, +e.target.value || 1)); c.preset = Math.round(v * 10) / 10; commit(); render(); });
   on('aRot', 'click', () => rotateSel());
   on('aDup', 'click', () => { const n = addComp(c.type, c.x + 80, c.y, { color: c.color, preset: c.preset, rot: c.rot, phase: c.phase }); if (TYPES[c.type].ref || TYPES[c.type].linkGroup) n.tag = c.tag; ui.sel = { kind: 'comp', id: n.id }; commit(); render(); });
@@ -1165,7 +1474,8 @@ function buildFolders() {
     h += `<details class="folder" data-fold="${cat}" ${open ? 'open' : ''}><summary><svg viewBox="0 0 24 24" class="fic" fill="none" stroke="${CAT_META[cat].color}" stroke-width="2"><path d="M3 6h6l2 2h10v11H3z"/></svg><span>${cat}</span><span class="cnt">${items.length}</span></summary><div class="parts">` +
       items.map(([k, T0]) => {
         const [bx, by, bw, bh] = T0.box, side = Math.max(bw, bh) + 12;
-        return `<button class="part" data-part="${k}" title="${T0.name}"><svg viewBox="${bx + bw / 2 - side / 2} ${by + bh / 2 - side / 2} ${side} ${side}"><g class="sym">${T0.draw({ color: 'verde' }, {})}</g></svg><span>${T0.name.replace(' (retardo na energização)', '')}</span></button>`;
+        const pv = ui.look === '2d' && D2[k] ? `<g class="d2">${D2[k]({ type: k, color: 'verde', kw: 1.5, preset: 3, phase: 'L1' }, {})}</g>` : `<g class="sym">${T0.draw({ color: 'verde' }, {})}</g>`;
+        return `<button class="part" data-part="${k}" title="${T0.name}"><svg viewBox="${bx + bw / 2 - side / 2} ${by + bh / 2 - side / 2} ${side} ${side}">${pv}</svg><span>${T0.name.replace(' (retardo na energização)', '')}</span></button>`;
       }).join('') + '</div></details>';
   }
   $('#folders').innerHTML = h || '<p class="muted small">Nenhum componente com esse nome.</p>';
@@ -1182,12 +1492,13 @@ function renderOperate() {
   const coils = [...new Set(doc.comps.filter(c => c.type === 'bobina').map(c => c.tag))];
   const motors = doc.comps.filter(c => c.type.startsWith('motor'));
   let h = `<div class="vhead"><div><p class="eyebrow">Painel de operação</p><h2>${esc(doc.project)}</h2></div>
-    <button class="bigrun ${sim.running ? 'on' : ''}" id="opRun">${sim.running ? 'Parar simulação' : 'Iniciar simulação'}</button></div>`;
+    <button class="bigrun ${sim.running ? 'on' : ''}" id="opRun">${sim.running ? 'Parar simulação' : 'Iniciar simulação'}</button></div>${readoutsHTML()}<div style="height:14px"></div>`;
   if (!sim.running) h += `<p class="muted">Inicie a simulação para operar os botões, chaves e proteções do circuito como num painel real.</p>`;
   h += `<section><p class="h">Comandos</p><div class="opgrid">${inter.map(c => {
     const T0 = TYPES[c.type], st = compState(c, true);
     const kind = T0.inter === 'push' ? (st.act ? 'Pressionado' : 'Segure para acionar') : T0.inter === 'trip' ? (st.act ? 'Disparado: toque para rearmar' : 'Toque para disparar') : (st.act ? 'Acionado' : 'Toque para acionar');
-    return `<button class="opbtn ${T0.inter} ${st.act ? 'act' : ''}" data-op="${c.id}" ${sim.running ? '' : 'disabled'}><svg viewBox="${T0.box[0] - 6} ${T0.box[1] - 6} ${T0.box[2] + 12} ${T0.box[3] + 12}"><g class="sym">${T0.draw(c, st)}</g></svg><span><b class="mono">${esc(c.tag)}</b><span>${esc(T0.name)}</span><small>${kind}</small></span></button>`;
+    const art = D2[c.type] ? `<g class="d2">${D2[c.type](c, st)}</g>` : `<g class="sym">${T0.draw(c, st)}</g>`;
+    return `<button class="opbtn ${T0.inter} ${st.act ? 'act' : ''}" data-op="${c.id}" ${sim.running ? '' : 'disabled'}><svg viewBox="${T0.box[0] - 6} ${T0.box[1] - 6} ${T0.box[2] + 12} ${T0.box[3] + 12}">${art}</svg><span><b class="mono">${esc(c.tag)}</b><span>${esc(T0.name)}</span><small>${kind}</small></span></button>`;
   }).join('') || '<p class="muted">O circuito não tem botões, chaves ou proteções acionáveis.</p>'}</div></section>`;
   h += `<section><p class="h">Sinalização e cargas</p><div class="lampgrid">` +
     lamps.map(c => { const on = !!sim.lamps[c.id]; return `<div class="lamp"><span class="bulb ${on ? 'on' : ''}" style="--lc:${LAMP_COLORS[c.color] || LAMP_COLORS.verde}"></span><b class="mono">${esc(c.tag)}</b><small>${on ? 'Aceso' : 'Apagado'}</small></div>`; }).join('') +
@@ -1218,18 +1529,105 @@ function renderTags() {
   $$('#vTags [data-goto]').forEach(b => b.addEventListener('click', () => goTo(b.dataset.goto)));
 }
 function renderMonitor() {
-  const coils = [...new Set(doc.comps.filter(c => c.type === 'bobina').map(c => c.tag))];
-  const timers = doc.comps.filter(c => c.type === 'temporizador');
   const motors = doc.comps.filter(c => c.type.startsWith('motor'));
-  const tile = (label, val, on, warn) => `<div class="tile ${on ? 'on' : ''} ${warn ? 'warn' : ''}"><small>${esc(label)}</small><b>${esc(val)}</b></div>`;
-  $('#vMonitor').innerHTML = `<div class="vhead"><div><p class="eyebrow">Monitoramento</p><h2>${sim.running ? 'Simulação em andamento · ' + fmtTime(sim.t) : 'Simulação parada'}</h2></div>
-    <button class="bigrun ${sim.running ? 'on' : ''}" id="moRun">${sim.running ? 'Parar simulação' : 'Iniciar simulação'}</button></div>
-    <div class="tiles">${coils.map(t => tile('Contator ' + t, sim.coils[t] ? 'Energizado' : 'Desligado', sim.coils[t])).join('')}
-    ${timers.map(c => tile('Temporizador ' + c.tag, `${Math.min(+c.preset, sim.timerAcc[c.tag] || 0).toFixed(1)} / ${(+c.preset).toFixed(1)} s`, sim.timerDone[c.tag])).join('')}
-    ${motors.map(c => { const m = sim.motors[c.id] || {}; return tile('Motor ' + c.tag, m.msg || 'Parado', m.run, !m.run && m.msg); }).join('')}
-    ${tile('Curto-circuito', sim.short ? 'Detectado' : 'Não', false, !!sim.short)}</div>
-    <section><p class="h">Registro de eventos</p><ol class="events">${sim.events.map(e => `<li><span class="mono">${fmtTime(e.t)}</span>${esc(e.msg)}</li>`).join('') || '<li class="muted">Os eventos aparecem aqui quando a simulação começa.</li>'}</ol></section>`;
+  const coils = doc.comps.filter(c => c.type === 'bobina' || c.type === 'sinaleiro');
+  const prot = doc.comps.filter(c => c.type.startsWith('fus'));
+  const fb = (id, icon, title, sub, on, dis) => `<button class="fbtn ${on ? 'on' : ''}" data-fault="${id}" ${dis ? 'disabled' : ''}><span class="fi">${icon}</span><span><b>${esc(title)}</b><small>${esc(sub)}</small></span></button>`;
+  const dis = !sim.running;
+  $('#vMonitor').innerHTML = `<div class="vhead"><div><p class="eyebrow">Monitoramento</p><h2 id="moTitle"></h2></div>
+      <button class="bigrun ${sim.running ? 'on' : ''}" id="moRun">${sim.running ? 'Parar simulação' : 'Iniciar simulação'}</button></div>
+    <div class="tiles" id="moTiles"></div>
+    <div class="mgrid">
+      <div class="ccard"><h3>${motors.length ? 'Corrente dos motores (A)' : 'Corrente de comando (A)'}</h3><p class="sub">Últimos 30 s · partida, regime, sobrecarga e falhas</p><div class="legend" id="lgI"></div><canvas class="chart" id="chI"></canvas><div class="ctip" id="tipI" hidden></div></div>
+      <div class="ccard"><h3>Tensão da rede (V)</h3><p class="sub">Últimos 30 s · afundamento no curto-circuito</p><div class="legend" id="lgV"></div><canvas class="chart" id="chV"></canvas><div class="ctip" id="tipV" hidden></div></div>
+    </div>
+    <section><div class="vhead" style="margin-bottom:10px"><div><p class="h" style="margin:0">Simular falhas</p><p class="muted small" style="margin:4px 0 0">${dis ? 'Inicie a simulação para provocar falhas.' : 'Veja a proteção atuar, a animação da falha e o efeito nos gráficos.'}</p></div>
+      <button class="btn" id="moClear" ${dis ? 'disabled' : ''}>Rearmar proteções</button></div>
+      <div class="faults">
+      ${motors.map(c => fb('short:' + c.id, '⚡', `Curto entre fases em ${c.tag}`, 'U–V em curto na caixa de ligação', sim.injShort.has(c.id), dis)).join('')}
+      ${motors.map(c => fb('ovl:' + c.id, '↑', `Sobrecarga em ${c.tag}`, 'Carga 60% acima da nominal', sim.overload.has(c.id), dis)).join('')}
+      ${coils.map(c => fb('short:' + c.id, '⚡', `Curto em ${c.tag}`, c.type === 'bobina' ? 'A1–A2 em curto no comando' : 'X1–X2 em curto no comando', sim.injShort.has(c.id), dis)).join('')}
+      ${prot.map(c => fb('blow:' + c.id, '✕', `Abrir fusível ${c.tag}`, c.type === 'fusiveis_3' ? 'Queima do fusível central (falta de fase)' : 'Fusível rompido', sim.toggled.has(c.id), dis)).join('')}
+      </div></section>
+    <section><p class="h">Registro de eventos</p><ol class="events" id="moEvents"></ol></section>`;
   $('#moRun').addEventListener('click', () => sim.running ? stopSim() : startSim());
+  $('#moClear').addEventListener('click', clearFaults);
+  $$('#vMonitor [data-fault]').forEach(b => b.addEventListener('click', () => {
+    const [kind, id] = b.dataset.fault.split(':'), c = compById(id);
+    if (kind === 'short') { if (sim.injShort.has(id)) sim.injShort.delete(id); else { sim.injShort.add(id); sim.events.unshift({ t: sim.t, msg: `Falha simulada: curto-circuito em ${c.tag}`, level: 'warn' }); } resolve(); }
+    if (kind === 'ovl') { if (sim.overload.has(id)) sim.overload.delete(id); else { sim.overload.add(id); sim.events.unshift({ t: sim.t, msg: `Falha simulada: sobrecarga em ${c.tag}`, level: 'warn' }); } }
+    if (kind === 'blow') { interact(c); return; }
+    if (sim.short) { stopSim(shortMsg()); return; }
+    render();
+  }));
+  for (const id of ['chI', 'chV']) {
+    const cv = $('#' + id);
+    cv.addEventListener('pointermove', ev => { const r = cv.getBoundingClientRect(); cv._hx = ev.clientX - r.left; updateMonitorLive(); });
+    cv.addEventListener('pointerleave', () => { cv._hx = null; updateMonitorLive(); });
+  }
+  updateMonitorLive();
+}
+function updateMonitorLive() {
+  if (ui.view !== 'monitor' || !$('#moTiles')) return;
+  const m = sim.meas || {}, [st] = stateOf();
+  $('#moTitle').textContent = sim.running ? 'Simulação em andamento · ' + fmtTime(sim.t) : 'Simulação parada';
+  const motors = doc.comps.filter(c => c.type.startsWith('motor'));
+  const tile = (label, val, cls = '') => `<div class="tile ${cls}"><small>${esc(label)}</small><b>${val}</b></div>`;
+  $('#moTiles').innerHTML = tile('Tensão fase-neutro', fmtN(m.v1, 0) + ' V', m.v1 ? 'on' : '') + tile('Tensão fase-fase', fmtN(m.v3, 0) + ' V', m.v3 ? 'on' : '') +
+    tile('Frequência', (m.hz || 0) + ' Hz', m.hz ? 'on' : '') + tile('Corrente total', fmtN(totalCurrent(), 2) + ' A', m.iShort ? 'warn' : '') +
+    tile('Corrente de comando', fmtN(m.iCtrl, 2) + ' A') +
+    motors.map(c => { const mm = sim.motors[c.id] || {}; return tile(`Motor ${c.tag} · In ${fmtN(motorIn(c), 2)} A`, `${fmtN((m.motors || {})[c.id], 2)} A`, mm.run ? 'on' : mm.msg ? 'warn' : ''); }).join('') +
+    tile('Estado', st, st === 'Falha' ? 'warn' : st === 'Ligado' ? 'on' : '');
+  const css = getComputedStyle(document.documentElement), col = i => css.getPropertyValue('--series-' + (i + 1)).trim();
+  const now = sim.running ? sim.t : (sim.lastT || (sim.series.length ? sim.series[sim.series.length - 1].t : 0));
+  const iSeries = motors.length ? motors.map((c, i) => ({ name: c.tag, color: col(i % 3), get: p => (p.motors || {})[c.id] || 0 }))
+    : [{ name: 'Comando', color: col(0), get: p => p.iCtrl }];
+  const vSeries = [{ name: 'F-N', color: col(0), get: p => p.v1 }, { name: 'F-F', color: col(1), get: p => p.v3 }].filter(s => sim.series.some(p => s.get(p) > 0) || s.name === 'F-N');
+  drawChart($('#chI'), $('#tipI'), $('#lgI'), iSeries, 'A', now);
+  drawChart($('#chV'), $('#tipV'), $('#lgV'), vSeries, 'V', now);
+  $('#moEvents').innerHTML = sim.events.map(e => `<li class="${e.level || ''}"><span class="mono">${fmtTime(e.t)}</span>${e.level === 'crit' ? '⚠ ' : ''}${esc(e.msg)}</li>`).join('') || '<li class="muted">Os eventos aparecem aqui quando a simulação começa.</li>';
+}
+function niceMax(v) { if (v <= 0) return 1; const p = Math.pow(10, Math.floor(Math.log10(v))); for (const k of [1, 2, 2.5, 5, 10]) if (k * p >= v) return k * p; return 10 * p; }
+function drawChart(cv, tip, legend, series, unit, now) {
+  const W = cv.clientWidth, H = cv.clientHeight; if (!W) return;
+  const dpr = window.devicePixelRatio || 1;
+  if (cv.width !== Math.round(W * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
+  const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
+  const css = getComputedStyle(document.documentElement), ink = css.getPropertyValue('--muted').trim(), grid = css.getPropertyValue('--line').trim(), fg = css.getPropertyValue('--fg').trim(), crit = css.getPropertyValue('--critical').trim();
+  legend.innerHTML = series.length > 1 ? series.map(s => `<span><i style="background:${s.color}"></i>${esc(s.name)}</span>`).join('') : '';
+  const WIN = 30, t1 = Math.max(WIN, now), t0 = t1 - WIN;
+  const pts = sim.series.filter(p => p.t >= t0 && p.t <= t1 + 0.01);
+  let max = 0; for (const s of series) for (const p of pts) max = Math.max(max, s.get(p));
+  max = niceMax(max * 1.1 || (unit === 'V' ? 400 : 1));
+  const pad = { l: 46, r: 40, t: 12, b: 24 }, pw = W - pad.l - pad.r, ph = H - pad.t - pad.b;
+  const X = t => pad.l + (t - t0) / WIN * pw, Y = v => pad.t + ph - Math.min(v, max) / max * ph;
+  g.font = '11px "IBM Plex Mono", monospace'; g.fillStyle = ink; g.strokeStyle = grid; g.lineWidth = 1;
+  for (let k = 0; k <= 4; k++) { const v = max * k / 4, y = Math.round(Y(v)) + .5; g.beginPath(); g.moveTo(pad.l, y); g.lineTo(W - pad.r, y); g.stroke(); g.textAlign = 'right'; g.fillText(fmtN(v, max < 10 ? 1 : 0), pad.l - 6, y + 4); }
+  g.textAlign = 'center';
+  for (let t = Math.ceil(t0 / 5) * 5; t <= t1; t += 5) g.fillText(`${Math.round(t)} s`, X(t), H - 6);
+  // fault marks (status: critical, with label — never color alone)
+  for (const mk of sim.marks) if (mk.t >= t0) {
+    const x = Math.round(X(mk.t)) + .5; g.strokeStyle = crit; g.setLineDash([4, 3]); g.beginPath(); g.moveTo(x, pad.t); g.lineTo(x, pad.t + ph); g.stroke(); g.setLineDash([]);
+    g.fillStyle = crit; g.textAlign = x > W - 140 ? 'right' : 'left'; g.font = '600 11px "IBM Plex Sans", sans-serif'; g.fillText('⚠ ' + mk.label, x + (x > W - 140 ? -4 : 4), pad.t + 11); g.font = '11px "IBM Plex Mono", monospace';
+  }
+  for (const s of series) {
+    g.strokeStyle = s.color; g.lineWidth = 2; g.lineJoin = 'round'; g.beginPath();
+    pts.forEach((p, i) => { const x = X(p.t), y = Y(s.get(p)); i ? g.lineTo(x, y) : g.moveTo(x, y); }); g.stroke();
+    const last = pts[pts.length - 1];
+    if (last) { g.fillStyle = s.color; g.beginPath(); g.arc(X(last.t), Y(s.get(last)), 4, 0, 7); g.fill(); g.fillStyle = fg; g.textAlign = 'left'; g.font = '600 11px "IBM Plex Sans", sans-serif'; g.fillText(s.name, X(last.t) + 7, Y(s.get(last)) + 4); g.font = '11px "IBM Plex Mono", monospace'; }
+  }
+  // crosshair + tooltip
+  if (cv._hx != null && pts.length && cv._hx >= pad.l && cv._hx <= W - pad.r) {
+    const t = t0 + (cv._hx - pad.l) / pw * WIN; let best = pts[0];
+    for (const p of pts) if (Math.abs(p.t - t) < Math.abs(best.t - t)) best = p;
+    const x = X(best.t); g.strokeStyle = ink; g.lineWidth = 1; g.beginPath(); g.moveTo(x, pad.t); g.lineTo(x, pad.t + ph); g.stroke();
+    for (const s of series) { g.fillStyle = s.color; g.beginPath(); g.arc(x, Y(s.get(best)), 4, 0, 7); g.fill(); g.strokeStyle = css.getPropertyValue('--surface').trim(); g.lineWidth = 2; g.stroke(); }
+    tip.hidden = false;
+    tip.innerHTML = `<b class="mono">${fmtTime(best.t)}</b><br>` + series.map(s => `<i style="background:${s.color}"></i>${esc(s.name)}: <b class="mono">${fmtN(s.get(best), unit === 'V' ? 0 : 2)} ${unit}</b>`).join('<br>');
+    const box = cv.getBoundingClientRect(), card = cv.parentElement.getBoundingClientRect();
+    tip.style.left = Math.min(card.width - 150, x + (box.left - card.left) + 12) + 'px'; tip.style.top = (box.top - card.top + 10) + 'px';
+  } else tip.hidden = true;
+  if (!pts.length) { g.fillStyle = ink; g.textAlign = 'center'; g.font = '13px "IBM Plex Sans", sans-serif'; g.fillText('Inicie a simulação para gerar o gráfico', pad.l + pw / 2, pad.t + ph / 2); }
 }
 function renderHome() {
   let saved = null; try { saved = JSON.parse(localStorage.getItem('voltacademy.ce.doc') || 'null'); } catch (e) {}
@@ -1371,6 +1769,8 @@ $('#bPal').addEventListener('click', () => $('#drawer').classList.toggle('open')
 function closeDrawers() { if (matchMedia('(max-width: 900px)').matches) $('#drawer').classList.remove('open'); }
 function flash(msg) { showBanner(msg); setTimeout(() => showBanner(null), 2200); }
 
+// Look (symbols / 2D)
+$$('[data-look]').forEach(b => b.addEventListener('click', () => { ui.look = b.dataset.look; try { localStorage.setItem('voltacademy.look', ui.look); } catch (e) {} buildFolders(); render(); }));
 // Sheets
 $('#tabs').addEventListener('click', ev => { const b = ev.target.closest('[data-sheet]'); if (!b) return; ui.sheet = b.dataset.sheet; ui.sel = null; ui.wireStart = null; saveLocal(); render(); });
 $('#sNew').addEventListener('click', () => {
@@ -1521,6 +1921,7 @@ const EXAMPLES = [
 // Boot
 // =====================================================================
 try { const th = localStorage.getItem('voltacademy.theme'); if (th) document.documentElement.dataset.theme = th; } catch (e) {}
+try { const lk = localStorage.getItem('voltacademy.look'); if (lk === '2d' || lk === 'sym') ui.look = lk; } catch (e) {}
 buildRail(); buildFolders();
 let restored = false;
 try { const s = localStorage.getItem('voltacademy.ce.doc'); if (s) { ui.sheet = localStorage.getItem('voltacademy.ce.sheet') || null; load(s); restored = true; } } catch (e) {}
@@ -1529,7 +1930,7 @@ if (matchMedia('(max-width: 1100px)').matches) ui.inspOpen = false;
 render();
 requestAnimationFrame(fit);
 window.addEventListener('resize', () => fit());
-window.__va = { doc: () => doc, sim, ui, solve, startSim, stopSim, load, EXAMPLES, TYPES, interact, render, setView: v => { ui.view = v; render(); } };
+window.__va = { doc: () => doc, sim, ui, solve: resolve, rawSolve: solve, clearFaults, updateElectrical, startSim, stopSim, load, EXAMPLES, TYPES, interact, render, setView: v => { ui.view = v; render(); } };
 })();
 </script>
 

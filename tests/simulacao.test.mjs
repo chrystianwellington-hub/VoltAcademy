@@ -122,6 +122,29 @@ const results = await p.evaluate(async () => {
   check('Segmentos de cabo OUT/IN com a mesma tag ficam ligados', lit('H1'));
   va.stopSim();
 
+  // ---- Medições, curto com proteção, sobrecarga ----
+  const step = secs => { for (let i = 0; i < secs * 10; i++) { va.sim.t += 0.1; if (va.updateElectrical(0.1)) { va.solve(); va.updateElectrical(0); } } };
+  va.load(va.EXAMPLES[1].build()); va.startSim(); press('S1');
+  step(3);
+  const mot = va.doc().comps.find(c => c.type === 'motor_3f');
+  check('Medição: 220 V fase-neutro, 380 V fase-fase e 60 Hz', va.sim.meas.v1 === 220 && va.sim.meas.v3 === 380 && va.sim.meas.hz === 60);
+  check('Medição: corrente do motor de 1,5 kW perto de 3,15 A em regime', Math.abs(va.sim.meas.motors[mot.id] - 3.15) < 0.2);
+  va.sim.overload.add(mot.id); step(6);
+  check('Sobrecarga: relé térmico dispara sozinho e derruba K1', va.sim.tripped.has('FT1') && !va.sim.coils.K1 && va.sim.events.some(e => /Sobrecarga/.test(e.msg)));
+  va.clearFaults(); press('S1'); step(2);
+  va.sim.injShort.add(mot.id); va.solve();
+  const q1 = va.doc().comps.find(c => c.tag === 'Q1');
+  check('Curto no motor: disjuntor-motor Q1 desarma e a simulação continua', va.sim.running && va.sim.toggled.has(q1.id) && va.sim.faults[q1.id] && !va.sim.motors[mot.id].run);
+  va.clearFaults();
+  check('Rearmar proteções limpa as falhas', !Object.keys(va.sim.faults).length && !va.sim.toggled.has(q1.id));
+  va.stopSim();
+  va.load(va.EXAMPLES[0].build()); va.startSim(); press('S1');
+  const k1c = va.doc().comps.find(c => c.type === 'bobina');
+  va.sim.injShort.add(k1c.id); va.solve();
+  const qc = va.doc().comps.find(c => c.tag === 'Q1');
+  check('Curto na bobina: disjuntor do comando desarma', va.sim.running && va.sim.toggled.has(qc.id) && va.sim.events.some(e => /Curto-circuito/.test(e.msg) && /Q1 desarmou/.test(e.msg)));
+  va.stopSim();
+
   check('Biblioteca com 43 componentes', Object.keys(va.TYPES).length === 43);
   return out;
 });
@@ -130,7 +153,7 @@ const results = await p.evaluate(async () => {
 await p.evaluate(() => { const va = window.__va; va.load(va.EXAMPLES[0].build()); document.getElementById('bFit').click(); });
 await p.click('#bRun');
 const id = await p.evaluate(() => window.__va.doc().comps.find(c => c.tag === 'S1').id);
-const bb = await p.locator(`[data-comp="${id}"] .chit`).boundingBox();
+const bb = await p.evaluate(i => { const r = document.querySelector(`[data-comp="${i}"] .chit`).getBoundingClientRect(); return { x: r.x, y: r.y, width: r.width, height: r.height }; }, id);
 await p.mouse.move(bb.x + bb.width / 2, bb.y + bb.height / 2);
 await p.mouse.down(); await p.waitForTimeout(100);
 results.push(['Mouse: segurar S1 liga K1', await p.evaluate(() => !!window.__va.sim.coils.K1)]);
@@ -164,6 +187,17 @@ await p.mouse.move(ob.x + ob.width / 2, ob.y + ob.height / 2); await p.mouse.dow
 results.push(['Operação: botão do painel aciona K1 com selo', await p.evaluate(() => !!window.__va.sim.coils.K1)]);
 await p.click('[data-nav="home"]');
 results.push(['Início: exemplos com miniatura', await p.locator('.excard .thumb').count() === 4]);
+await p.evaluate(() => { const va = window.__va; if (va.sim.running) va.stopSim(); va.load(va.EXAMPLES[1].build()); va.setView('diagram'); });
+await p.click('[data-look="2d"]');
+results.push(['Modo 2D: componentes desenhados como equipamentos', await p.evaluate(() => document.querySelectorAll('#cv .d2').length >= 5 && document.querySelectorAll('.part .d2').length > 30)]);
+await p.click('#bRun');
+await p.evaluate(() => { const va = window.__va; const s1 = va.doc().comps.find(c => c.tag === 'S1'); va.sim.pressed.add(s1.id); va.solve(); va.sim.pressed.clear(); va.solve(); });
+await p.waitForTimeout(1500);
+await p.click('[data-nav="monitor"]'); await p.waitForTimeout(300);
+results.push(['Monitoramento: gráficos com dados e leituras de V, A e Hz', await p.evaluate(() => window.__va.sim.series.length > 5 && /220/.test(document.getElementById('moTiles').textContent) && /60 Hz/.test(document.getElementById('moTiles').textContent))]);
+const fbtn = p.locator('[data-fault^="short:"]').first(); await fbtn.click(); await p.waitForTimeout(400);
+results.push(['Monitoramento: botão de falha provoca curto e a proteção atua', await p.evaluate(() => window.__va.sim.running && Object.keys(window.__va.sim.faults).length > 0)]);
+await p.click('[data-nav="diagram"]'); await p.click('[data-look="sym"]');
 
 const m = await browser.newPage({ viewport: { width: 390, height: 844 } });
 await m.goto(page); await m.waitForTimeout(500);

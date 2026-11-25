@@ -22,6 +22,15 @@ Ao abrir, o circuito "Partida direta com selo" já vem carregado. Aperte **SIMUL
 - **Navegação (inferior):** Diagrama · Operação (painel com botões grandes para operar o circuito) · Início (projetos e exemplos) ·
   Tags (lista de componentes com folha, bornes e estado) · Monitoramento (estados ao vivo e registro de eventos).
 - Durante a simulação, os fios por onde passa corrente ficam animados.
+- **Aparência Símbolos ou 2D:** no modo 2D cada componente vira um desenho de equipamento real (disjuntor com alavanca,
+  disjuntor-motor com manopla, contator com visor I/O, relé térmico com dial e reset, botões coloridos, sinaleiros acesos,
+  sensores, fusíveis com visor e motor com ventoinha girando). Desenhos vetoriais próprios, sem fotos de fabricantes.
+- **Grandezas elétricas** (modelo didático: 220 V F-N, 380 V F-F, 60 Hz): barra inferior com tensão, corrente total, frequência e estado.
+- **Monitoramento com gráficos** de corrente dos motores (pico de partida, regime, sobrecarga) e tensão da rede (afundamento no curto),
+  com cruz de leitura ao passar o mouse e marcação das falhas.
+- **Simulação de falhas:** curto entre fases no motor, curto na bobina ou no sinaleiro, sobrecarga do motor e abertura de fusível.
+  A proteção que está no caminho da corrente de curto atua sozinha (fusível queima, disjuntor desarma) e o relé térmico dispara
+  por sobrecarga ou falta de fase, tudo com animação de falha. "Rearmar proteções" volta ao normal.
 
 ## O que o simulador faz
 - **Biblioteca IEC 60617 com 43 componentes**, desenhados na posição de repouso:
