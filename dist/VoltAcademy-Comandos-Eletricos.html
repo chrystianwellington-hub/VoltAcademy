@@ -21,16 +21,19 @@
   --paper: #FCFBF7; --ink: #2A2C24; --frame: #9A9585; --gold: #C9962F; --gold-soft: #FBF1DC;
   --series-1: #257de0; --series-2: #f47230; --series-3: #00b894; --critical: #dc3c3d; --good: #0aac23;
   --shadow: 0 1px 2px rgba(20,24,30,.06), 0 4px 14px rgba(20,24,30,.06);
+  --energy-color: #FFD600; --energy-core: #FFEA00; --energy-glow: rgba(255, 214, 0, 0.65);
+  --energy-duration: 2.6s; --energy-flow-duration: 3.5s; --energy-transition: 280ms; --energy-ease: ease-in-out;
+  --energy-bg: rgba(255, 214, 0, 0.08); --energy-inner: rgba(255, 214, 0, 0.16);
   --font-display: "Archivo", "Arial Narrow", system-ui, sans-serif;
   --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
   --bg: #121418; --surface: #1B1E24; --surface-2: #22262D; --surface-3: #2A2F37; --line: #333944; --fg: #E8EAED; --muted: #9AA1AC;
-  --accent: #E0AE46; --accent-soft: #3A3120; --accent-ink: #F0C46A; --shadow: 0 1px 2px rgba(0,0,0,.3), 0 6px 18px rgba(0,0,0,.25); --series-1: #338ced; --series-2: #e76624; --series-3: #00a888; color-scheme: dark; } }
+  --accent: #E0AE46; --accent-soft: #3A3120; --accent-ink: #F0C46A; --shadow: 0 1px 2px rgba(0,0,0,.3), 0 6px 18px rgba(0,0,0,.25); --series-1: #338ced; --series-2: #e76624; --series-3: #00a888; --energy-bg: rgba(8, 10, 14, 0.55); --energy-inner: rgba(255, 214, 0, 0.12); color-scheme: dark; } }
 :root[data-theme="dark"] {
   --bg: #121418; --surface: #1B1E24; --surface-2: #22262D; --surface-3: #2A2F37; --line: #333944; --fg: #E8EAED; --muted: #9AA1AC;
-  --accent: #E0AE46; --accent-soft: #3A3120; --accent-ink: #F0C46A; --shadow: 0 1px 2px rgba(0,0,0,.3), 0 6px 18px rgba(0,0,0,.25); --series-1: #338ced; --series-2: #e76624; --series-3: #00a888; color-scheme: dark; }
+  --accent: #E0AE46; --accent-soft: #3A3120; --accent-ink: #F0C46A; --shadow: 0 1px 2px rgba(0,0,0,.3), 0 6px 18px rgba(0,0,0,.25); --series-1: #338ced; --series-2: #e76624; --series-3: #00a888; --energy-bg: rgba(8, 10, 14, 0.55); --energy-inner: rgba(255, 214, 0, 0.12); color-scheme: dark; }
 [hidden] { display: none !important; }
 * { box-sizing: border-box; }
 html, body { height: 100%; }
@@ -66,7 +69,7 @@ button[disabled] { cursor: default; opacity: .38; }
 /* ---- Views ---- */
 .views { min-height: 0; position: relative; }
 .view { height: 100%; min-height: 0; }
-#vDiagram { display: grid; grid-template-columns: 76px 250px 1fr auto 60px; }
+#vDiagram { display: grid; }
 .scrollview { overflow: auto; padding-block: 24px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
 .scrollview > * { max-width: 1180px; margin-left: auto; margin-right: auto; }
 
@@ -77,7 +80,7 @@ button[disabled] { cursor: default; opacity: .38; }
 .railb.act { background: var(--surface); color: var(--fg); box-shadow: var(--shadow); }
 .ricon { width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center; }
 .ricon svg { width: 19px; height: 19px; }
-.drawer { background: var(--surface); border-right: 1px solid var(--line); display: flex; flex-direction: column; min-height: 0; }
+.drawer { display: flex; flex-direction: column; min-height: 0; }
 .drawer .dh { padding: 12px 12px 8px; display: flex; flex-direction: column; gap: 8px; }
 .search { display: flex; align-items: center; gap: 8px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 9px; padding: 0 10px; }
 .search input { border: 0; background: none; padding: 8px 0; width: 100%; outline: none; }
@@ -343,19 +346,108 @@ textarea.json { font-family: var(--font-mono); font-size: 12px; min-height: 200p
 .impbtn:hover { border-color: var(--accent); } .impbtn span { color: var(--muted); font-size: 12.5px; }
 body.dropping::after { content: "Solte o arquivo para importar o projeto"; position: fixed; inset: 12px; border: 3px dashed var(--accent); border-radius: 16px; background: rgba(184,134,30,.10);
   display: grid; place-items: center; font: 700 22px var(--font-body); color: var(--accent-ink); z-index: 90; pointer-events: none; }
+/* =====================================================================
+   VoltAcademy Active Energy UI
+   Yellow light is an extra layer on top of each element's own colors:
+   only the active member of each group carries it. Animations use opacity,
+   transform and background-position (few elements at a time).
+   ===================================================================== */
+.energy-hover, .railb, .tab, .tool, .nav, .part, .tbtn, .seg button, .sw, .opbtn, .sbtn, .btn {
+  transition: box-shadow var(--energy-transition) var(--energy-ease), border-color var(--energy-transition) var(--energy-ease),
+              background-color var(--energy-transition) var(--energy-ease), color var(--energy-transition) var(--energy-ease), transform var(--energy-transition) var(--energy-ease);
+}
+.energy-hover:hover:not(.energy-active):not([disabled]),
+:is(.railb, .tab, .tool, .nav, .part, .seg button, .opbtn):hover:not(.energy-active):not([disabled]) {
+  box-shadow: 0 0 0 1px rgba(255, 214, 0, .45), 0 0 12px rgba(255, 214, 0, .18);
+}
+.energy-active.energy-active {
+  position: relative; isolation: isolate;
+  border-color: var(--energy-color) !important;
+  background-color: var(--energy-bg);
+  box-shadow: 0 0 0 1px var(--energy-color), inset 0 0 0 1px rgba(255, 234, 0, .25), inset 0 0 16px var(--energy-inner) !important;
+}
+/* outer multi-layer glow that breathes */
+.energy-active.energy-active::after {
+  content: ""; position: absolute; inset: -1px; border-radius: inherit; pointer-events: none; z-index: -1;
+  box-shadow: 0 0 5px 1px var(--energy-glow), 0 0 16px 3px rgba(255, 214, 0, .32), 0 0 34px 8px rgba(255, 214, 0, .14);
+  opacity: .5; animation: energy-pulse var(--energy-duration) var(--energy-ease) infinite;
+}
+/* energy reflection running across the surface */
+.energy-flow.energy-flow, .energy-active.energy-active:not(.energy-noflow) {
+  background-image: linear-gradient(105deg, transparent 0%, transparent 38%, rgba(255, 234, 0, .16) 46%, rgba(255, 255, 255, .28) 50%, rgba(255, 234, 0, .16) 54%, transparent 62%, transparent 100%);
+  background-size: 260% 100%; background-repeat: no-repeat; background-position: 130% 0;
+  animation: energy-flow var(--energy-flow-duration) var(--energy-ease) infinite;
+}
+/* LED-like indicator */
+.energy-indicator.energy-indicator::before {
+  content: ""; position: absolute; left: 50%; bottom: 3px; width: 22px; height: 3px; margin-left: -11px; border-radius: 3px; pointer-events: none;
+  background: var(--energy-core); box-shadow: 0 0 4px var(--energy-color), 0 0 10px var(--energy-glow), 0 0 18px rgba(255, 214, 0, .35);
+  animation: energy-led var(--energy-duration) var(--energy-ease) infinite;
+}
+.energy-pulse.energy-pulse { animation: energy-breathe var(--energy-duration) var(--energy-ease) infinite; box-shadow: 0 0 0 1px var(--energy-color), 0 0 12px var(--energy-glow); }
+@keyframes energy-pulse { 0%, 100% { opacity: .42; } 50% { opacity: 1; } }
+@keyframes energy-led { 0%, 100% { opacity: .7; transform: scaleX(.85); } 50% { opacity: 1; transform: scaleX(1); } }
+@keyframes energy-flow { 0% { background-position: 130% 0; } 60%, 100% { background-position: -30% 0; } }
+@keyframes energy-breathe { 0%, 100% { opacity: .8; } 50% { opacity: 1; } }
+/* group specifics: keep each element's own colors, only add the light */
+.railb.act, .tab.act, .tool.act, .nav.act, .seg button.act, .part.act, .opbtn.act { color: inherit; }
+.railb.act { color: var(--fg); }
+.tab.act { color: var(--fg); }
+.tab.act .tabn { color: var(--energy-color); text-shadow: 0 0 8px var(--energy-glow); }
+.tool.act { color: var(--fg); }
+.nav.act { color: var(--fg); border-top-color: transparent; }
+.nav.act svg { color: var(--muted); }
+.nav.home.act b { text-shadow: 0 0 14px rgba(255, 214, 0, .35); }
+.railb.act .ricon { box-shadow: 0 0 0 2px var(--surface), 0 0 0 3.5px var(--energy-color), 0 0 14px var(--energy-glow); }
+.part.act { color: #2A2C24; }
+.tbtn.runb.on.energy-active { color: var(--stop); }
+.sw.energy-active::before, .sw.energy-active::after { display: none; }
+.sw.act.energy-active { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--energy-color), 0 0 12px var(--energy-glow) !important; }
+.clock.energy-active { color: var(--fg); }
+#cv .comp.sel .chit { stroke: var(--energy-color); stroke-width: 2; stroke-dasharray: none; fill: rgba(255, 214, 0, .08); filter: drop-shadow(0 0 4px rgba(255, 214, 0, .75)); }
+#cv .wno.sel rect { fill: var(--energy-color); stroke: #B58F00; } #cv .wno.sel text { fill: #1B1E23; }
+#cv .wsel { filter: drop-shadow(0 0 3px rgba(255, 214, 0, .9)); }
+@media (prefers-reduced-motion: reduce) {
+  .energy-active.energy-active, .energy-active.energy-active::after, .energy-indicator.energy-indicator::before, .energy-pulse.energy-pulse { animation: none !important; }
+  .energy-active.energy-active::after { opacity: .75; }
+  .energy-active.energy-active { background-image: none; }
+}
+
+/* =====================================================================
+   Contextual component drawer (opens from the category rail)
+   ===================================================================== */
+#vDiagram { position: relative; grid-template-columns: 76px 1fr auto 60px; }
+.drawer {
+  position: absolute; left: 76px; top: 0; bottom: 0; width: 276px; z-index: 25;
+  border-right: 1px solid var(--line); box-shadow: 14px 0 34px -18px rgba(0, 0, 0, .45);
+  background: color-mix(in srgb, var(--surface) 94%, transparent); backdrop-filter: blur(8px);
+  opacity: 0; transform: translateX(-28px); visibility: hidden; pointer-events: none;
+  transition: opacity 300ms cubic-bezier(0.22, 1, 0.36, 1), transform 300ms cubic-bezier(0.22, 1, 0.36, 1), visibility 0s linear 300ms;
+}
+.drawer.open { opacity: 1; transform: none; visibility: visible; pointer-events: auto; transition-delay: 0s; }
+.dtitle { display: flex; align-items: center; gap: 10px; }
+.dtitle b { font-size: 15px; } .dtitle .cnt { font-size: 11px; color: var(--muted); background: var(--surface-2); border-radius: 999px; padding: 1px 8px; }
+.dtitle .x { margin-left: auto; }
+.ricon.sm { width: 28px; height: 28px; border-radius: 8px; }
+.ricon.sm svg { width: 16px; height: 16px; }
+#folders { overflow-y: auto; padding: 4px 12px 16px; }
+.parts.swap { animation: parts-in 300ms cubic-bezier(0.22, 1, 0.36, 1); }
+@keyframes parts-in { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: none; } }
+.part { cursor: grab; touch-action: none; }
+.part.act.dragging { cursor: grabbing; }
+
 .only-m { display: none !important; }
 @keyframes spin { to { transform: rotate(360deg); } }
 @media (max-width: 1440px) { .sbtn span { display: none; } .sbtn { padding: 7px 9px; } }
 @media (max-width: 1100px) {
   .insp.open { position: absolute; right: 60px; top: 0; bottom: 0; z-index: 20; box-shadow: var(--shadow); }
-  #vDiagram { position: relative; grid-template-columns: 76px 220px 1fr 60px; }
+  #vDiagram { grid-template-columns: 76px 1fr 60px; }
   .tbtn { min-width: 52px; }
   .readouts .ro.hz, .readouts .ro.v3 { display: none; }
 }
 @media (max-width: 900px) {
-  #vDiagram { grid-template-columns: 64px 1fr 0 52px; }
-  .drawer { position: absolute; left: 64px; top: 0; bottom: 0; width: min(300px, calc(100% - 64px)); z-index: 25; box-shadow: var(--shadow); display: none; }
-  .drawer.open { display: flex; }
+  #vDiagram { grid-template-columns: 64px 1fr 52px; }
+  .drawer { left: 64px; width: min(300px, calc(100% - 64px)); }
   .acts .hide-s { display: none; }
   .sbtn span { display: none; }
   .readouts { display: none; }
@@ -366,7 +458,7 @@ body.dropping::after { content: "Solte o arquivo para importar o projeto"; posit
   .brand > div { display: none; }
   .tbtn { min-width: 44px; padding: 6px 4px; font-size: 10.5px; }
   .clock { padding: 5px 6px; font-size: 12px; }
-  #vDiagram { grid-template-columns: 56px 1fr 0 48px; }
+  #vDiagram { grid-template-columns: 56px 1fr 48px; }
   .drawer { left: 56px; width: calc(100% - 56px); }
   .railb .rl { display: none; }
   .tool { width: 38px; height: 38px; }
@@ -403,7 +495,7 @@ body.dropping::after { content: "Solte o arquivo para importar o projeto"; posit
     <section class="view" data-view="diagram" id="vDiagram">
       <nav class="rail" id="rail" aria-label="Pastas de componentes"></nav>
       <aside class="drawer" id="drawer">
-        <div class="dh"><p class="h" style="margin:0">Biblioteca IEC</p>
+        <div class="dh"><div class="dtitle"><span class="ricon sm" id="drIcon"></span><b id="drName"></b><span class="cnt" id="drCount"></span><button class="x" id="dClose" aria-label="Fechar biblioteca">×</button></div>
           <label class="search"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="search" type="search" placeholder="Buscar componente" aria-label="Buscar componente"></label></div>
         <div id="folders"></div>
       </aside>
@@ -737,7 +829,7 @@ TYPES.fonte_3f.tdir = [1, 0]; TYPES.seta_3f.tdir = [-1, 0];
 let doc = null;
 let nextId = 1;
 const ui = { view: 'diagram', sheet: null, mode: 'select', placing: null, wireColor: WIRE_COLORS[0][0], sel: null, zoom: 1, px: 0, py: 0,
-  wireStart: null, wirePts: [], cursor: null, folder: 'Comando', search: '', inspOpen: true, look: 'sym' };
+  wireStart: null, wirePts: [], cursor: null, folder: null, search: '', inspOpen: true, look: 'sym', activeCategory: null };
 const hist = { stack: [], idx: -1 };
 const blankSim = () => ({ running: false, t: 0, pressed: new Set(), toggled: new Set(), tripped: new Set(), coils: {}, timerOn: {}, timerAcc: {}, timerDone: {}, lamps: {},
   injShort: new Set(), overload: new Set(), faults: {}, heat: {}, motorStart: {}, angle: {}, series: [], marks: [], meas: {}, lastSample: -1, spike: null,
@@ -1518,10 +1610,11 @@ function renderDiagram() {
   renderSheetTabs(); renderInspector(); renderStatus(); updateHint(); updateTools();
 }
 function renderSheetTabs() {
-  $('#tabs').innerHTML = doc.sheets.map((s, i) => {
+  const h = doc.sheets.map((s, i) => {
     const n = doc.comps.filter(c => c.sheet === s.id).length;
     return `<button class="tab${s.id === ui.sheet ? ' act' : ''}" data-sheet="${s.id}" title="${esc(s.desc || s.name)}"><span class="tabn">${i + 1}.</span> ${esc(s.name)}<span class="tabc">${n}</span></button>`;
   }).join('');
+  const el = $('#tabs'); if (el._h !== h) { el.innerHTML = h; el._h = h; }
 }
 function renderStatus() {
   const coilTags = [...new Set(doc.comps.filter(c => c.type === 'bobina').map(c => c.tag))];
@@ -1676,9 +1769,10 @@ function updateTools() {
 }
 function updateTop() {
   $('#bUndo').disabled = hist.idx <= 0 || sim.running; $('#bRedo').disabled = hist.idx >= hist.stack.length - 1 || sim.running;
-  const r = $('#bRun'); r.classList.toggle('on', sim.running); r.querySelector('.lbl').textContent = sim.running ? 'Parar' : 'Simular';
+  const r = $('#bRun'); r.classList.toggle('on', sim.running); r.classList.toggle('act', sim.running); r.querySelector('.lbl').textContent = sim.running ? 'Parar' : 'Simular';
   r.querySelector('svg').innerHTML = sim.running ? '<rect x="7" y="7" width="10" height="10" rx="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="10"/>' : '<circle cx="12" cy="12" r="10"/><path d="M10 8l6 4-6 4z" fill="currentColor"/>';
   $('#projName').textContent = doc.project;
+  $('#bInsp').classList.toggle('act', !!ui.inspOpen && ui.view === 'diagram'); $('#clock').classList.toggle('act', sim.running);
   $('#bSound').classList.toggle('muted', !!ui.mute); $('#bSoundL').textContent = ui.mute ? 'Mudo' : 'Som';
 }
 
@@ -1691,27 +1785,33 @@ const CAT_META = {
   'Cargas e sinalização': { color: 'var(--c-load)', icon: '<circle cx="12" cy="12" r="8"/><path d="M7 7l10 10M17 7 7 17"/>' },
 };
 function buildRail() {
-  $('#rail').innerHTML = CATS.map(cat => `<button class="railb${ui.folder === cat ? ' act' : ''}" data-folder="${cat}" title="${cat}">
+  $('#rail').innerHTML = CATS.map(cat => `<button class="railb${ui.activeCategory === cat ? ' act' : ''}" data-folder="${cat}" title="${cat}" aria-pressed="${ui.activeCategory === cat}" aria-controls="drawer">
     <span class="ricon" style="background:${CAT_META[cat].color}"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${CAT_META[cat].icon}</svg></span>
-    <span class="rl">${cat.replace(' e sinalização', '').replace(' e relés', ' e relés')}</span></button>`).join('');
+    <span class="rl">${cat.replace(' e sinalização', '')}</span></button>`).join('');
 }
-function buildFolders() {
+function buildFolders(swap = false) {
+  const cat = ui.activeCategory;
+  $('#drawer').classList.toggle('open', !!cat);
+  $('#drawer').setAttribute('aria-hidden', cat ? 'false' : 'true');
+  if (!cat) return;
   const q = ui.search.trim().toLowerCase();
-  let h = '';
-  for (const cat of CATS) {
-    const items = Object.entries(TYPES).filter(([, T0]) => T0.cat === cat && (!q || T0.name.toLowerCase().includes(q)));
-    if (!items.length) continue;
-    const open = q || ui.folder === cat;
-    h += `<details class="folder" data-fold="${cat}" ${open ? 'open' : ''}><summary><svg viewBox="0 0 24 24" class="fic" fill="none" stroke="${CAT_META[cat].color}" stroke-width="2"><path d="M3 6h6l2 2h10v11H3z"/></svg><span>${cat}</span><span class="cnt">${items.length}</span></summary><div class="parts">` +
-      items.map(([k, T0]) => {
-        const [bx, by, bw, bh] = T0.box, side = Math.max(bw, bh) + 12;
-        const pv = ui.look === '2d' && D2[k] ? `<g class="d2">${D2[k]({ type: k, color: 'verde', kw: 1.5, preset: 3, phase: 'L1' }, {})}</g>` : `<g class="sym">${T0.draw({ color: 'verde' }, {})}</g>`;
-        return `<button class="part" data-part="${k}" title="${T0.name}"><svg viewBox="${bx + bw / 2 - side / 2} ${by + bh / 2 - side / 2} ${side} ${side}">${pv}</svg><span>${T0.name.replace(' (retardo na energização)', '')}</span></button>`;
-      }).join('') + '</div></details>';
-  }
-  $('#folders').innerHTML = h || '<p class="muted small">Nenhum componente com esse nome.</p>';
+  const all = Object.entries(TYPES).filter(([, T0]) => T0.cat === cat), items = all.filter(([, T0]) => !q || T0.name.toLowerCase().includes(q));
+  $('#drIcon').style.background = CAT_META[cat].color;
+  $('#drIcon').innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${CAT_META[cat].icon}</svg>`;
+  $('#drName').textContent = cat; $('#drCount').textContent = q ? `${items.length} de ${all.length}` : all.length;
+  $('#search').placeholder = `Buscar em ${cat}`;
+  $('#folders').innerHTML = items.length ? `<div class="parts${swap ? ' swap' : ''}">` + items.map(([k, T0]) => {
+    const [bx, by, bw, bh] = T0.box, side = Math.max(bw, bh) + 12;
+    const pv = ui.look === '2d' && D2[k] ? `<g class="d2">${D2[k]({ type: k, color: 'verde', kw: 1.5, preset: 3, phase: 'L1' }, {})}</g>` : `<g class="sym">${T0.draw({ color: 'verde' }, {})}</g>`;
+    return `<button class="part${ui.placing === k ? ' act' : ''}" data-part="${k}" title="${T0.name} — clique e depois toque na folha, ou arraste até a folha"><svg viewBox="${bx + bw / 2 - side / 2} ${by + bh / 2 - side / 2} ${side} ${side}">${pv}</svg><span>${T0.name.replace(' (retardo na energização)', '')}</span></button>`;
+  }).join('') + '</div>' : `<p class="muted small">Nenhum componente com "${esc(ui.search)}" em ${esc(cat)}.</p>`;
 }
-
+function setActiveCategory(fn) {
+  const prev = ui.activeCategory, next = typeof fn === 'function' ? fn(prev) : fn;
+  ui.activeCategory = next; ui.folder = next;
+  if (next !== prev) { ui.search = ''; $('#search').value = ''; }
+  buildRail(); buildFolders(!!prev && !!next && prev !== next || (!prev && !!next));
+}
 // =====================================================================
 // Other views
 // =====================================================================
@@ -1919,7 +2019,7 @@ svg.addEventListener('pointerdown', ev => {
   }
   if (ui.placing) {
     const c = addComp(ui.placing, p[0], p[1]); ui.sel = { kind: 'comp', id: c.id };
-    if (!ev.shiftKey) ui.placing = null;
+    if (!ev.shiftKey) { ui.placing = null; buildFolders(); }
     commit(); render(); return;
   }
   const segEl = ev.target.closest('[data-seg]');
@@ -2060,21 +2160,43 @@ $$('[data-mode]').forEach(b => b.addEventListener('click', () => { if (sim.runni
 $$('[data-nav]').forEach(b => b.addEventListener('click', () => { ui.view = b.dataset.nav; closeDrawers(); render(); if (ui.view === 'diagram') requestAnimationFrame(fit); }));
 $('#rail').addEventListener('click', ev => {
   const b = ev.target.closest('[data-folder]'); if (!b) return;
-  ui.folder = b.dataset.folder; ui.search = ''; $('#search').value = '';
-  buildRail(); buildFolders(); $('#drawer').classList.add('open');
-  const f = $(`[data-fold="${ui.folder}"]`); if (f) f.scrollIntoView({ block: 'nearest' });
+  const category = b.dataset.folder;
+  setActiveCategory(previous => previous === category ? null : category);
 });
+$('#dClose').addEventListener('click', () => setActiveCategory(null));
 $('#search').addEventListener('input', ev => { ui.search = ev.target.value; buildFolders(); });
 $('#folders').addEventListener('click', ev => {
   const part = ev.target.closest('[data-part]'); if (!part) return;
+  if (paletteDrag && paletteDrag.dropped) { paletteDrag = null; return; }
   if (sim.running) return flash('Pare a simulação para editar o circuito.');
   ui.placing = ui.placing === part.dataset.part ? null : part.dataset.part; ui.wireStart = null;
-  if (matchMedia('(max-width: 900px)').matches) $('#drawer').classList.remove('open');
-  render();
+  if (ui.placing && matchMedia('(max-width: 900px)').matches) setActiveCategory(null);
+  buildFolders(); render();
 });
-$('#folders').addEventListener('toggle', ev => { const d = ev.target.closest('details'); if (d && d.open) { ui.folder = d.dataset.fold; buildRail(); } }, true);
-$('#bPal').addEventListener('click', () => $('#drawer').classList.toggle('open'));
-function closeDrawers() { if (matchMedia('(max-width: 900px)').matches) $('#drawer').classList.remove('open'); }
+// drag a component from the drawer and drop it on the sheet
+let paletteDrag = null;
+$('#folders').addEventListener('pointerdown', ev => {
+  const part = ev.target.closest('[data-part]'); if (!part || sim.running || ev.button > 0) return;
+  paletteDrag = { type: part.dataset.part, sx: ev.clientX, sy: ev.clientY, moving: false, dropped: false, el: part };
+});
+window.addEventListener('pointermove', ev => {
+  if (!paletteDrag) return;
+  if (!paletteDrag.moving && Math.hypot(ev.clientX - paletteDrag.sx, ev.clientY - paletteDrag.sy) > 6) { paletteDrag.moving = true; ui.placing = paletteDrag.type; ui.wireStart = null; paletteDrag.el.classList.add('act', 'dragging'); }
+  if (paletteDrag.moving) { const over = document.elementFromPoint(ev.clientX, ev.clientY); ui.cursor = over && over.closest('#cv') ? toWorld(ev) : null; renderWorld(); }
+});
+window.addEventListener('pointerup', ev => {
+  if (!paletteDrag) return;
+  if (paletteDrag.moving) {
+    const over = document.elementFromPoint(ev.clientX, ev.clientY);
+    if (over && over.closest('#cv') && !over.closest('.drawer')) {
+      const p = toWorld(ev), c = addComp(paletteDrag.type, p[0], p[1]); ui.sel = { kind: 'comp', id: c.id }; ui.placing = null; commit();
+    }
+    paletteDrag.dropped = true; ui.placing = null; ui.cursor = null; buildFolders(); render();
+    setTimeout(() => { paletteDrag = null; }, 0);
+  } else paletteDrag = null;
+});
+$('#bPal').addEventListener('click', () => setActiveCategory(prev => prev ? null : CATS[0]));
+function closeDrawers() { if (matchMedia('(max-width: 900px)').matches && ui.activeCategory) setActiveCategory(null); }
 function flash(msg) { showBanner(msg); setTimeout(() => showBanner(null), 2200); }
 
 $('#bSound').addEventListener('click', () => { ui.mute = !ui.mute; try { localStorage.setItem('voltacademy.mute', ui.mute ? '1' : '0'); } catch (e) {} if (!ui.mute) audioCtx(); updateSound(); updateTop(); });
@@ -2158,7 +2280,7 @@ function sheetDialog(mode) {
 }
 document.addEventListener('keydown', ev => {
   if (ev.target.closest('input,textarea,select')) return;
-  if (ev.key === 'Escape') { ui.placing = null; ui.wireStart = null; ui.wirePts = []; closeModal(); $('#colorPop').hidden = true; render(); return; }
+  if (ev.key === 'Escape') { const busy = ui.placing || ui.wireStart || !$('#modal').hidden; ui.placing = null; ui.wireStart = null; ui.wirePts = []; closeModal(); $('#colorPop').hidden = true; if (!busy && ui.activeCategory) setActiveCategory(null); else buildFolders(); render(); return; }
   if (ui.view !== 'diagram' && ev.key !== ' ') return;
   if ((ev.key === 'Delete' || ev.key === 'Backspace') && ui.sel) { ev.preventDefault(); deleteSel(); }
   else if (ev.key === 'r' || ev.key === 'R') rotateSel();
@@ -2494,6 +2616,23 @@ const EXAMPLES = [
       W(s0, 'b', ktc, 'a', BLACK); W(ktc, 'b', h1, 'a', BLACK); W(h1, 'b', n, 'a', BLUE, [[700, 620], [200, 620]]);
       return d; } },
 ];
+
+// =====================================================================
+// Active Energy UI — attach energy classes to the active member of each group
+// =====================================================================
+const ENERGY_ACTIVE = '.railb.act, .tab.act, .tool.act, .nav.act, .seg button.act, .part.act, .opbtn.act, .sw.act, #bRun.act, #bInsp.act, #clock.act';
+const ENERGY_LED = '.railb.act, .tab.act, .tool.act, .nav.act, .seg button.act, #bRun.act, #bInsp.act';
+const ENERGY_NOFLOW = '.sw.act, #clock.act';
+function syncEnergy() {
+  for (const el of document.querySelectorAll('.energy-active')) if (!el.matches(ENERGY_ACTIVE)) el.classList.remove('energy-active', 'energy-indicator', 'energy-noflow');
+  for (const el of document.querySelectorAll(ENERGY_ACTIVE)) {
+    if (!el.classList.contains('energy-active')) el.classList.add('energy-active');
+    el.classList.toggle('energy-indicator', el.matches(ENERGY_LED));
+    el.classList.toggle('energy-noflow', el.matches(ENERGY_NOFLOW));
+  }
+  const pill = document.querySelector('.pill.run'); if (pill && !pill.classList.contains('energy-pulse')) pill.classList.add('energy-pulse');
+}
+new MutationObserver(syncEnergy).observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ['class'] });
 
 // =====================================================================
 // Boot

@@ -14,7 +14,14 @@ Ao abrir, o circuito "Partida direta com selo" já vem carregado. Aperte **SIMUL
 
 ## Interface
 - **Barra superior:** Simular/Parar com cronômetro, Desfazer, Refazer, Projeto (salvar/abrir), Ajuda, Tema claro/escuro e Painel de propriedades.
-- **Biblioteca em pastas (esquerda):** categorias com ícones coloridos (Alimentação, Comando, Contatores e relés, Proteção, Cargas) e busca por nome.
+- **Biblioteca retrátil (esquerda):** só as categorias ficam fixas (Alimentação, Comando, Contatores e relés, Proteção,
+  Cargas). Clicar abre um painel deslizante com os componentes daquela categoria e busca; clicar de novo fecha. O painel
+  flutua sobre a folha, então o desenho não muda de tamanho, zoom nem posição. Componentes entram por clique ou arrastando
+  até a folha.
+- **Active Energy UI:** o elemento ativo de cada grupo (categoria, folha, ferramenta, modo, navegação, painel, simulação)
+  ganha luz amarela viva (#FFD600) com brilho que respira, reflexo de energia e LED indicador, sem trocar as cores
+  originais. Classes reutilizáveis `.energy-active`, `.energy-hover`, `.energy-indicator`, `.energy-flow`, `.energy-pulse`;
+  respeita "reduzir movimento" do sistema.
 - **Folhas:** abas no topo do desenho com Configurar, Renomear, Apagar e Nova folha. A simulação roda em todas as folhas juntas.
   Segmentos de cabo OUT/IN e setas com a mesma tag ligam folhas diferentes e mostram o destino ("→ 2.3" = folha 2, coluna 3).
   Abaixo de cada bobina aparece onde estão seus contatos (espelho de contatos).

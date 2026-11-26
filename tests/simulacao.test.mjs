@@ -203,7 +203,9 @@ await p.click('[data-nav="home"]');
 results.push(['Início: exemplos com miniatura', await p.locator('.excard .thumb').count() === 4]);
 await p.evaluate(() => { const va = window.__va; if (va.sim.running) va.stopSim(); va.load(va.EXAMPLES[1].build()); va.setView('diagram'); });
 await p.click('[data-look="2d"]');
-results.push(['Modo 2D: componentes desenhados como equipamentos', await p.evaluate(() => document.querySelectorAll('#cv .d2').length >= 5 && document.querySelectorAll('.part .d2').length > 30)]);
+await p.click('[data-folder="Proteção"]');
+results.push(['Modo 2D: componentes desenhados como equipamentos', await p.evaluate(() => document.querySelectorAll('#cv .d2').length >= 5 && document.querySelectorAll('.part .d2').length >= 8)]);
+await p.click('[data-folder="Proteção"]');
 await p.click('#bRun');
 await p.evaluate(() => { const va = window.__va; const s1 = va.doc().comps.find(c => c.tag === 'S1'); va.sim.pressed.add(s1.id); va.solve(); va.sim.pressed.clear(); va.solve(); });
 await p.waitForTimeout(1500);
@@ -282,6 +284,26 @@ const [dp] = await Promise.all([p.waitForEvent('download', { timeout: 60000 }), 
 const pdf = await (await import('node:fs/promises')).readFile(await dp.path());
 const pagesN = (pdf.toString('latin1').match(/\/Type \/Page\b/g) || []).length;
 results.push(['PDF: arquivo válido com folhas e relatório', pdf.slice(0, 5).toString() === '%PDF-' && pdf.slice(-6).toString().includes('%%EOF') && pagesN === 4]);
+
+// ---- Biblioteca retrátil (activeCategory) e Active Energy UI ----
+const fresh = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+await fresh.goto(page); await fresh.waitForTimeout(500);
+results.push(['Biblioteca: começa fechada e sem categoria ativa', await fresh.evaluate(() => window.__va.ui.activeCategory === null && !document.getElementById('drawer').classList.contains('open') && !document.querySelector('.railb.act'))]);
+const geo0 = await fresh.evaluate(() => ({ w: document.getElementById('cv').getBoundingClientRect().width, z: window.__va.ui.zoom, px: window.__va.ui.px }));
+await fresh.click('[data-folder="Comando"]'); await fresh.waitForTimeout(350);
+results.push(['Biblioteca: clicar abre só os componentes da categoria', await fresh.evaluate(() => { const parts = [...document.querySelectorAll('#folders [data-part]')].map(b => window.__va.TYPES[b.dataset.part].cat); return document.getElementById('drawer').classList.contains('open') && parts.length === 12 && parts.every(c => c === 'Comando') && !document.querySelector('details.folder'); })]);
+results.push(['Biblioteca: abrir não muda tamanho, zoom nem posição do desenho', await fresh.evaluate(g => { const r = document.getElementById('cv').getBoundingClientRect(); return r.width === g.w && window.__va.ui.zoom === g.z && window.__va.ui.px === g.px; }, geo0)]);
+results.push(['Energia: só a categoria ativa acende', await fresh.evaluate(() => { const on = document.querySelectorAll('#rail .energy-active'); return on.length === 1 && on[0].dataset.folder === 'Comando' && on[0].classList.contains('energy-indicator'); })]);
+await fresh.click('[data-folder="Proteção"]'); await fresh.waitForTimeout(350);
+results.push(['Biblioteca: outra categoria troca o conteúdo e mantém aberto', await fresh.evaluate(() => document.getElementById('drawer').classList.contains('open') && [...document.querySelectorAll('#folders [data-part]')].every(b => window.__va.TYPES[b.dataset.part].cat === 'Proteção') && document.querySelectorAll('#rail .energy-active').length === 1)]);
+const before = await fresh.evaluate(() => window.__va.doc().comps.length);
+const src = await fresh.evaluate(() => { const r = document.querySelector('[data-part="fusivel"]').getBoundingClientRect(); return [r.x + r.width / 2, r.y + r.height / 2]; });
+await fresh.mouse.move(src[0], src[1]); await fresh.mouse.down(); await fresh.mouse.move(src[0] + 200, src[1] + 40, { steps: 6 }); await fresh.mouse.move(900, 500, { steps: 8 }); await fresh.mouse.up(); await fresh.waitForTimeout(150);
+results.push(['Biblioteca: arrastar e soltar na folha insere o componente', await fresh.evaluate(n => { const d = window.__va.doc(); return d.comps.length === n + 1 && d.comps[d.comps.length - 1].type === 'fusivel'; }, before)]);
+await fresh.click('[data-folder="Proteção"]'); await fresh.waitForTimeout(350);
+results.push(['Biblioteca: clicar de novo fecha e apaga a luz', await fresh.evaluate(() => window.__va.ui.activeCategory === null && !document.getElementById('drawer').classList.contains('open') && !document.querySelector('#rail .energy-active'))]);
+results.push(['Energia: ferramenta, aba da folha e navegação ativas acesas', await fresh.evaluate(() => ['.tool.act', '.tab.act', '.nav.act'].every(q => { const e = document.querySelector(q); return e && e.classList.contains('energy-active'); }) && document.querySelectorAll('.tools .energy-active').length === 1)]);
+await fresh.close();
 
 const m = await browser.newPage({ viewport: { width: 390, height: 844 } });
 await m.goto(page); await m.waitForTimeout(500);
