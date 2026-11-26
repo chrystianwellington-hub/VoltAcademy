@@ -55,6 +55,23 @@ Ao abrir, o circuito "Partida direta com selo" já vem carregado. Aperte **SIMUL
   A proteção que está no caminho da corrente de curto atua sozinha (fusível queima, disjuntor desarma) e o relé térmico dispara
   por sobrecarga ou falta de fase, tudo com animação de falha. "Rearmar proteções" volta ao normal.
 
+## Tela inicial e Project Lab (holográficos)
+- **VOLT CORE:** núcleo de energia em 3D (anéis em eixos diferentes, partículas douradas, plasma pulsante, arcos de
+  energia e varredura) com máquina de estados IDLE · SELECT · MATERIALIZE · PREVIEW · LOADING · SUCCESS.
+- **Carrossel em órbita:** as operações Novo projeto, Continuar projeto, Abrir arquivo e Exemplos ficam em uma órbita
+  de 360° (espaçamento calculado pela quantidade, hoje 90°), cada uma com seu objeto holográfico animado. Navegação por
+  clique, arraste, setas, roda do mouse e Enter. As operações ficam centralizadas em `HOME_OPS` (id, título, descrição,
+  objeto, ação): incluir uma nova não exige mexer no carrossel.
+- **Holographic Project Lab:** lista lateral dos exemplos (mesma fonte `EXAMPLES`), projeção 3D construída a partir dos
+  dados reais do circuito (símbolos IEC, condutores, bornes e tags) com materialização em etapas, rotação automática e
+  manual, zoom, mover, centralizar e troca de folha; modo Multifilar 2D com a folha técnica original; painel com
+  objetivo didático, testes e funcionamento esperado; botão ABRIR PROJETO NO SIMULADOR.
+- Os modos Unifilar, Componentes 3D, Aplicação industrial 3D e Vista explodida aparecem indisponíveis até existirem dados
+  reais: um unifilar cadastrado no exemplo ou modelos GLB/GLTF em `MODEL_REGISTRY`. Nada é gerado ou simulado como
+  substituto.
+- Motor 3D próprio em Canvas (sem bibliotecas externas, funciona offline), qualidade adaptativa pelo tempo de quadro,
+  pausa quando a tela não está visível e suporte a "reduzir movimento".
+
 ## O que o simulador faz
 - **Biblioteca IEC 60617 com 46 componentes**, desenhados na posição de repouso:
   - Alimentação: fase (L1/L2/L3), neutro, fonte trifásica + N + PE, fonte AC/DC 24 Vcc,

@@ -436,6 +436,82 @@ body.dropping::after { content: "Solte o arquivo para importar o projeto"; posit
 .part { cursor: grab; touch-action: none; }
 .part.act.dragging { cursor: grabbing; }
 
+/* =====================================================================
+   Holographic views (VOLT CORE home + Project Lab) — single cinematic look
+   ===================================================================== */
+.holoview, .labview { --h-black: #060B12; --h-navy: #101822; --h-blue: #00C8FF; --h-cyan: #65E4FF; --h-yellow: #FFD600; --h-gold: #FFB800; background: var(--h-black); color: #DCEFF7; position: relative; overflow: hidden; }
+canvas.holo { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; cursor: grab; }
+.hud-k { margin: 0; font: 600 11px var(--font-mono); letter-spacing: .22em; text-transform: uppercase; color: var(--h-cyan); opacity: .8; }
+.hud-v { margin: 2px 0 0; font: 600 13px var(--font-mono); letter-spacing: .08em; color: var(--h-gold); }
+.hud-top { position: absolute; top: 0; left: 0; right: 0; display: flex; justify-content: space-between; gap: 16px; pointer-events: none;
+  padding-block: 18px; padding-left: max(22px, env(safe-area-inset-left, 0px)); padding-right: max(22px, env(safe-area-inset-right, 0px)); }
+.hud-brand { display: flex; gap: 10px; align-items: center; }
+.hud-led { width: 10px; height: 10px; border-radius: 50%; background: var(--h-yellow); box-shadow: 0 0 8px var(--h-yellow), 0 0 18px rgba(255,214,0,.6); animation: energy-breathe 2.6s ease-in-out infinite; }
+.hud-meta { text-align: right; } .hud-meta .hud-v { color: #DCEFF7; max-width: 40vw; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hud-bottom { position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%); width: min(640px, calc(100% - 32px)); text-align: center; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.hud-bottom h1 { margin: 0; font: 800 clamp(24px, 3.6vw, 40px) var(--font-display); letter-spacing: .04em; color: #fff; text-shadow: 0 0 22px rgba(0,200,255,.45); text-wrap: balance; }
+.hud-bottom #opDesc { margin: 0; color: #A9C7D6; font-size: 14px; line-height: 1.5; max-width: 58ch; min-height: 3em; }
+@media (min-width: 701px) and (max-height: 820px) { .hud-help { display: none; } .hud-bottom { bottom: 10px; } }
+.hud-ctrl { display: flex; gap: 10px; align-items: center; margin-top: 6px; }
+.hud-nav { width: 42px; height: 42px; border-radius: 50%; border: 1px solid rgba(101,228,255,.4); color: var(--h-cyan); font-size: 24px; line-height: 1; background: rgba(16,24,34,.6); }
+.hud-nav:hover { border-color: var(--h-yellow); color: var(--h-yellow); box-shadow: 0 0 14px rgba(255,214,0,.35); }
+.hud-go { position: relative; isolation: isolate; padding: 12px 28px; border-radius: 12px; border: 1px solid var(--h-yellow); color: #1A1400; background: linear-gradient(180deg, #FFE650, #FFC400); font: 800 14px var(--font-body); letter-spacing: .14em; text-transform: uppercase;
+  box-shadow: 0 0 0 1px rgba(255,234,0,.6), 0 0 18px rgba(255,214,0,.55), 0 0 42px rgba(255,184,0,.3); animation: energy-breathe 2.6s ease-in-out infinite; }
+.hud-go:hover { transform: translateY(-1px); }
+.hud-dots { display: flex; gap: 8px; margin-top: 4px; }
+.hdot { width: 26px; height: 4px; border-radius: 3px; background: rgba(101,228,255,.25); position: relative; }
+.hdot.act { background: var(--h-yellow); box-shadow: 0 0 8px var(--h-yellow); }
+.hud-help { margin: 2px 0 0; font-size: 11.5px; color: #6E8A99; }
+/* Project Lab */
+.labview { display: grid; grid-template-columns: 250px 1fr 330px; }
+.lab-side { background: linear-gradient(180deg, rgba(16,24,34,.96), rgba(6,11,18,.96)); border-right: 1px solid rgba(101,228,255,.14); padding: 16px 12px; display: flex; flex-direction: column; gap: 8px; min-height: 0; z-index: 2; }
+.lab-back { align-self: flex-start; color: var(--h-cyan); font: 600 13px var(--font-body); padding: 4px 8px; border-radius: 8px; }
+.lab-back:hover { color: var(--h-yellow); }
+.lab-k { margin: 0; font: 600 10.5px var(--font-mono); letter-spacing: .2em; text-transform: uppercase; color: var(--h-cyan); opacity: .85; }
+.lab-title { margin: 0 0 6px; font: 800 20px var(--font-display); color: #fff; letter-spacing: .04em; }
+.lab-list { display: flex; flex-direction: column; gap: 6px; overflow-y: auto; min-height: 0; }
+.lab-item { display: grid; grid-template-columns: 30px 26px 1fr; gap: 8px; align-items: center; text-align: left; padding: 10px; border-radius: 12px; border: 1px solid rgba(101,228,255,.12); color: #CFE6F0; background: rgba(16,24,34,.55); }
+.lab-item:hover { border-color: rgba(255,214,0,.45); }
+.lab-id { font: 700 18px var(--font-mono); color: #4F6B7A; } .lab-item.act .lab-id { color: var(--h-yellow); text-shadow: 0 0 10px rgba(255,214,0,.7); }
+.lab-ic { width: 24px; height: 24px; color: var(--h-cyan); } .lab-item.act .lab-ic { color: var(--h-yellow); }
+.lab-name { font: 600 13.5px var(--font-body); line-height: 1.25; } .lab-name small { display: block; margin-top: 3px; font: 500 11px var(--font-mono); color: #6E8A99; }
+.lab-count { margin: auto 0 0; font: 600 11px var(--font-mono); letter-spacing: .16em; text-transform: uppercase; color: #6E8A99; }
+.lab-stage { position: relative; min-width: 0; min-height: 0; overflow: hidden; }
+.lab-2d { position: absolute; inset: 64px 16px 64px; display: grid; place-items: center; z-index: 1; }
+.lab-2d svg { width: 100%; height: 100%; background: #fff; border-radius: 8px; box-shadow: 0 0 0 1px rgba(101,228,255,.3), 0 0 40px rgba(0,200,255,.15); }
+.lab-top { position: absolute; top: 14px; left: 18px; right: 18px; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; z-index: 2; pointer-events: none; }
+.lab-core { margin: 3px 0 0; font: 600 12px var(--font-mono); color: var(--h-gold); letter-spacing: .1em; }
+.lab-sheets { display: flex; gap: 6px; pointer-events: auto; flex-wrap: wrap; justify-content: flex-end; }
+.lab-sheet { padding: 5px 10px; border-radius: 8px; border: 1px solid rgba(101,228,255,.3); color: #BFE3F0; font-size: 12px; background: rgba(6,11,18,.6); }
+.lab-sheet.act { border-color: var(--h-yellow); color: #fff; box-shadow: 0 0 10px rgba(255,214,0,.4); }
+.lab-modes { position: absolute; left: 50%; bottom: 16px; transform: translateX(-50%); display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; width: max-content; max-width: calc(100% - 24px); z-index: 2; }
+.lab-mode { padding: 8px 12px; border-radius: 10px; border: 1px solid rgba(101,228,255,.25); color: #BFE3F0; background: rgba(6,11,18,.72); font: 600 12.5px var(--font-body); }
+.lab-mode.act { color: #FFF3B0; }
+.lab-mode.off { opacity: .45; cursor: help; } .lab-mode.off span { color: var(--h-gold); }
+.lab-note { position: absolute; left: 50%; bottom: 64px; transform: translateX(-50%); width: min(520px, calc(100% - 32px)); z-index: 3; background: rgba(16,24,34,.95); border: 1px solid rgba(255,184,0,.6); color: #F5E7C0; border-radius: 12px; padding: 10px 14px; font-size: 13px; line-height: 1.45; }
+.lab-ctrl { position: absolute; right: 16px; top: 60px; display: flex; flex-direction: column; gap: 6px; z-index: 2; }
+.lab-ctrl button { padding: 7px 10px; border-radius: 9px; border: 1px solid rgba(101,228,255,.25); background: rgba(6,11,18,.7); color: #BFE3F0; font-size: 12px; min-width: 38px; }
+.lab-ctrl button:hover, .lab-mode:hover:not(.off), .lab-sheet:hover { border-color: rgba(255,214,0,.6); }
+.lab-hint { position: absolute; left: 18px; bottom: 64px; margin: 0; font-size: 11px; color: #5F7A88; z-index: 2; max-width: 260px; }
+.lab-info { background: linear-gradient(180deg, rgba(16,24,34,.96), rgba(6,11,18,.96)); border-left: 1px solid rgba(101,228,255,.14); padding: 20px 18px; overflow-y: auto; z-index: 2; display: flex; flex-direction: column; gap: 8px; }
+.lab-info h2 { margin: 2px 0 4px; font: 800 22px var(--font-display); color: #fff; text-wrap: balance; }
+.lab-info p { margin: 0 0 6px; font-size: 13.5px; line-height: 1.5; color: #B8D2DE; }
+.lab-info .lab-k { margin-top: 8px; }
+.lab-desc { color: #DCEFF7 !important; }
+.lab-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 6px 0; }
+.lab-stats div { border: 1px solid rgba(101,228,255,.2); border-radius: 10px; padding: 8px; text-align: center; background: rgba(0,200,255,.05); }
+.lab-stats b { display: block; font: 700 22px var(--font-mono); color: var(--h-cyan); } .lab-stats span { font-size: 11px; color: #7C98A6; }
+.lab-open { margin-top: 10px; padding: 14px 12px; border-radius: 12px; border: 1px solid var(--h-yellow); color: #1A1400; background: linear-gradient(180deg, #FFE650, #FFC400); font: 800 13px var(--font-body); letter-spacing: .1em;
+  box-shadow: 0 0 0 1px rgba(255,234,0,.6), 0 0 18px rgba(255,214,0,.5), 0 0 40px rgba(255,184,0,.25); animation: energy-breathe 2.6s ease-in-out infinite; }
+.lab-open:disabled { opacity: .8; cursor: progress; }
+@media (max-width: 1100px) { .labview { grid-template-columns: 220px 1fr; grid-template-rows: 1fr auto; overflow-y: auto; } .lab-info { grid-column: 1 / -1; border-left: 0; border-top: 1px solid rgba(101,228,255,.14); } .lab-stage { min-height: 62vh; } }
+@media (max-width: 700px) {
+  .labview { grid-template-columns: 1fr; grid-template-rows: auto 58vh auto; }
+  .lab-side { border-right: 0; border-bottom: 1px solid rgba(101,228,255,.14); } .lab-list { flex-direction: row; overflow-x: auto; } .lab-item { min-width: 220px; } .lab-count { display: none; }
+  .lab-hint, .hud-help { display: none; } .lab-ctrl { top: 56px; right: 10px; } .hud-meta { display: none; } .hud-bottom #opDesc { font-size: 13px; }
+}
+@media (prefers-reduced-motion: reduce) { .hud-led, .hud-go, .lab-open { animation: none; } }
+
 .only-m { display: none !important; }
 @keyframes spin { to { transform: rotate(360deg); } }
 @media (max-width: 1440px) { .sbtn span { display: none; } .sbtn { padding: 7px 9px; } }
@@ -541,7 +617,38 @@ body.dropping::after { content: "Solte o arquivo para importar o projeto"; posit
       <div class="colorpop" id="colorPop" hidden></div>
     </section>
     <section class="view scrollview" data-view="operate" id="vOperate" hidden></section>
-    <section class="view scrollview" data-view="home" id="vHome" hidden></section>
+    <section class="view holoview" data-view="home" id="vHome" hidden>
+      <canvas class="holo" id="holoHome" aria-label="VOLT CORE e operações em órbita. Use as setas para escolher e Enter para confirmar."></canvas>
+      <div class="hud-top"><div class="hud-brand"><span class="hud-led"></span><div><p class="hud-k">VOLT CORE</p><p class="hud-v"><span id="coreState">IDLE</span> · ONLINE</p></div></div>
+        <div class="hud-meta"><p class="hud-k">Projeto atual</p><p class="hud-v" id="homeProj"></p></div></div>
+      <div class="hud-bottom">
+        <p class="hud-k" id="opIndex">01 / 04</p>
+        <h1 id="opTitle">Novo projeto</h1>
+        <p id="opDesc"></p>
+        <div class="hud-ctrl"><button class="hud-nav" id="opPrev" aria-label="Operação anterior">‹</button><button class="hud-go" id="opGo">Criar projeto</button><button class="hud-nav" id="opNext" aria-label="Próxima operação">›</button></div>
+        <div class="hud-dots" id="opDots"></div>
+        <p class="hud-help">Arraste, use as setas ou a roda do mouse para girar · Enter confirma</p>
+      </div>
+      <input type="file" id="homeFile" accept=".voltacademy,.json,application/json" hidden>
+    </section>
+    <section class="view labview" data-view="lab" id="vLab" hidden>
+      <aside class="lab-side">
+        <button class="lab-back" id="labBack">‹ Início</button>
+        <p class="lab-k">Holographic Project Lab</p><p class="lab-title">Biblioteca</p>
+        <div class="lab-list" id="labList" role="listbox" aria-label="Projetos de exemplo"></div>
+        <p class="lab-count" id="labCount"></p>
+      </aside>
+      <div class="lab-stage">
+        <canvas class="holo" id="holoLab" aria-label="Projeção holográfica do projeto selecionado. Arraste para girar, roda do mouse para zoom, Shift+arraste para mover."></canvas>
+        <div class="lab-2d" id="lab2d" hidden></div>
+        <div class="lab-top"><div><p class="lab-k">Projeção holográfica</p><p class="lab-core">VOLT CORE · <span id="labCoreState">IDLE</span></p></div><div class="lab-sheets" id="labSheets"></div></div>
+        <div class="lab-modes" id="labModes" role="toolbar" aria-label="Modos de visualização"></div>
+        <div class="lab-note" id="labNote" hidden></div>
+        <div class="lab-ctrl"><button id="labPause">Pausar rotação</button><button id="labCenter">Centralizar</button><button id="labZoomOut" aria-label="Diminuir zoom">−</button><button id="labZoomIn" aria-label="Aumentar zoom">+</button></div>
+        <p class="lab-hint" id="labHint">Arraste para girar · roda do mouse para zoom · Shift+arraste para mover · duplo clique centraliza</p>
+      </div>
+      <aside class="lab-info" id="labInfo"></aside>
+    </section>
     <section class="view scrollview" data-view="tags" id="vTags" hidden></section>
     <section class="view scrollview" data-view="monitor" id="vMonitor" hidden></section>
   </main>
@@ -828,7 +935,7 @@ TYPES.fonte_3f.tdir = [1, 0]; TYPES.seta_3f.tdir = [-1, 0];
 // =====================================================================
 let doc = null;
 let nextId = 1;
-const ui = { view: 'diagram', sheet: null, mode: 'select', placing: null, wireColor: WIRE_COLORS[0][0], sel: null, zoom: 1, px: 0, py: 0,
+const ui = { view: 'home', sheet: null, mode: 'select', placing: null, wireColor: WIRE_COLORS[0][0], sel: null, zoom: 1, px: 0, py: 0,
   wireStart: null, wirePts: [], cursor: null, folder: null, search: '', inspOpen: true, look: 'sym', activeCategory: null };
 const hist = { stack: [], idx: -1 };
 const blankSim = () => ({ running: false, t: 0, pressed: new Set(), toggled: new Set(), tripped: new Set(), coils: {}, timerOn: {}, timerAcc: {}, timerDone: {}, lamps: {},
@@ -1582,7 +1689,9 @@ function render() {
   if (ui.view === 'tags') renderTags();
   if (ui.view === 'monitor') renderMonitor();
   if (ui.view === 'home') renderHome();
+  if (ui.view === 'lab') renderLab();
   updateTop();
+  holoSync();
 }
 function renderWorld() {
   let s = `<g transform="translate(${ui.px} ${ui.py}) scale(${ui.zoom})">${sheetSVG(doc, ui.sheet, true)}`;
@@ -1838,7 +1947,7 @@ function renderOperate() {
     motors.map(c => { const m = sim.motors[c.id] || {}; return `<div class="lamp wide"><span class="motorind ${m.run ? (m.dir === 'horário' ? 'cw' : 'ccw') : ''}">M</span><b class="mono">${esc(c.tag)}</b><small>${esc(m.msg || 'Parado')}</small></div>`; }).join('') + `</div></section>`;
   $('#vOperate').innerHTML = h;
   $('#opRun').addEventListener('click', () => sim.running ? stopSim() : startSim());
-  $$('[data-op]').forEach(b => {
+  $$('#vOperate [data-op]').forEach(b => {
     const c = compById(b.dataset.op), T0 = TYPES[c.type];
     if (T0.inter === 'push') { b.addEventListener('pointerdown', ev => { if (!sim.running) return; b.setPointerCapture(ev.pointerId); pressStart(c); }); b.addEventListener('pointerup', pressEnd); b.addEventListener('pointercancel', pressEnd); }
     else b.addEventListener('click', () => sim.running && interact(c));
@@ -1976,18 +2085,6 @@ function drawChart(cv, tip, legend, series, unit, now) {
     tip.style.left = Math.min(card.width - 150, x + (box.left - card.left) + 12) + 'px'; tip.style.top = (box.top - card.top + 10) + 'px';
   } else tip.hidden = true;
   if (!pts.length) { g.fillStyle = ink; g.textAlign = 'center'; g.font = '13px "IBM Plex Sans", sans-serif'; g.fillText('Inicie a simulação para gerar o gráfico', pad.l + pw / 2, pad.t + ph / 2); }
-}
-function renderHome() {
-  let saved = null; try { saved = JSON.parse(localStorage.getItem('voltacademy.ce.doc') || 'null'); } catch (e) {}
-  $('#vHome').innerHTML = `<div class="hero"><div><p class="eyebrow">VoltAcademy · Simulador</p><h1>Comandos elétricos</h1><p class="lead">Monte diagramas com símbolos IEC, distribua o projeto em folhas e simule força e comando como num painel real.</p>
-    <div class="row"><button class="btn pri lg" id="hNew">Novo projeto</button><button class="btn lg" id="hCont">Continuar: ${esc(doc.project)}</button><button class="btn lg" id="hOpen">Abrir arquivo</button></div></div></div>
-    <p class="h">Circuitos de exemplo</p>
-    <div class="exgrid">${EXAMPLES.map((e, i) => { const d = normalize(e.build()), [tw, th] = sheetDims(d.sheets[0]); return `<article class="excard"><svg viewBox="0 0 ${tw} ${th}" class="thumb">${sheetSVG(normalize(d), d.sheets[0].id, false)}</svg>
-      <div class="exb"><h3>${e.title}</h3><p>${e.text}</p><p class="small"><b>Teste:</b> ${e.test}</p><p class="small muted">${d.sheets.length} folha${d.sheets.length > 1 ? 's' : ''} · ${d.comps.length} componentes</p><button class="btn pri" data-ex="${i}">Abrir exemplo</button></div></article>`; }).join('')}</div>`;
-  $('#hNew').addEventListener('click', () => { loadKeepingHistory({ project: 'Novo projeto', author: doc.author, sheets: [{ id: 's1', name: 'Força' }, { id: 's2', name: 'Comando' }], comps: [], wires: [] }); });
-  $('#hCont').addEventListener('click', () => { ui.view = 'diagram'; render(); fit(); });
-  $('#hOpen').addEventListener('click', openFile);
-  $$('#vHome [data-ex]').forEach(b => b.addEventListener('click', () => loadKeepingHistory(EXAMPLES[+b.dataset.ex].build())));
 }
 function normalize(d) { const sheets = d.sheets && d.sheets.length ? d.sheets : [{ id: 's1', name: 'Folha 1' }]; return { ...d, sheets, comps: d.comps.map(c => ({ ...c, sheet: c.sheet || sheets[0].id })) }; }
 
@@ -2280,6 +2377,7 @@ function sheetDialog(mode) {
 }
 document.addEventListener('keydown', ev => {
   if (ev.target.closest('input,textarea,select')) return;
+  if ($('#modal').hidden && !(ev.ctrlKey || ev.metaKey) && holoKey(ev)) return;
   if (ev.key === 'Escape') { const busy = ui.placing || ui.wireStart || !$('#modal').hidden; ui.placing = null; ui.wireStart = null; ui.wirePts = []; closeModal(); $('#colorPop').hidden = true; if (!busy && ui.activeCategory) setActiveCategory(null); else buildFolders(); render(); return; }
   if (ui.view !== 'diagram' && ev.key !== ' ') return;
   if ((ev.key === 'Delete' || ev.key === 'Backspace') && ui.sel) { ev.preventDefault(); deleteSel(); }
@@ -2575,6 +2673,8 @@ function builder(project, sheetNames = ['Folha 1']) {
 const EXAMPLES = [
   { title: 'Partida direta com selo', text: 'Liga e desliga o contator K1 por botões. O contato K1 em paralelo com S1 mantém a bobina ligada depois que você solta o botão (selo). H1 indica ligado e H2 indica falha no relé térmico.',
     test: 'Segure S1: K1 liga e continua ligado ao soltar. Segure S0 para desligar. Toque em FT1 para simular sobrecarga.',
+    goal: 'Entender o contato de selo (retenção), a parada por botão NF e a proteção por relé térmico num comando de contator.',
+    expected: 'Com S1 pressionado K1 energiza; o contato 13-14 de K1 sela o circuito e H1 acende. S0 ou o disparo de FT1 abrem o circuito: K1 cai, H1 apaga e, na sobrecarga, H2 acende.',
     build() { const { d, C, W } = builder('Partida direta com selo', ['Comando']);
       const l = C('fase', 200, 100, ''), q = C('disjuntor', 200, 200, 'Q1'), ft = C('ft_nf', 200, 320, 'FT1'), s0 = C('botao_nf', 200, 440, 'S0'), s1 = C('botao_na', 200, 560, 'S1'), k1s = C('contato_na', 340, 560, 'K1'), k1 = C('bobina', 200, 700, 'K1'), n = C('neutro', 200, 860, '');
       const k1h = C('contato_na', 540, 440, 'K1'), h1 = C('sinaleiro', 540, 700, 'H1', { color: 'verde' }), ftna = C('ft_na', 720, 320, 'FT1'), h2 = C('sinaleiro', 720, 700, 'H2', { color: 'vermelho' });
@@ -2583,6 +2683,8 @@ const EXAMPLES = [
       return d; } },
   { title: 'Partida direta: força e comando em 2 folhas', text: 'Folha 1 com a força do motor (disjuntor-motor Q1, contator K1, relé térmico FT1, motor M1). Folha 2 com o comando, alimentado pela folha 1 através dos segmentos de cabo W1 (fase) e W2 (neutro).',
     test: 'Na folha 2, segure S1. Volte à folha 1 e veja a corrente chegando ao motor. Toque no relé térmico FT1 para disparar.',
+    goal: 'Relacionar o circuito de comando com o de força em folhas separadas, ligadas por segmentos de cabo com a mesma tag.',
+    expected: 'S1 energiza a bobina K1; os contatos principais 1-2, 3-4 e 5-6 fecham e o motor M1 gira no sentido horário. O disparo de FT1 abre 95-96, K1 cai e o motor para.',
     build() { const { d, C, W, S } = builder('Partida direta: força e comando', ['Força', 'Comando']);
       const f = C('fonte_3f', 100, 140, 'X1'), q = C('disjuntor_motor', 300, 280, 'Q1'), k = C('contator_forca', 300, 440, 'K1'), ft = C('rele_termico', 300, 600, 'FT1'), m = C('motor_3f', 300, 760, 'M1');
       W(f, 'l1', q, 'l1', BLACK, [[260, 100]]); W(f, 'l2', q, 'l2', BLACK, [[300, 120]]); W(f, 'l3', q, 'l3', BLACK, [[340, 140]]);
@@ -2598,6 +2700,8 @@ const EXAMPLES = [
       return d; } },
   { title: 'Reversão com intertravamento', text: 'Dois contatores, K1 (horário) e K2 (anti-horário). O contato NF de um no circuito do outro impede que os dois liguem juntos, o que causaria curto entre fases no circuito de força.',
     test: 'Ligue S1 e tente S2: K2 não liga enquanto K1 estiver ligado. Desligue com S0 antes de inverter.',
+    goal: 'Aplicar o intertravamento elétrico com contatos NF para impedir que dois contatores de reversão liguem ao mesmo tempo.',
+    expected: 'S1 liga K1 com selo; o NF de K1 no ramo de K2 bloqueia S2. Após S0, S2 liga K2 e o NF de K2 bloqueia K1.',
     build() { const { d, C, W } = builder('Reversão com intertravamento', ['Comando']);
       const l = C('fase', 200, 100, ''), ft = C('ft_nf', 200, 200, 'FT1'), s0 = C('botao_nf', 200, 320, 'S0');
       const s1 = C('botao_na', 200, 460, 'S1'), k1s = C('contato_na', 320, 460, 'K1'), k2i = C('contato_nf', 200, 580, 'K2'), k1 = C('bobina', 200, 700, 'K1');
@@ -2609,6 +2713,8 @@ const EXAMPLES = [
       return d; } },
   { title: 'Partida com sinalização temporizada', text: 'S1 liga K1 com selo e energiza a bobina temporizada KT1. Depois de 3 segundos o contato KT1 fecha e acende H1, indicando que o motor chegou ao regime.',
     test: 'Segure S1 e acompanhe a contagem de KT1 no Monitoramento. Altere o tempo no painel de propriedades.',
+    goal: 'Usar um relé temporizado com retardo na energização para sinalizar o fim de uma partida.',
+    expected: 'S1 liga K1 com selo e energiza KT1. Após o tempo ajustado (3 s), o contato 67-68 de KT1 fecha e H1 acende.',
     build() { const { d, C, W } = builder('Partida com sinalização temporizada', ['Comando']);
       const l = C('fase', 200, 100, ''), s0 = C('botao_nf', 200, 220, 'S0'), s1 = C('botao_na', 200, 360, 'S1'), k1s = C('contato_na', 340, 360, 'K1'), k1 = C('bobina', 200, 520, 'K1'), kt = C('temporizador', 480, 520, 'KT1', { preset: 3 }), n = C('neutro', 200, 700, '');
       const ktc = C('temp_na', 700, 360, 'KT1'), h1 = C('sinaleiro', 700, 520, 'H1', { color: 'amarelo' });
@@ -2618,10 +2724,630 @@ const EXAMPLES = [
 ];
 
 // =====================================================================
+// HOLOGRAPHIC LAYER — Canvas 3D engine (no external dependencies, works offline)
+//   VoltCore · EnergyParticles · OrbitCarousel · HolographicObject ·
+//   HolographicHome · ProjectLab (ProjectSelector, HolographicViewport,
+//   CircuitPreviewRenderer, ProjectMaterialization, IndustrialModelViewer,
+//   ProjectDetails, VisualizationModeSelector) · AnimationController
+// =====================================================================
+const HC = { black: '#060B12', navy: '#101822', blue: '#00C8FF', cyan: '#65E4FF', yellow: '#FFD600', gold: '#FFB800' };
+const HOLO = { reduced: matchMedia('(prefers-reduced-motion: reduce)').matches, quality: 1, raf: 0, last: 0, avg: 16, t: 0 };
+matchMedia('(prefers-reduced-motion: reduce)').addEventListener?.('change', e => { HOLO.reduced = e.matches; });
+
+// ---------- AnimationController: tweens with easing (GSAP-like timeline) ----------
+const EASE = {
+  linear: t => t, outCubic: t => 1 - Math.pow(1 - t, 3), inCubic: t => t * t * t,
+  inOut: t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2,
+  outExpo: t => t >= 1 ? 1 : 1 - Math.pow(2, -10 * t),
+};
+const AnimationController = {
+  list: [],
+  to(obj, to, dur, { ease = 'inOut', delay = 0, onDone } = {}) {
+    this.kill(obj, Object.keys(to));
+    const from = {}; for (const k of Object.keys(to)) from[k] = obj[k];
+    const d = HOLO.reduced ? Math.min(dur, 0.12) : dur;
+    const tw = { obj, from, to, dur: Math.max(0.001, d), t: -(HOLO.reduced ? 0 : delay), ease: EASE[ease] || EASE.inOut, onDone };
+    this.list.push(tw); return tw;
+  },
+  kill(obj, keys) { this.list = this.list.filter(tw => !(tw.obj === obj && (!keys || keys.some(k => k in tw.to)))); },
+  step(dt) {
+    const done = [];
+    for (const tw of this.list) {
+      tw.t += dt; if (tw.t < 0) continue;
+      const k = tw.ease(Math.min(1, tw.t / tw.dur));
+      for (const key of Object.keys(tw.to)) tw.obj[key] = tw.from[key] + (tw.to[key] - tw.from[key]) * k;
+      if (tw.t >= tw.dur) done.push(tw);
+    }
+    if (done.length) { this.list = this.list.filter(tw => !done.includes(tw)); for (const tw of done) tw.onDone && tw.onDone(); }
+  },
+};
+
+// ---------- 3D projection ----------
+function makeCam(w, h, { dist = 6, fov = 0.9, yaw = 0, pitch = 0, cx = w / 2, cy = h / 2, zoom = 1 } = {}) {
+  const cyw = Math.cos(yaw), syw = Math.sin(yaw), cp = Math.cos(pitch), sp = Math.sin(pitch), f = Math.min(w, h) * fov * zoom;
+  return (x, y, z) => {
+    const x1 = x * cyw + z * syw, z1 = -x * syw + z * cyw;
+    const y2 = y * cp - z1 * sp, z2 = y * sp + z1 * cp;
+    const zc = Math.max(0.2, dist - z2), s = f / zc;
+    return [cx + x1 * s, cy - y2 * s, s, z2];
+  };
+}
+function rotXYZ([x, y, z], rx, ry, rz) {
+  let c = Math.cos(rx), s = Math.sin(rx); [y, z] = [y * c - z * s, y * s + z * c];
+  c = Math.cos(ry); s = Math.sin(ry); [x, z] = [x * c + z * s, -x * s + z * c];
+  c = Math.cos(rz); s = Math.sin(rz); [x, y] = [x * c - y * s, x * s + y * c];
+  return [x, y, z];
+}
+const spriteCache = {};
+function glowSprite(color) {
+  if (spriteCache[color]) return spriteCache[color];
+  const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d');
+  const gr = g.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, '#fff'); gr.addColorStop(.18, color); gr.addColorStop(1, 'rgba(0,0,0,0)');
+  g.fillStyle = gr; g.fillRect(0, 0, 64, 64); return (spriteCache[color] = c);
+}
+// one Path2D, three passes = cheap volumetric glow
+function glowStroke(ctx, path, color, width, alpha) {
+  if (alpha <= 0.01) return;
+  ctx.strokeStyle = color; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  if (HOLO.quality > .6) { ctx.globalAlpha = alpha * .10; ctx.lineWidth = width * 6; ctx.stroke(path); }
+  ctx.globalAlpha = alpha * .28; ctx.lineWidth = width * 2.6; ctx.stroke(path);
+  ctx.globalAlpha = alpha; ctx.lineWidth = width; ctx.stroke(path);
+  ctx.globalAlpha = 1;
+}
+function fitCanvas(cv) {
+  const dpr = Math.min(2, window.devicePixelRatio || 1) * (HOLO.quality < .7 ? .75 : 1);
+  const w = cv.clientWidth, h = cv.clientHeight;
+  if (!w || !h) return null;
+  if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
+  const ctx = cv.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); return { ctx, w, h };
+}
+
+// ---------- EnergyParticles ----------
+function createParticles(n, spread) {
+  const ps = [];
+  for (let i = 0; i < n; i++) ps.push({ x: (Math.random() - .5) * spread, y: (Math.random() - .3) * spread * .7, z: (Math.random() - .5) * spread, s: .4 + Math.random(), v: .05 + Math.random() * .12, gold: Math.random() < .55 });
+  return ps;
+}
+function drawParticles(ctx, ps, proj, t, dt, alpha = 1) {
+  const lim = Math.floor(ps.length * HOLO.quality);
+  ctx.globalCompositeOperation = 'lighter';
+  for (let i = 0; i < lim; i++) {
+    const p = ps[i]; if (!HOLO.reduced) { p.y += p.v * dt; if (p.y > 2.6) p.y = -1.6; }
+    const [sx, sy, s] = proj(p.x, p.y, p.z); const r = Math.max(1, p.s * s * .02);
+    ctx.globalAlpha = alpha * (.35 + .35 * Math.sin(t * 2 + i));
+    ctx.drawImage(glowSprite(p.gold ? HC.gold : HC.blue), sx - r * 2, sy - r * 2, r * 4, r * 4);
+  }
+  ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+}
+// directed stream (core -> target), used by materialization and selection
+const Streams = [];
+function spawnStream(from, to, n = 40, color = HC.gold, life = 1.1) {
+  for (let i = 0; i < n * HOLO.quality; i++) Streams.push({ from, to, t: -Math.random() * .5, life, jitter: [(Math.random() - .5) * .5, (Math.random() - .5) * .5, (Math.random() - .5) * .5], color });
+}
+function drawStreams(ctx, proj, dt) {
+  ctx.globalCompositeOperation = 'lighter';
+  for (let i = Streams.length - 1; i >= 0; i--) {
+    const p = Streams[i]; p.t += dt; if (p.t > p.life) { Streams.splice(i, 1); continue; } if (p.t < 0) continue;
+    const k = EASE.inOut(p.t / p.life), arc = Math.sin(Math.PI * k);
+    const x = p.from[0] + (p.to[0] - p.from[0]) * k + p.jitter[0] * arc, y = p.from[1] + (p.to[1] - p.from[1]) * k + p.jitter[1] * arc + arc * .3, z = p.from[2] + (p.to[2] - p.from[2]) * k + p.jitter[2] * arc;
+    const [sx, sy, s] = proj(x, y, z), r = Math.max(1.2, s * .018);
+    ctx.globalAlpha = Math.sin(Math.PI * k); ctx.drawImage(glowSprite(p.color), sx - r * 2, sy - r * 2, r * 4, r * 4);
+  }
+  ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+}
+
+// ---------- VoltCore (living energy core) with its state machine ----------
+const CORE_STATES = {
+  IDLE: { energy: .55, spin: .3 },
+  SELECT: { energy: 1.05, spin: 1.1, hold: .9, next: 'IDLE' },
+  MATERIALIZE: { energy: .95, spin: 1.6 },
+  PREVIEW: { energy: .7, spin: .45 },
+  LOADING: { energy: 1.1, spin: 2.6 },
+  SUCCESS: { energy: 1.35, spin: .9, hold: .9 },
+};
+function createVoltCore() {
+  const rings = [{ r: 1.0, tilt: [1.2, 0, 0], sp: .6, w: 1.4 }, { r: 1.18, tilt: [.4, .9, 0], sp: -.45, w: 1.1 }, { r: 1.36, tilt: [-.7, .3, .5], sp: .32, w: .9 }, { r: .82, tilt: [.2, -.6, 1.1], sp: -.9, w: 1.2 }];
+  const orbiters = []; for (let i = 0; i < 90; i++) orbiters.push({ r: .9 + Math.random() * .9, a: Math.random() * 6.28, sp: (.2 + Math.random() * .6) * (Math.random() < .5 ? -1 : 1), inc: (Math.random() - .5) * 1.6, ph: Math.random() * 6.28 });
+  const core = { state: 'IDLE', energy: .55, spin: .3, rot: 0, flash: 0, holdUntil: 0, next: null, arcs: [], scan: 0 };
+  core.set = (state, { then } = {}) => {
+    const S = CORE_STATES[state]; if (!S) return;
+    core.state = state; AnimationController.to(core, { energy: S.energy, spin: S.spin }, .45, { ease: 'outCubic' });
+    if (state === 'SELECT' || state === 'SUCCESS' || state === 'LOADING') { core.flash = 1; core.arcs = Array.from({ length: state === 'SUCCESS' ? 7 : 4 }, () => ({ a: Math.random() * 6.28, b: Math.random() * 6.28, life: .5 + Math.random() * .4, t: 0 })); }
+    core.holdUntil = S.hold ? HOLO.t + S.hold : 0; core.next = then || S.next || null;
+  };
+  core.update = dt => {
+    core.rot += dt * core.spin * (HOLO.reduced ? .2 : 1); core.flash = Math.max(0, core.flash - dt * 1.6); core.scan = (core.scan + dt * .35) % 1;
+    for (const a of core.arcs) a.t += dt; core.arcs = core.arcs.filter(a => a.t < a.life);
+    if (core.holdUntil && HOLO.t > core.holdUntil) { core.holdUntil = 0; if (core.next) core.set(core.next); }
+  };
+  core.draw = (ctx, proj, pos = [0, 0, 0], scale = 1, alpha = 1) => {
+    const t = HOLO.t, e = core.energy + core.flash * .5;
+    const [cx, cy, s] = proj(pos[0], pos[1], pos[2]); const R = s * .55 * scale;
+    ctx.globalCompositeOperation = 'lighter';
+    // halo + plasma sphere
+    let g = ctx.createRadialGradient(cx, cy, 0, cx, cy, R * 3.2);
+    g.addColorStop(0, `rgba(255,214,0,${.22 * e * alpha})`); g.addColorStop(.4, `rgba(255,150,0,${.08 * e * alpha})`); g.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, R * 3.2, 0, 6.29); ctx.fill();
+    const pr = R * (.62 + .05 * Math.sin(t * 2.4) + .08 * core.flash);
+    g = ctx.createRadialGradient(cx - pr * .2, cy - pr * .2, 0, cx, cy, pr);
+    g.addColorStop(0, `rgba(255,255,235,${alpha})`); g.addColorStop(.25, `rgba(255,234,0,${.95 * alpha})`); g.addColorStop(.7, `rgba(255,140,0,${.55 * alpha})`); g.addColorStop(1, 'rgba(255,90,0,0)');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, pr, 0, 6.29); ctx.fill();
+    // plasma filaments
+    ctx.strokeStyle = HC.yellow; ctx.lineWidth = Math.max(1, R * .025);
+    for (let k = 0; k < 6; k++) {
+      ctx.globalAlpha = .35 * alpha * e; ctx.beginPath();
+      for (let j = 0; j <= 18; j++) { const a = j / 18 * 6.28, rr = pr * (.35 + .22 * Math.sin(a * 3 + t * (1.3 + k * .2) + k)); const x = cx + Math.cos(a + k) * rr, y = cy + Math.sin(a + k) * rr * .9; j ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }
+      ctx.closePath(); ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+    // rings on different axes, depth-faded per segment
+    for (const ring of rings) {
+      const N = 72, pts = [];
+      for (let j = 0; j <= N; j++) {
+        const a = j / N * 6.283;
+        let p = [Math.cos(a) * ring.r * scale, 0, Math.sin(a) * ring.r * scale];
+        p = rotXYZ(p, ring.tilt[0] + core.rot * ring.sp * .5, ring.tilt[1] + core.rot * ring.sp, ring.tilt[2]);
+        pts.push(proj(pos[0] + p[0], pos[1] + p[1], pos[2] + p[2]));
+      }
+      for (let j = 0; j < N; j++) {
+        const a = pts[j], b = pts[j + 1], depth = (a[3] + 1.5) / 3;
+        ctx.strokeStyle = j % 9 === 0 ? HC.yellow : HC.gold; ctx.globalAlpha = alpha * Math.max(.08, Math.min(1, .25 + depth * .7)) * (.55 + e * .35);
+        ctx.lineWidth = Math.max(.6, ring.w * a[2] * .012); ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke();
+      }
+      // tick marks
+      for (let j = 0; j < N; j += 6) { const a = pts[j]; ctx.globalAlpha = alpha * .8; ctx.drawImage(glowSprite(HC.yellow), a[0] - 3, a[1] - 3, 6, 6); }
+    }
+    // gold orbiting particles
+    const lim = Math.floor(orbiters.length * HOLO.quality);
+    for (let i = 0; i < lim; i++) {
+      const o = orbiters[i]; const a = o.a + core.rot * o.sp;
+      let p = [Math.cos(a) * o.r * scale, Math.sin(a * 2 + o.ph) * .08 * scale, Math.sin(a) * o.r * scale]; p = rotXYZ(p, o.inc, 0, o.inc * .5);
+      const [x, y, ss, z] = proj(pos[0] + p[0], pos[1] + p[1], pos[2] + p[2]), r = Math.max(1, ss * .012 * scale);
+      ctx.globalAlpha = alpha * (z > 0 ? .95 : .45); ctx.drawImage(glowSprite(HC.gold), x - r * 2, y - r * 2, r * 4, r * 4);
+    }
+    // energy arcs (reaction to the student's actions)
+    ctx.strokeStyle = '#FFF4B0';
+    for (const arc of core.arcs) {
+      const k = 1 - arc.t / arc.life; ctx.globalAlpha = alpha * k; ctx.lineWidth = 1.6; ctx.beginPath();
+      const p0 = [cx + Math.cos(arc.a) * pr * .6, cy + Math.sin(arc.a) * pr * .6], p1 = [cx + Math.cos(arc.b) * R * 2.2, cy + Math.sin(arc.b) * R * 1.5];
+      ctx.moveTo(p0[0], p0[1]);
+      for (let j = 1; j <= 7; j++) { const f = j / 7; ctx.lineTo(p0[0] + (p1[0] - p0[0]) * f + (Math.random() - .5) * R * .25, p0[1] + (p1[1] - p0[1]) * f + (Math.random() - .5) * R * .25); }
+      ctx.stroke();
+    }
+    // holographic scan band
+    const sy = cy - R * 1.6 + core.scan * R * 3.2;
+    g = ctx.createLinearGradient(0, sy - 6, 0, sy + 6); g.addColorStop(0, 'rgba(101,228,255,0)'); g.addColorStop(.5, `rgba(101,228,255,${.25 * alpha})`); g.addColorStop(1, 'rgba(101,228,255,0)');
+    ctx.fillStyle = g; ctx.fillRect(cx - R * 1.7, sy - 6, R * 3.4, 12);
+    ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+  };
+  return core;
+}
+
+// ---------- CircuitPreviewRenderer: real project data -> 3D-ready line geometry ----------
+const geoCache = new Map();
+function circuitGeometry(d0, sheetId, { detail = 1 } = {}) {
+  const d = normalize(d0), sheet = d.sheets.find(s => s.id === sheetId) || d.sheets[0];
+  const key = JSON.stringify([d.comps.length, d.wires.length, sheet.id, detail, d.project, d.comps.map(c => c.x + c.y).reduce((a, b) => a + b, 0)]);
+  if (geoCache.has(key)) return geoCache.get(key);
+  let probe = document.getElementById('holoProbe');
+  if (!probe) { probe = document.createElement('div'); probe.id = 'holoProbe'; probe.style.cssText = 'position:absolute;left:-99999px;top:0;width:10px;height:10px;overflow:hidden;visibility:hidden;'; document.body.appendChild(probe); }
+  const [W, H] = sheetDims(sheet);
+  probe.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}">${sheetSVG(d, sheet.id, false, 'sym')}</svg>`;
+  const root = probe.firstChild, segs = [], labels = [], nodes = [];
+  const toW = (el, x, y) => { const m = el.getCTM(); return m ? [m.a * x + m.c * y + m.e, m.b * x + m.d * y + m.f] : [x, y]; };
+  const sample = (el, kind, order) => {
+    const tag = el.tagName.toLowerCase(); let pts = [];
+    if (tag === 'line') pts = [toW(el, +el.getAttribute('x1'), +el.getAttribute('y1')), toW(el, +el.getAttribute('x2'), +el.getAttribute('y2'))];
+    else if (tag === 'rect') { const x = +el.getAttribute('x'), y = +el.getAttribute('y'), w = +el.getAttribute('width'), h = +el.getAttribute('height'); pts = [[x, y], [x + w, y], [x + w, y + h], [x, y + h], [x, y]].map(([a, b]) => toW(el, a, b)); }
+    else if (tag === 'circle' || tag === 'ellipse' || tag === 'path' || tag === 'polyline') {
+      let len = 0; try { len = el.getTotalLength(); } catch (e) {}
+      if (!len) return;
+      const n = Math.max(2, Math.min(60, Math.round(len / (7 / detail))));
+      for (let i = 0; i <= n; i++) { const p = el.getPointAtLength(len * i / n); pts.push(toW(el, p.x, p.y)); }
+    } else return;
+    if (pts.length > 1) segs.push({ pts, kind, order });
+  };
+  root.querySelectorAll('.wires path.w').forEach((el, i) => sample(el, 'wire', i));
+  root.querySelectorAll('.comp').forEach((g, ci) => {
+    g.querySelectorAll('.sym line, .sym rect, .sym circle, .sym path, .sym ellipse').forEach(el => sample(el, 'sym', ci));
+    const tg = g.querySelector('.tag'); if (tg) { const p = toW(tg, +tg.getAttribute('x'), +tg.getAttribute('y')); labels.push({ x: p[0], y: p[1], text: tg.textContent, order: ci }); }
+    g.querySelectorAll('.term').forEach(t => nodes.push(toW(t, +t.getAttribute('cx'), +t.getAttribute('cy'))));
+  });
+  probe.innerHTML = '';
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (const s of segs) for (const [x, y] of s.pts) { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); }
+  if (!isFinite(x0)) { x0 = 0; y0 = 0; x1 = W; y1 = H; }
+  const geo = { segs, labels, nodes, bbox: [x0, y0, x1, y1], sheet };
+  geo.compCount = d.comps.filter(c => c.sheet === sheet.id).length;
+  geoCache.set(key, geo); if (geoCache.size > 40) geoCache.delete(geoCache.keys().next().value);
+  return geo;
+}
+// map sheet coords to a 3D plane, scaled to a target height
+function geoTo3D(geo, height = 1.8, base = [0, 0, 0]) {
+  const [x0, y0, x1, y1] = geo.bbox, k = height / Math.max(1, Math.max((x1 - x0) * .62, y1 - y0)), cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+  return (x, y) => [base[0] + (x - cx) * k, base[1] + (cy - y) * k, base[2]];
+}
+// draw the hologram of a geometry with a build progress (0..1)
+function drawCircuit3D(ctx, proj, geo, map, { build = 1, alpha = 1, wire = HC.blue, sym = HC.cyan, labels = true, width = 1.6, scatter = 0 } = {}) {
+  if (!geo || alpha <= 0.01) return;
+  const comps = Math.max(1, Math.max(...geo.segs.filter(s => s.kind === 'sym').map(s => s.order), 0) + 1);
+  const symK = Math.min(1, build / .45), wireK = Math.max(0, Math.min(1, (build - .35) / .5)), labK = Math.max(0, Math.min(1, (build - .78) / .22));
+  const pSym = new Path2D(), pWire = new Path2D(), wires = geo.segs.filter(s => s.kind === 'wire');
+  const P = (x, y, i) => { let [X, Y, Z] = map(x, y); if (scatter) { const h = Math.sin(i * 12.9898 + x * .07) * 43758.5453; const r = h - Math.floor(h); X += (r - .5) * scatter * 2; Y += (Math.sin(i + y) * .5) * scatter; Z += (r - .3) * scatter * 2.5; } return proj(X, Y, Z); };
+  let i = 0;
+  for (const s of geo.segs) {
+    if (s.kind !== 'sym' || s.order >= comps * symK) continue;
+    s.pts.forEach(([x, y], j) => { const [sx, sy] = P(x, y, i++); j ? pSym.lineTo(sx, sy) : pSym.moveTo(sx, sy); });
+  }
+  const nW = wires.length * wireK;
+  wires.forEach((s, wi) => {
+    if (wi >= Math.ceil(nW)) return;
+    const part = wi < Math.floor(nW) ? 1 : nW - Math.floor(nW);
+    const n = s.pts.length, upto = Math.max(1, Math.round((n - 1) * part));
+    for (let j = 0; j <= upto && j < n; j++) { let [x, y] = s.pts[j]; if (j === upto && part < 1 && n > 1) { const a = s.pts[Math.max(0, j - 1)], f = ((n - 1) * part) % 1 || 1; x = a[0] + (x - a[0]) * f; y = a[1] + (y - a[1]) * f; } const [sx, sy] = P(x, y, i++); j ? pWire.lineTo(sx, sy) : pWire.moveTo(sx, sy); }
+  });
+  ctx.globalCompositeOperation = 'lighter';
+  glowStroke(ctx, pWire, wire, width * 1.15, alpha * .95);
+  glowStroke(ctx, pSym, sym, width, alpha);
+  // gold connection nodes
+  if (wireK > .2) for (let k = 0; k < geo.nodes.length; k += 1) { const [x, y] = geo.nodes[k]; const [sx, sy, ss] = P(x, y, k); const r = Math.max(1.5, ss * .006); ctx.globalAlpha = alpha * wireK * .8; ctx.drawImage(glowSprite(HC.gold), sx - r * 2, sy - r * 2, r * 4, r * 4); }
+  ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+  if (labels && labK > 0) {
+    ctx.textAlign = 'left';
+    for (const l of geo.labels) { const [sx, sy, ss] = P(l.x, l.y, 0); const fs = Math.max(8, Math.min(16, ss * .045)); ctx.font = `600 ${fs}px "IBM Plex Mono", monospace`; ctx.globalAlpha = alpha * labK; ctx.fillStyle = '#DFF8FF'; ctx.fillText(l.text, sx, sy); }
+    ctx.globalAlpha = 1;
+  }
+}
+// platform: rings + grid + scanning wave on the XZ plane
+function drawPlatform(ctx, proj, t, { r = 1.6, alpha = 1, pulse = 0 } = {}) {
+  ctx.globalCompositeOperation = 'lighter';
+  const ring = (rad, color, a, dash, rot = 0) => {
+    const p = new Path2D(), N = 96;
+    for (let j = 0; j <= N; j++) { if (dash && (j % 6) > 3) { const q = proj(Math.cos(j / N * 6.283 + rot) * rad, 0, Math.sin(j / N * 6.283 + rot) * rad); p.moveTo(q[0], q[1]); continue; } const q = proj(Math.cos(j / N * 6.283 + rot) * rad, 0, Math.sin(j / N * 6.283 + rot) * rad); j ? p.lineTo(q[0], q[1]) : p.moveTo(q[0], q[1]); }
+    glowStroke(ctx, p, color, 1.3, a);
+  };
+  // grid floor
+  const grid = new Path2D();
+  for (let k = -6; k <= 6; k++) { const a = proj(k * .4, 0, -2.4), b = proj(k * .4, 0, 2.4), c = proj(-2.4, 0, k * .4), d = proj(2.4, 0, k * .4); grid.moveTo(a[0], a[1]); grid.lineTo(b[0], b[1]); grid.moveTo(c[0], c[1]); grid.lineTo(d[0], d[1]); }
+  ctx.globalAlpha = .12 * alpha; ctx.strokeStyle = HC.blue; ctx.lineWidth = 1; ctx.stroke(grid); ctx.globalAlpha = 1;
+  ring(r, HC.blue, .7 * alpha, false); ring(r * .78, HC.gold, (.55 + pulse * .45) * alpha, true, t * .4); ring(r * .52, HC.cyan, .5 * alpha, true, -t * .7); ring(r * 1.18, HC.blue, .22 * alpha, true, t * .15);
+  const wave = (t * .45) % 1; ring(r * .3 + wave * r * 1.1, HC.cyan, (1 - wave) * .35 * alpha, false);
+  ctx.globalCompositeOperation = 'source-over';
+}
+
+// ---------- HolographicObject definitions (one animation each) ----------
+function miniGeo(d) { try { return circuitGeometry(d, (normalize(d).sheets[0] || {}).id, { detail: .5 }); } catch (e) { return null; } }
+function savedProject() { try { const s = localStorage.getItem('voltacademy.ce.doc'); return s ? JSON.parse(s) : null; } catch (e) { return null; } }
+const HOLO_OBJECTS = {
+  // Novo projeto — a holographic drafting board building itself
+  board(ctx, proj, c, o) {
+    const t = HOLO.t, w = .62, h = .42, build = o.sel ? Math.min(1, (o.phase * .55) % 1.25) : 1;
+    const P = (x, y, z = 0) => { const p = rotXYZ([x, y, z], -.35 + Math.sin(t * .6) * .05, o.spin, 0); return proj(c[0] + p[0], c[1] + p[1], c[2] + p[2]); };
+    const frame = new Path2D(); [[-w, -h], [w, -h], [w, h], [-w, h], [-w, -h]].forEach(([x, y], i) => { const q = P(x, y); i ? frame.lineTo(q[0], q[1]) : frame.moveTo(q[0], q[1]); });
+    const grid = new Path2D(), n = 10;
+    for (let k = 1; k < n; k++) { const f = k / n; if (f > build) break; let a = P(-w + 2 * w * f, -h), b = P(-w + 2 * w * f, -h + 2 * h * Math.min(1, build * 1.2)); grid.moveTo(a[0], a[1]); grid.lineTo(b[0], b[1]); a = P(-w, -h + 2 * h * f); b = P(-w + 2 * w * Math.min(1, build * 1.2), -h + 2 * h * f); grid.moveTo(a[0], a[1]); grid.lineTo(b[0], b[1]); }
+    ctx.globalCompositeOperation = 'lighter';
+    glowStroke(ctx, grid, HC.blue, .9, .45 * o.alpha); glowStroke(ctx, frame, o.sel ? HC.yellow : HC.cyan, 1.6, o.alpha);
+    // corner brackets + crosshair
+    const br = new Path2D(); for (const [sx, sy] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) { const a = P(sx * w, sy * h + -sy * .12), b = P(sx * w, sy * h), d2 = P(sx * w + -sx * .12, sy * h); br.moveTo(a[0], a[1]); br.lineTo(b[0], b[1]); br.lineTo(d2[0], d2[1]); }
+    glowStroke(ctx, br, HC.gold, 2.2, o.alpha);
+    if (o.sel) for (let k = 0; k < 12; k++) { const f = (t * .5 + k / 12) % 1, q = P(Math.cos(k * 2.4) * w * (1 - f), Math.sin(k * 1.7) * h * (1 - f), .4 * (1 - f)); ctx.globalAlpha = f * o.alpha; ctx.drawImage(glowSprite(HC.gold), q[0] - 4, q[1] - 4, 8, 8); }
+    const plus = new Path2D(), m1 = P(-.1, 0), m2 = P(.1, 0), m3 = P(0, -.1), m4 = P(0, .1); plus.moveTo(m1[0], m1[1]); plus.lineTo(m2[0], m2[1]); plus.moveTo(m3[0], m3[1]); plus.lineTo(m4[0], m4[1]);
+    glowStroke(ctx, plus, HC.yellow, 2.4, o.alpha);
+    ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
+  },
+  // Continuar projeto — reconstruction of the last saved circuit
+  circuit(ctx, proj, c, o) {
+    const geo = o.geo || (o.geo = miniGeo(savedProject() || EXAMPLES[0].build()));
+    const build = o.sel ? Math.min(1, ((o.phase * .4) % 1.35)) : 1;
+    const map0 = geoTo3D(geo, .95, [0, 0, 0]);
+    const map = (x, y) => { const p = rotXYZ(map0(x, y), -.12, o.spin * .8, 0); return [c[0] + p[0], c[1] + p[1], c[2] + p[2]]; };
+    drawCircuit3D(ctx, proj, geo, map, { build, alpha: o.alpha, labels: false, width: 1.1, sym: o.sel ? '#FFE680' : HC.cyan, wire: o.sel ? HC.yellow : HC.blue });
+  },
+  // Abrir arquivo — a holographic file opening and being scanned
+  file(ctx, proj, c, o) {
+    const t = HOLO.t, w = .36, h = .48, fold = .14, open = o.sel ? (Math.sin(t * 1.6) * .5 + .5) : 0;
+    const P = (x, y, z = 0) => { const p = rotXYZ([x, y, z], -.1, o.spin * .9 + .3, 0); return proj(c[0] + p[0], c[1] + p[1], c[2] + p[2]); };
+    const body = new Path2D(); [[-w, -h], [w, -h], [w, h - fold], [w - fold, h], [-w, h], [-w, -h]].forEach(([x, y], i) => { const q = P(x, y); i ? body.lineTo(q[0], q[1]) : body.moveTo(q[0], q[1]); });
+    const flap = new Path2D(); const fz = open * .25; [[w - fold, h], [w - fold, h - fold], [w, h - fold]].forEach(([x, y], i) => { const q = P(x, y, i === 1 ? fz : 0); i ? flap.lineTo(q[0], q[1]) : flap.moveTo(q[0], q[1]); });
+    const lines = new Path2D(); for (let k = 0; k < 6; k++) { const y = h - .2 - k * .12, len = (k % 3 === 2 ? .35 : .55) * (o.sel ? Math.min(1, (t * .8 - k * .15) % 2.2) : 1); if (len <= 0) continue; const a = P(-w + .1, y), b = P(-w + .1 + len, y); lines.moveTo(a[0], a[1]); lines.lineTo(b[0], b[1]); }
+    ctx.globalCompositeOperation = 'lighter';
+    glowStroke(ctx, lines, HC.blue, 1.1, .7 * o.alpha); glowStroke(ctx, body, o.sel ? HC.yellow : HC.cyan, 1.6, o.alpha); glowStroke(ctx, flap, HC.gold, 1.6, o.alpha);
+    if (o.sel) { const sy = -h + ((t * .7) % 1) * 2 * h, a = P(-w - .06, sy, .02), b = P(w + .06, sy, .02); const sc = new Path2D(); sc.moveTo(a[0], a[1]); sc.lineTo(b[0], b[1]); glowStroke(ctx, sc, HC.yellow, 2, .9 * o.alpha); }
+    ctx.font = `700 ${Math.max(9, P(0, 0)[2] * .05)}px "IBM Plex Mono", monospace`; ctx.textAlign = 'center'; ctx.fillStyle = HC.gold; ctx.globalAlpha = o.alpha; const lb = P(0, -h + .12); ctx.fillText('.VOLTACADEMY', lb[0], lb[1]);
+    ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
+  },
+  // Exemplos — a library of real diagrams that fans out when selected
+  library(ctx, proj, c, o) {
+    o.geos = o.geos || EXAMPLES.map(e => miniGeo(e.build()));
+    const n = o.geos.length, fan = o.fan || 0;
+    o.geos.forEach((geo, i) => {
+      if (!geo) return;
+      const off = i - (n - 1) / 2;
+      const ang = off * .55 * fan, rad = .55 * fan;
+      const base = [Math.sin(ang) * rad, off * .06 * (1 - fan) + Math.abs(off) * -.04 * fan, -Math.cos(ang) * rad * .6 + (1 - fan) * -off * .08];
+      const map0 = geoTo3D(geo, .62, [0, 0, 0]);
+      const map = (x, y) => { const p = rotXYZ(map0(x, y), -.08, o.spin * .6 + ang * .8, 0); return [c[0] + base[0] + p[0], c[1] + base[1] + p[1], c[2] + base[2] + p[2]]; };
+      const frame = new Path2D(); const [x0, y0, x1, y1] = geo.bbox, pad = 30;
+      [[x0 - pad, y0 - pad], [x1 + pad, y0 - pad], [x1 + pad, y1 + pad], [x0 - pad, y1 + pad], [x0 - pad, y0 - pad]].forEach(([x, y], j) => { const q = proj(...map(x, y)); j ? frame.lineTo(q[0], q[1]) : frame.moveTo(q[0], q[1]); });
+      ctx.globalCompositeOperation = 'lighter'; glowStroke(ctx, frame, o.sel && i === Math.floor(HOLO.t * .8) % n ? HC.yellow : HC.blue, 1, .5 * o.alpha); ctx.globalCompositeOperation = 'source-over';
+      drawCircuit3D(ctx, proj, geo, map, { alpha: o.alpha * (.75 + .25 * fan), labels: false, width: .9 });
+    });
+  },
+};
+
+// ---------- Centralized operations (HolographicHome) ----------
+const HOME_OPS = [
+  { id: 'novo', title: 'Novo projeto', desc: 'Prancheta em branco com folhas de Força e Comando, pronta para montar um circuito.', object: 'board', run: () => loadKeepingHistory({ project: 'Novo projeto', author: doc.author, sheets: [{ id: 's1', name: 'Força' }, { id: 's2', name: 'Comando' }], comps: [], wires: [] }) },
+  { id: 'continuar', title: 'Continuar projeto', desc: () => `Retoma "${doc.project}" exatamente de onde você parou: ${doc.sheets.length} folha(s), ${doc.comps.length} componentes.`, object: 'circuit', run: () => { ui.view = 'diagram'; render(); requestAnimationFrame(fit); } },
+  { id: 'abrir', title: 'Abrir arquivo', desc: 'Importa um projeto .voltacademy ou .json salvo no computador, substituindo ou somando folhas.', object: 'file', run: () => { const i = $('#homeFile'); i.value = ''; i.click(); } },
+  { id: 'exemplos', title: 'Exemplos de projeto', desc: () => `${EXAMPLES.length} circuitos prontos da biblioteca VoltAcademy, para estudar no Holographic Project Lab.`, object: 'library', run: () => { ui.view = 'lab'; render(); } },
+];
+const Home = { sel: 0, rot: 0, objs: [], drag: null, hits: [], booted: false, core: null, parts: null, confirming: false };
+function homeSelect(i, { fromDrag = false } = {}) {
+  const n = HOME_OPS.length; i = ((i % n) + n) % n;
+  const step = 2 * Math.PI / n;
+  let target = i * step; const cur = Home.rot; target += Math.round((cur - target) / (2 * Math.PI)) * 2 * Math.PI;
+  const changed = i !== Home.sel || fromDrag; Home.sel = i;
+  AnimationController.to(Home, { rot: target }, .85, { ease: 'outCubic' });
+  Home.objs.forEach((o, k) => AnimationController.to(o, { fan: k === i && HOME_OPS[k].object === 'library' ? 1 : 0 }, .9, { ease: 'outCubic' }));
+  Home.objs[i].phase = 0;
+  if (changed) Home.core.set('SELECT');
+  renderHomeHUD();
+}
+function homeConfirm() {
+  if (Home.confirming) return;
+  const op = HOME_OPS[Home.sel]; Home.confirming = true; Home.core.set('SUCCESS');
+  spawnStream([0, 0, 0], homeItemPos(Home.sel), 50, HC.yellow, .7);
+  setTimeout(() => { Home.confirming = false; op.run(); }, HOLO.reduced ? 60 : 520);
+}
+function homeItemPos(i) { const n = HOME_OPS.length, a = i * 2 * Math.PI / n - Home.rot, R = 2.45; return [Math.sin(a) * R, -.42, Math.cos(a) * R]; }
+function renderHomeHUD() {
+  const op = HOME_OPS[Home.sel], txt = v => typeof v === 'function' ? v() : v;
+  $('#opIndex').textContent = `${String(Home.sel + 1).padStart(2, '0')} / ${String(HOME_OPS.length).padStart(2, '0')}`;
+  $('#opTitle').textContent = op.title; $('#opDesc').textContent = txt(op.desc);
+  $('#opGo').textContent = op.id === 'exemplos' ? 'Abrir biblioteca' : op.id === 'abrir' ? 'Escolher arquivo' : op.id === 'novo' ? 'Criar projeto' : 'Continuar';
+  $('#opDots').innerHTML = HOME_OPS.map((o, i) => `<button class="hdot${i === Home.sel ? ' act' : ''}" data-op="${i}" aria-label="${esc(o.title)}"></button>`).join('');
+  $('#coreState').textContent = Home.core ? Home.core.state : 'IDLE';
+  $('#homeProj').textContent = doc.project;
+}
+function bootHome() {
+  if (Home.booted) return; Home.booted = true;
+  Home.core = createVoltCore(); Home.parts = createParticles(140, 9);
+  Home.objs = HOME_OPS.map(() => ({ phase: 0, spin: 0, fan: 0, alpha: 1 }));
+  const cv = $('#holoHome');
+  cv.addEventListener('pointerdown', ev => { Home.drag = { x: ev.clientX, rot: Home.rot, moved: false }; cv.setPointerCapture(ev.pointerId); AnimationController.kill(Home, ['rot']); });
+  cv.addEventListener('pointermove', ev => {
+    const r = cv.getBoundingClientRect(), mx = ev.clientX - r.left, my = ev.clientY - r.top;
+    if (Home.drag) { const dx = ev.clientX - Home.drag.x; if (Math.abs(dx) > 4) Home.drag.moved = true; Home.rot = Home.drag.rot - dx * .008; return; }
+    cv.style.cursor = Home.hits.some(h => mx > h.x0 && mx < h.x1 && my > h.y0 && my < h.y1) ? 'pointer' : 'grab';
+  });
+  cv.addEventListener('pointerup', ev => {
+    const d = Home.drag; Home.drag = null; if (!d) return;
+    const n = HOME_OPS.length, step = 2 * Math.PI / n;
+    if (d.moved) { homeSelect(Math.round(Home.rot / step), { fromDrag: true }); return; }
+    const r = cv.getBoundingClientRect(), mx = ev.clientX - r.left, my = ev.clientY - r.top;
+    const hit = Home.hits.filter(h => mx > h.x0 && mx < h.x1 && my > h.y0 && my < h.y1).sort((a, b) => b.z - a.z)[0];
+    if (hit) { if (hit.i === Home.sel) homeConfirm(); else homeSelect(hit.i); }
+    else if (Math.hypot(mx - r.width / 2, my - r.height * .42) < Math.min(r.width, r.height) * .12) Home.core.set('SELECT');
+  });
+  cv.addEventListener('wheel', ev => { ev.preventDefault(); if (Math.abs(ev.deltaY) > 10 && !Home.wheelLock) { Home.wheelLock = true; setTimeout(() => Home.wheelLock = false, 380); homeSelect(Home.sel + (ev.deltaY > 0 ? 1 : -1)); } }, { passive: false });
+  $('#opPrev').addEventListener('click', () => homeSelect(Home.sel - 1));
+  $('#opNext').addEventListener('click', () => homeSelect(Home.sel + 1));
+  $('#opGo').addEventListener('click', homeConfirm);
+  $('#opDots').addEventListener('click', ev => { const b = ev.target.closest('[data-op]'); if (b) homeSelect(+b.dataset.op); });
+  $('#homeFile').addEventListener('change', ev => { const f = ev.target.files[0]; if (f) readFileThen(f, importDialog); });
+  Home.core.set('IDLE');
+}
+function drawHome(dt) {
+  const fc = fitCanvas($('#holoHome')); if (!fc) return; const { ctx, w, h } = fc;
+  // backdrop
+  let g = ctx.createRadialGradient(w / 2, h * .45, 0, w / 2, h * .45, Math.max(w, h) * .75); g.addColorStop(0, '#132033'); g.addColorStop(.55, HC.navy); g.addColorStop(1, HC.black);
+  ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+  const small = w < 700, proj = makeCam(w, h, { dist: small ? 8.4 : 6.9, fov: small ? 1.25 : .98, pitch: .2, cy: h * (small ? .36 : .335) });
+  drawPlatform(ctx, (x, y, z) => proj(x, y - 1.05, z), HOLO.t, { r: 2.1, alpha: .9, pulse: Home.core.flash });
+  drawParticles(ctx, Home.parts, proj, HOLO.t, dt, .8);
+  // carousel items sorted by depth around the core
+  const n = HOME_OPS.length, items = HOME_OPS.map((op, i) => { const p = homeItemPos(i); return { i, op, p, z: p[2] }; }).sort((a, b) => a.z - b.z);
+  Home.hits = [];
+  const drawItem = it => {
+    const o = Home.objs[it.i], sel = it.i === Home.sel, depth = (it.z + 2.45) / 4.9;
+    o.sel = sel; o.phase += dt; o.spin = HOLO.reduced ? 0 : Math.sin(HOLO.t * .5 + it.i) * .35;
+    o.alpha = .3 + depth * .7;
+    const [sx, sy, s] = proj(it.p[0], it.p[1], it.p[2]);
+    // pedestal glow + selection halo
+    ctx.globalCompositeOperation = 'lighter';
+    const hal = ctx.createRadialGradient(sx, sy, 0, sx, sy, s * .9); hal.addColorStop(0, sel ? 'rgba(255,214,0,.22)' : 'rgba(0,200,255,.08)'); hal.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = hal; ctx.beginPath(); ctx.arc(sx, sy, s * .9, 0, 6.29); ctx.fill(); ctx.globalCompositeOperation = 'source-over';
+    HOLO_OBJECTS[it.op.object](ctx, proj, it.p, o);
+    if (sel) { const pulse = .5 + .5 * Math.sin(HOLO.t * 2.4); const ring = new Path2D(); for (let j = 0; j <= 48; j++) { const a = j / 48 * 6.283, q = proj(it.p[0] + Math.cos(a) * .72, it.p[1] - .62, it.p[2] + Math.sin(a) * .72); j ? ring.lineTo(q[0], q[1]) : ring.moveTo(q[0], q[1]); } ctx.globalCompositeOperation = 'lighter'; glowStroke(ctx, ring, HC.yellow, 2, .55 + pulse * .45); ctx.globalCompositeOperation = 'source-over'; }
+    // label
+    const lp = proj(it.p[0], it.p[1] - .74, it.p[2]);
+    ctx.textAlign = 'center'; ctx.font = `${sel ? 700 : 600} ${Math.max(10, Math.min(17, lp[2] * .055))}px "Archivo", "IBM Plex Sans", sans-serif`;
+    ctx.fillStyle = sel ? HC.yellow : '#9FDDF0'; ctx.globalAlpha = o.alpha; ctx.fillText(it.op.title.toUpperCase(), lp[0], lp[1]); ctx.globalAlpha = 1;
+    const hs = s * .75; Home.hits.push({ i: it.i, z: it.z, x0: sx - hs, x1: sx + hs, y0: sy - hs * .8, y1: lp[1] + 6 });
+  };
+  items.filter(it => it.z < 0).forEach(drawItem);
+  Home.core.draw(ctx, proj, [0, .42, 0], 1.12, 1);
+  drawStreams(ctx, proj, dt);
+  items.filter(it => it.z >= 0).forEach(drawItem);
+  // cinematic vignette
+  g = ctx.createRadialGradient(w / 2, h / 2, Math.min(w, h) * .35, w / 2, h / 2, Math.max(w, h) * .75); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,.55)'); ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+  if (Home.core && $('#coreState').textContent !== Home.core.state) $('#coreState').textContent = Home.core.state;
+}
+function renderHome() { bootHome(); renderHomeHUD(); }
+
+// ---------- ProjectLab ----------
+const MODEL_REGISTRY = {}; // component type -> { url: 'models/contator.glb', label, scale } — real GLB/GLTF files only
+const IndustrialModelViewer = {
+  modelsFor: d => d.comps.filter(c => MODEL_REGISTRY[c.type]),
+  available: d => IndustrialModelViewer.modelsFor(d).length > 0,
+  // When models are registered, load them on demand (e.g. a local three.js + GLTFLoader bundle) and dispose on exit.
+  async mount() { throw new Error('Nenhum modelo 3D cadastrado.'); },
+};
+const VIS_MODES = [
+  { id: 'holo', label: 'Holográfico', ok: () => true },
+  { id: '2d', label: 'Multifilar 2D', ok: () => true },
+  { id: 'uni', label: 'Unifilar', ok: e => !!e.unifilar, why: 'Este projeto ainda não tem um diagrama unifilar cadastrado. O VoltAcademy não gera unifilares automáticos para não mostrar um diagrama tecnicamente incorreto.' },
+  { id: 'comp3d', label: 'Componentes 3D', ok: (e, d) => IndustrialModelViewer.available(d), why: 'Nenhum modelo 3D (GLB/GLTF) de componente foi cadastrado ainda. Quando os modelos reais forem adicionados ao registro, este modo será liberado.' },
+  { id: 'ind3d', label: 'Aplicação industrial 3D', ok: (e, d) => IndustrialModelViewer.available(d), why: 'Depende dos modelos 3D reais de motor, contator, disjuntor e painel, que ainda não foram cadastrados.' },
+  { id: 'explode', label: 'Vista explodida', ok: (e, d) => IndustrialModelViewer.available(d), why: 'Depende dos modelos 3D reais dos componentes, que ainda não foram cadastrados.' },
+];
+const Lab = { sel: -1, sheet: null, mode: 'holo', yaw: 0, pitch: .16, zoom: 1, panX: 0, panY: 0, auto: true, autoT: 0, build: 0, alpha: 0, scatter: 0, geo: null, prevGeo: null, prevAlpha: 0, booted: false, core: null, parts: null, drag: null, doc: null };
+const EXAMPLE_ICONS = {
+  'Partida direta com selo': '<path d="M5 4v16M5 8h8M13 6v4M13 12v6M9 12h8"/><rect x="11" y="17" width="6" height="4"/>',
+  'Partida direta: força e comando': '<circle cx="12" cy="15" r="5"/><path d="M8 3v7M12 3v7M16 3v7"/><text x="12" y="17" font-size="5" text-anchor="middle" fill="currentColor" stroke="none">M</text>',
+  'Reversão com intertravamento': '<path d="M4 12h6M14 12h6M10 8l4 8M14 8l-4 8"/><path d="M7 5a7 7 0 0 1 10 0M17 19a7 7 0 0 1-10 0"/>',
+  'Partida com sinalização temporizada': '<circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/>',
+};
+function labExample(i) { const e = EXAMPLES[i]; const d = normalize(e.build()); return { e, d }; }
+function labSelect(i) {
+  if (i === Lab.sel) return;
+  const first = Lab.sel < 0; Lab.sel = i; const { e, d } = labExample(i); Lab.doc = d; Lab.sheet = d.sheets[0].id;
+  // 1) dematerialize the previous projection
+  if (Lab.geo) { Lab.prevGeo = Lab.geo; Lab.prevAlpha = Lab.alpha; Lab.prevScatter = 0; AnimationController.to(Lab, { prevAlpha: 0, prevScatter: .9 }, .5, { ease: 'inCubic' }); }
+  Lab.geo = circuitGeometry(d, Lab.sheet); Lab.build = 0; Lab.alpha = 1; Lab.scatter = 0;
+  // 2-6) core boost, particle flow, build symbols -> wires -> labels
+  Lab.core.set('MATERIALIZE');
+  spawnStream([0, .15, 0], [0, 1.2, 0], 70, HC.gold, 1.2);
+  AnimationController.to(Lab, { build: 1 }, 2.4, { ease: 'inOut', delay: first ? .1 : .35, onDone: () => Lab.core.set('PREVIEW') });
+  // 7) gentle 3D rotation
+  AnimationController.to(Lab, { yaw: 0, pitch: .16, panX: 0, panY: 0 }, .8, { ease: 'outCubic' });
+  if (!VIS_MODES.find(m => m.id === Lab.mode).ok(e, d)) Lab.mode = 'holo';
+  renderLabUI();
+}
+function labOpen() {
+  if (Lab.sel < 0) return;
+  const { e } = labExample(Lab.sel); Lab.core.set('LOADING');
+  const btn = $('#labOpenBtn'); btn.disabled = true; btn.textContent = 'Carregando projeto…';
+  setTimeout(() => { Lab.core.set('SUCCESS'); btn.textContent = 'Projeto carregado'; setTimeout(() => { btn.disabled = false; loadKeepingHistory(e.build()); }, HOLO.reduced ? 40 : 420); }, HOLO.reduced ? 40 : 520);
+}
+function renderLabUI() {
+  // ProjectSelector
+  $('#labList').innerHTML = EXAMPLES.map((e, i) => { const d = normalize(e.build()); return `<button class="lab-item${i === Lab.sel ? ' act' : ''}" data-lab="${i}">
+    <span class="lab-id">${String(i + 1).padStart(2, '0')}</span><svg class="lab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${EXAMPLE_ICONS[e.title.split(' em ')[0]] || EXAMPLE_ICONS[e.title] || '<rect x="4" y="4" width="16" height="16" rx="2"/>'}</svg>
+    <span class="lab-name">${esc(e.title)}<small>${d.comps.length} componentes · ${d.sheets.length} folha${d.sheets.length > 1 ? 's' : ''}</small></span></button>`; }).join('');
+  $('#labCount').textContent = `${String(EXAMPLES.length).padStart(2, '0')} projetos disponíveis`;
+  const has = Lab.sel >= 0, { e, d } = has ? labExample(Lab.sel) : {};
+  // VisualizationModeSelector
+  $('#labModes').innerHTML = VIS_MODES.map(m => { const ok = !has || m.ok(e, d); return `<button class="lab-mode${Lab.mode === m.id ? ' act' : ''}${ok ? '' : ' off'}" data-mode2="${m.id}" ${ok ? '' : 'aria-disabled="true"'} title="${esc(ok ? m.label : m.why)}">${m.label}${ok ? '' : ' <span>·</span>'}</button>`; }).join('');
+  $('#labSheets').innerHTML = has && d.sheets.length > 1 ? d.sheets.map((s, i) => `<button class="lab-sheet${s.id === Lab.sheet ? ' act' : ''}" data-lsheet="${s.id}">${i + 1}. ${esc(s.name)}</button>`).join('') : '';
+  $('#labPause').textContent = Lab.auto ? 'Pausar rotação' : 'Girar';
+  // ProjectDetails
+  $('#labInfo').innerHTML = has ? `<p class="lab-k">Projeto ${String(Lab.sel + 1).padStart(2, '0')}</p><h2>${esc(e.title)}</h2><p class="lab-desc">${esc(e.text)}</p>
+    <div class="lab-stats"><div><b>${d.sheets.length}</b><span>folha${d.sheets.length > 1 ? 's' : ''}</span></div><div><b>${d.comps.length}</b><span>componentes</span></div><div><b>${d.wires.length}</b><span>fios</span></div></div>
+    <p class="lab-k">Objetivo didático</p><p>${esc(e.goal || e.text)}</p>
+    <p class="lab-k">Instruções de teste</p><p>${esc(e.test)}</p>
+    <p class="lab-k">Funcionamento esperado</p><p>${esc(e.expected || '—')}</p>
+    <button class="lab-open" id="labOpenBtn">ABRIR PROJETO NO SIMULADOR</button>`
+    : `<p class="lab-k">Holographic Project Lab</p><h2>Selecione um projeto</h2><p class="lab-desc">Escolha um circuito na lateral. O VOLT CORE vai construir a projeção a partir dos dados reais do projeto: símbolos IEC, condutores e tags.</p>`;
+  const b = $('#labOpenBtn'); if (b) b.addEventListener('click', labOpen);
+  $('#lab2d').hidden = Lab.mode !== '2d';
+  if (Lab.mode === '2d' && has) { const sh = d.sheets.find(s => s.id === Lab.sheet) || d.sheets[0], [W, H] = sheetDims(sh); $('#lab2d').innerHTML = `<svg viewBox="0 0 ${W} ${H}" class="thumb">${sheetSVG(d, sh.id, false, 'sym')}</svg>`; }
+  $('#labHint').hidden = Lab.mode !== 'holo';
+}
+function bootLab() {
+  if (Lab.booted) return; Lab.booted = true;
+  Lab.core = createVoltCore(); Lab.parts = createParticles(90, 7);
+  $('#labList').addEventListener('click', ev => { const b = ev.target.closest('[data-lab]'); if (b) labSelect(+b.dataset.lab); });
+  $('#labModes').addEventListener('click', ev => {
+    const b = ev.target.closest('[data-mode2]'); if (!b) return; const m = VIS_MODES.find(x => x.id === b.dataset.mode2);
+    if (b.classList.contains('off')) { const n = $('#labNote'); n.textContent = m.why; n.hidden = false; clearTimeout(Lab.noteT); Lab.noteT = setTimeout(() => n.hidden = true, 5200); return; }
+    Lab.mode = m.id; $('#labNote').hidden = true; renderLabUI();
+  });
+  $('#labSheets').addEventListener('click', ev => { const b = ev.target.closest('[data-lsheet]'); if (!b || !Lab.doc) return; Lab.sheet = b.dataset.lsheet; Lab.prevGeo = Lab.geo; Lab.prevAlpha = 1; Lab.prevScatter = 0; AnimationController.to(Lab, { prevAlpha: 0, prevScatter: .8 }, .45); Lab.geo = circuitGeometry(Lab.doc, Lab.sheet); Lab.build = 0; Lab.core.set('MATERIALIZE'); AnimationController.to(Lab, { build: 1 }, 1.8, { delay: .2, onDone: () => Lab.core.set('PREVIEW') }); renderLabUI(); });
+  $('#labPause').addEventListener('click', () => { Lab.auto = !Lab.auto; renderLabUI(); });
+  $('#labCenter').addEventListener('click', () => AnimationController.to(Lab, { yaw: 0, pitch: .16, zoom: 1, panX: 0, panY: 0 }, .7, { ease: 'outCubic' }));
+  $('#labZoomIn').addEventListener('click', () => AnimationController.to(Lab, { zoom: Math.min(2.6, Lab.zoom * 1.25) }, .3));
+  $('#labZoomOut').addEventListener('click', () => AnimationController.to(Lab, { zoom: Math.max(.5, Lab.zoom / 1.25) }, .3));
+  $('#labBack').addEventListener('click', () => { ui.view = 'home'; render(); });
+  const cv = $('#holoLab');
+  cv.addEventListener('pointerdown', ev => { Lab.drag = { x: ev.clientX, y: ev.clientY, yaw: Lab.yaw, pitch: Lab.pitch, px: Lab.panX, py: Lab.panY, pan: ev.button === 2 || ev.shiftKey }; cv.setPointerCapture(ev.pointerId); AnimationController.kill(Lab, ['yaw', 'pitch', 'panX', 'panY']); });
+  cv.addEventListener('pointermove', ev => { const d = Lab.drag; if (!d) return; const dx = ev.clientX - d.x, dy = ev.clientY - d.y; if (d.pan) { Lab.panX = d.px + dx; Lab.panY = d.py + dy; } else { Lab.yaw = d.yaw + dx * .006; Lab.pitch = Math.max(-.5, Math.min(.9, d.pitch + dy * .004)); } });
+  cv.addEventListener('pointerup', () => { Lab.drag = null; });
+  cv.addEventListener('contextmenu', ev => ev.preventDefault());
+  cv.addEventListener('wheel', ev => { ev.preventDefault(); Lab.zoom = Math.max(.5, Math.min(2.6, Lab.zoom * (ev.deltaY < 0 ? 1.1 : 1 / 1.1))); }, { passive: false });
+  cv.addEventListener('dblclick', () => $('#labCenter').click());
+  Lab.core.set('IDLE');
+}
+function drawLab(dt) {
+  if (Lab.mode === '2d') return;
+  const fc = fitCanvas($('#holoLab')); if (!fc) return; const { ctx, w, h } = fc;
+  let g = ctx.createRadialGradient(w / 2, h * .55, 0, w / 2, h * .55, Math.max(w, h) * .8); g.addColorStop(0, '#0F1D2C'); g.addColorStop(.6, HC.navy); g.addColorStop(1, HC.black);
+  ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+  if (Lab.auto && !Lab.drag && !HOLO.reduced) Lab.autoT += dt;
+  const yaw = Lab.yaw + (Lab.auto ? Math.sin(Lab.autoT * .32) * .55 : 0);
+  const proj = makeCam(w, h, { dist: 6.2, fov: .86, yaw, pitch: Lab.pitch, cx: w / 2 + Lab.panX, cy: h * .66 + Lab.panY, zoom: Lab.zoom });
+  drawPlatform(ctx, proj, HOLO.t, { r: 1.7, alpha: 1, pulse: Lab.core.flash });
+  drawParticles(ctx, Lab.parts, proj, HOLO.t, dt, .7);
+  Lab.core.draw(ctx, proj, [0, .12, 0], .34, 1);
+  // volumetric projection cone from the platform to the hologram
+  if (Lab.geo) {
+    const [x0, y0, x1, y1] = Lab.geo.bbox, map = geoTo3D(Lab.geo, 2.35, [0, 1.45, 0]);
+    const tl = proj(...map(x0, y0)), tr = proj(...map(x1, y0)), bl = proj(...map(x0, y1)), br = proj(...map(x1, y1)), base = proj(0, .1, 0);
+    ctx.globalCompositeOperation = 'lighter';
+    const cone = ctx.createLinearGradient(0, base[1], 0, Math.min(tl[1], tr[1])); cone.addColorStop(0, `rgba(0,200,255,${.16 * Lab.build})`); cone.addColorStop(1, 'rgba(0,200,255,0)');
+    ctx.fillStyle = cone; ctx.beginPath(); ctx.moveTo(base[0] - 20, base[1]); ctx.lineTo(bl[0], bl[1]); ctx.lineTo(tl[0], tl[1]); ctx.lineTo(tr[0], tr[1]); ctx.lineTo(br[0], br[1]); ctx.lineTo(base[0] + 20, base[1]); ctx.closePath(); ctx.fill();
+    // hologram frame with gold corner brackets
+    const pad = 40, P = (x, y) => proj(...map(x, y)), fr = new Path2D();
+    for (const [sx, sy] of [[x0 - pad, y0 - pad], [x1 + pad, y0 - pad], [x1 + pad, y1 + pad], [x0 - pad, y1 + pad]]) { const dx = sx < (x0 + x1) / 2 ? 1 : -1, dy = sy < (y0 + y1) / 2 ? 1 : -1, a = P(sx + dx * 90, sy), b = P(sx, sy), c = P(sx, sy + dy * 90); fr.moveTo(a[0], a[1]); fr.lineTo(b[0], b[1]); fr.lineTo(c[0], c[1]); }
+    glowStroke(ctx, fr, HC.gold, 2, Math.min(1, Lab.build * 2));
+    // scan line across the projection
+    const sy = y0 + ((HOLO.t * .25) % 1) * (y1 - y0), sl = new Path2D(), a = P(x0 - pad, sy), b = P(x1 + pad, sy); sl.moveTo(a[0], a[1]); sl.lineTo(b[0], b[1]);
+    glowStroke(ctx, sl, HC.cyan, 1.2, .35 * Lab.build);
+    ctx.globalCompositeOperation = 'source-over';
+    if (Lab.prevGeo && Lab.prevAlpha > .01) drawCircuit3D(ctx, proj, Lab.prevGeo, geoTo3D(Lab.prevGeo, 2.35, [0, 1.45, 0]), { alpha: Lab.prevAlpha, scatter: Lab.prevScatter, labels: false });
+    drawCircuit3D(ctx, proj, Lab.geo, map, { build: Lab.build, alpha: Lab.alpha });
+  }
+  drawStreams(ctx, proj, dt);
+  g = ctx.createRadialGradient(w / 2, h / 2, Math.min(w, h) * .4, w / 2, h / 2, Math.max(w, h) * .8); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,.5)'); ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+  const st = $('#labCoreState'); if (st.textContent !== Lab.core.state) st.textContent = Lab.core.state;
+}
+function renderLab() { bootLab(); renderLabUI(); }
+
+// ---------- render loop: runs only while a holographic view is visible ----------
+function holoFrame(ts) {
+  HOLO.raf = 0;
+  if (document.hidden || (ui.view !== 'home' && ui.view !== 'lab')) return;
+  const dt = HOLO.last ? Math.min(.05, (ts - HOLO.last) / 1000) : .016; HOLO.last = ts; HOLO.t += dt;
+  // adaptive quality from measured frame time
+  HOLO.avg = HOLO.avg * .95 + (dt * 1000) * .05;
+  if (HOLO.avg > 28 && HOLO.quality > .45) HOLO.quality -= .02; else if (HOLO.avg < 19 && HOLO.quality < 1) HOLO.quality += .005;
+  AnimationController.step(dt);
+  if (ui.view === 'home' && Home.core) { Home.core.update(dt); drawHome(dt); }
+  if (ui.view === 'lab' && Lab.core) { Lab.core.update(dt); drawLab(dt); }
+  HOLO.raf = requestAnimationFrame(holoFrame);
+}
+function holoSync() {
+  const on = (ui.view === 'home' || ui.view === 'lab') && !document.hidden;
+  if (on && !HOLO.raf) { HOLO.last = 0; HOLO.raf = requestAnimationFrame(holoFrame); }
+  if (!on && HOLO.raf) { cancelAnimationFrame(HOLO.raf); HOLO.raf = 0; }
+}
+document.addEventListener('visibilitychange', holoSync);
+function holoKey(ev) {
+  if (ui.view === 'home') {
+    if (ev.key === 'ArrowRight' || ev.key === 'ArrowDown') { ev.preventDefault(); homeSelect(Home.sel + 1); }
+    else if (ev.key === 'ArrowLeft' || ev.key === 'ArrowUp') { ev.preventDefault(); homeSelect(Home.sel - 1); }
+    else if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); homeConfirm(); }
+    else if (/^[1-9]$/.test(ev.key) && +ev.key <= HOME_OPS.length) homeSelect(+ev.key - 1);
+    return true;
+  }
+  if (ui.view === 'lab') {
+    if (ev.key === 'ArrowDown' || ev.key === 'ArrowRight') { ev.preventDefault(); labSelect(Math.min(EXAMPLES.length - 1, Lab.sel + 1)); }
+    else if (ev.key === 'ArrowUp' || ev.key === 'ArrowLeft') { ev.preventDefault(); labSelect(Math.max(0, Lab.sel - 1)); }
+    else if (ev.key === 'Enter') { ev.preventDefault(); labOpen(); }
+    else if (ev.key === 'Escape') { ui.view = 'home'; render(); }
+    else if (ev.key === ' ') { ev.preventDefault(); Lab.auto = !Lab.auto; renderLabUI(); }
+    return true;
+  }
+  return false;
+}
+
+// =====================================================================
 // Active Energy UI — attach energy classes to the active member of each group
 // =====================================================================
-const ENERGY_ACTIVE = '.railb.act, .tab.act, .tool.act, .nav.act, .seg button.act, .part.act, .opbtn.act, .sw.act, #bRun.act, #bInsp.act, #clock.act';
-const ENERGY_LED = '.railb.act, .tab.act, .tool.act, .nav.act, .seg button.act, #bRun.act, #bInsp.act';
+const ENERGY_ACTIVE = '.lab-item.act, .lab-mode.act, .railb.act, .tab.act, .tool.act, .nav.act, .seg button.act, .part.act, .opbtn.act, .sw.act, #bRun.act, #bInsp.act, #clock.act';
+const ENERGY_LED = '.lab-item.act, .lab-mode.act, .railb.act, .tab.act, .tool.act, .nav.act, .seg button.act, #bRun.act, #bInsp.act';
 const ENERGY_NOFLOW = '.sw.act, #clock.act';
 function syncEnergy() {
   for (const el of document.querySelectorAll('.energy-active')) if (!el.matches(ENERGY_ACTIVE)) el.classList.remove('energy-active', 'energy-indicator', 'energy-noflow');
@@ -2648,7 +3374,7 @@ if (matchMedia('(max-width: 1100px)').matches) ui.inspOpen = false;
 render();
 requestAnimationFrame(fit);
 window.addEventListener('resize', () => fit());
-window.__va = { exportPDF, projectFile, mergeProject, doc: () => doc, sim, ui, points: id => fullPointsAny(doc.wires.find(w => w.id === id)), audio, solve: resolve, rawSolve: solve, clearFaults, updateElectrical, startSim, stopSim, load, EXAMPLES, TYPES, interact, render, setView: v => { ui.view = v; render(); } };
+window.__va = { Home, Lab, HOME_OPS, homeSelect, homeConfirm, labSelect, labOpen, exportPDF, projectFile, mergeProject, doc: () => doc, sim, ui, points: id => fullPointsAny(doc.wires.find(w => w.id === id)), audio, solve: resolve, rawSolve: solve, clearFaults, updateElectrical, startSim, stopSim, load, EXAMPLES, TYPES, interact, render, setView: v => { ui.view = v; render(); } };
 })();
 </script>
 

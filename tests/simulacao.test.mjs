@@ -9,9 +9,11 @@ const page = pathToFileURL(join(dirname(fileURLToPath(import.meta.url)), '../dis
 const browser = await chromium.launch();
 const p = await browser.newPage({ viewport: { width: 1440, height: 900 }, acceptDownloads: true });
 const errors = [];
-p.on('pageerror', e => errors.push(e.message));
+p.on('pageerror', e => errors.push(e.message + ' @ ' + (e.stack || '').split('\n').slice(1, 4).join(' | ')));
 await p.goto(page);
 await p.waitForTimeout(600);
+const startsHome = await p.evaluate(() => window.__va.ui.view === 'home' && !document.getElementById('vHome').hidden);
+await p.evaluate(() => window.__va.setView('diagram'));
 
 const results = await p.evaluate(async () => {
   const va = window.__va, out = [];
@@ -200,7 +202,23 @@ const ob = await op.boundingBox();
 await p.mouse.move(ob.x + ob.width / 2, ob.y + ob.height / 2); await p.mouse.down(); await p.waitForTimeout(80); await p.mouse.up(); await p.waitForTimeout(80);
 results.push(['Operação: botão do painel aciona K1 com selo', await p.evaluate(() => !!window.__va.sim.coils.K1)]);
 await p.click('[data-nav="home"]');
-results.push(['Início: exemplos com miniatura', await p.locator('.excard .thumb').count() === 4]);
+results.push(['Início: abre na tela holográfica do VOLT CORE', startsHome]);
+results.push(['Início: carrossel com 4 operações a 90°', await p.evaluate(() => window.__va.HOME_OPS.length === 4 && document.querySelectorAll('#opDots .hdot').length === 4)]);
+await p.keyboard.press('ArrowRight'); await p.waitForTimeout(950);
+results.push(['Início: seta gira o carrossel e o núcleo reage', await p.evaluate(() => { const H = window.__va.Home; return H.sel === 1 && Math.abs(H.rot - Math.PI / 2) < 0.05 && /Continuar/.test(document.getElementById('opTitle').textContent); })]);
+await p.evaluate(() => window.__va.homeSelect(3)); await p.waitForTimeout(950);
+await p.click('#opGo'); await p.waitForTimeout(700);
+results.push(['Início: confirmar Exemplos abre o Project Lab com a biblioteca real', await p.evaluate(() => window.__va.ui.view === 'lab' && document.querySelectorAll('#labList .lab-item').length === 4)]);
+await p.click('#labList [data-lab="1"]'); await p.waitForTimeout(2900);
+results.push(['Lab: projeto se materializa a partir dos dados reais', await p.evaluate(() => { const L = window.__va.Lab; return L.sel === 1 && L.build > 0.99 && L.geo.segs.filter(s => s.kind === 'wire').length >= 15 && L.geo.labels.some(l => l.text === 'M1') && L.core.state === 'PREVIEW'; })]);
+results.push(['Lab: só o projeto ativo acende', await p.evaluate(() => document.querySelectorAll('#labList .energy-active').length === 1)]);
+results.push(['Lab: modos sem dados ficam indisponíveis com o motivo', await p.evaluate(() => ['uni', 'comp3d', 'ind3d', 'explode'].every(m => document.querySelector(`[data-mode2="${m}"]`).classList.contains('off')))]);
+await p.click('[data-mode2="2d"]');
+results.push(['Lab: Multifilar 2D mostra a folha técnica original', await p.evaluate(() => !document.getElementById('lab2d').hidden && !!document.querySelector('#lab2d svg .stamp'))]);
+await p.click('[data-mode2="holo"]');
+await p.click('#labOpenBtn'); await p.waitForTimeout(1300);
+results.push(['Lab: ABRIR PROJETO carrega o exemplo no simulador', await p.evaluate(() => window.__va.ui.view === 'diagram' && window.__va.doc().project === 'Partida direta: força e comando' && window.__va.doc().sheets.length === 2)]);
+
 await p.evaluate(() => { const va = window.__va; if (va.sim.running) va.stopSim(); va.load(va.EXAMPLES[1].build()); va.setView('diagram'); });
 await p.click('[data-look="2d"]');
 await p.click('[data-folder="Proteção"]');
@@ -287,7 +305,7 @@ results.push(['PDF: arquivo válido com folhas e relatório', pdf.slice(0, 5).to
 
 // ---- Biblioteca retrátil (activeCategory) e Active Energy UI ----
 const fresh = await browser.newPage({ viewport: { width: 1440, height: 900 } });
-await fresh.goto(page); await fresh.waitForTimeout(500);
+await fresh.goto(page); await fresh.waitForTimeout(500); await fresh.evaluate(() => window.__va.setView('diagram'));
 results.push(['Biblioteca: começa fechada e sem categoria ativa', await fresh.evaluate(() => window.__va.ui.activeCategory === null && !document.getElementById('drawer').classList.contains('open') && !document.querySelector('.railb.act'))]);
 const geo0 = await fresh.evaluate(() => ({ w: document.getElementById('cv').getBoundingClientRect().width, z: window.__va.ui.zoom, px: window.__va.ui.px }));
 await fresh.click('[data-folder="Comando"]'); await fresh.waitForTimeout(350);
