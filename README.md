@@ -13,6 +13,15 @@ Ao abrir, o circuito "Partida direta com selo" já vem carregado. Aperte **SIMUL
 **S1** para ligar o contator K1 e segure **S0** para desligar.
 
 ## Interface
+- **Seleção estilo CAD:** clique seleciona; Ctrl+clique soma ou remove; Shift+clique soma; Ctrl+A seleciona a folha; Esc
+  limpa. Arrastar no fundo desenha a janela de seleção: da esquerda para a direita pega só os componentes inteiros dentro
+  (azul), da direita para a esquerda pega os que cruzam (verde). Arrastar um selecionado move o grupo inteiro com os fios;
+  Del exclui (pede confirmação a partir de 6), Ctrl+C/Ctrl+V copia e cola, Ctrl+D duplica (novas TAGs para dispositivos,
+  contatos acompanham a bobina copiada), R gira. A folha é deslocada pela ferramenta Mover tela ou pelo botão do meio.
+- **Abas de folhas** no topo do diagrama (número, nome, quantidade de componentes e aviso), sempre visíveis; criar, renomear,
+  configurar, duplicar e excluir ficam no Painel do projeto.
+- **Barra superior contextual** (configuração única `TOPBAR`): Diagrama mostra tudo; Operação / HMI só Simular, Ajuda e Tema;
+  Início e Listas mostram Projeto, Ajuda, Som e Tema; Monitoramento mostra Simular, Projeto, Ajuda, Som e Tema.
 - **Barra superior em três regiões:** à esquerda o logo e o nome do projeto; no centro (centralizado na largura da tela)
   Simular, cronômetro, Desfazer, Refazer, Projeto, Ajuda, Som e Tema; à direita só o botão **Painel**.
 - **Painel do projeto (Project Manager):** abre pela direita (340 px) e fecha no mesmo botão, no X ou com Esc; fechado não
@@ -107,7 +116,7 @@ Ao abrir, o circuito "Partida direta com selo" já vem carregado. Aperte **SIMUL
 - **Carrossel com 5 operações (72°):** Novo projeto, Continuar projeto, Abrir projeto, Exemplos de projeto e
   **Exercícios** (prancheta holográfica com checklist).
 - **7 famílias, 11 aplicações:** emergência e rearme; temporizadores (TON, TOF, pulso, cíclico, alarme temporizado);
-  partida estrela-triângulo; flip-flop; semáforo; caixa d’água automática; portão deslizante. Cada aplicação tem uma
+  partida estrela-triângulo; flip-flop; semáforo (Liga, Desliga, emergência e seletora Manual/Automático com amarelo intermitente); caixa d’água automática; portão deslizante. Cada aplicação tem uma
   configuração única (`ApplicationRegistry`): dispositivos e TAGs, template de IHM, condições iniciais, parâmetros
   físicos, demonstração, exemplo resolvido, requisitos, cenários de teste, nível e rede elétrica.
 - **Exemplos resolvidos** entram no Holographic Project Lab (agora com 15 projetos) com categoria, nível, template de IHM e
@@ -116,6 +125,17 @@ Ao abrir, o circuito "Partida direta com selo" já vem carregado. Aperte **SIMUL
   (**DEMONSTRATION MODE**, sequência de referência que não executa nem altera o circuito do aluno), objetivo, requisitos,
   TAGs, dispositivos e critérios. **Iniciar exercício** cria uma sessão nova com a rede prevista e as folhas em branco;
   **Continuar** retoma a sessão salva.
+- **Operação / HMI com entradas e saídas:** comandos com o desenho do dispositivo (botoeira NA verde, NF vermelha, emergência
+  com retenção, seletora de duas posições), sensores com modo automático, forçamento didático (0/1, marcado em roxo) e falha
+  (sem sinal), saídas reais do circuito (contatores, relés, motores, temporizadores, lâmpadas, alarmes), estado do processo,
+  diagnósticos e alarmes, falhas simuladas (lâmpada queimada, contato colado, falhas da aplicação) e **modo de teste** com
+  roteiros que acionam as entradas da IHM ao vivo. A IHM nunca liga saídas sozinha: quem decide é o circuito.
+- **Efeitos sonoros** sintetizados (sem arquivos): clique de botoeira, acionamento de contator e relé, motor partindo, girando
+  e parando, água circulando e transbordando, comutação do semáforo, alarme, curto-circuito e falha mecânica. Tocam só em
+  eventos reais da simulação, nunca em repetição; volume e liga/desliga no Painel do projeto e na IHM; o botão Som silencia tudo.
+- **Falhas visíveis:** transbordamento com água sobre a borda e poça, nível crítico, bomba sem vazão, portão com colisão,
+  comandos conflitantes, motor travado e fins de curso desrespeitados, semáforo com sequência incorreta, cores conflitantes e
+  lâmpada queimada, e faixa de curto-circuito/proteção atuada/falta de fase/sem alimentação vinda do motor elétrico.
 - **Operação / HMI:** com aplicação associada, mostra o ambiente animado (**SIMULAÇÃO AO VIVO**, saídas reais do circuito),
   comandos da IHM, condições do processo (consumo, falta de água, falha da bomba, sobrecarga, obstáculo), TAGs com estado,
   informações elétricas, diagnósticos e requisitos. Sem aplicação, continua o painel genérico.

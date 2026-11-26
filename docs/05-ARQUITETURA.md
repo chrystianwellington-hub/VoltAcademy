@@ -58,3 +58,15 @@
 - `DemoRunner`: sequência de referência isolada (não usa o projeto nem a simulação).
 - `ExerciseSession`, `ExerciseTestRunner` (cenários sem interface, circuito real + processo, estado restaurado),
   `ExerciseValidationEngine`, `ExerciseProgressManager` (progresso no projeto e no navegador).
+
+## Editor, IHM e áudio (rodada de refinamento)
+- Seleção: `ui.multi` (conjunto de componentes) + `ui.sel` (principal, para o painel). `marqueeSelect` (janela/cruzada),
+  `copySel`/`pasteClip` (renumera TAGs de dispositivos e mantém contatos ligados à bobina copiada), `deleteSel` em grupo.
+- `TOPBAR`/`applyTopbar()`: ferramentas da barra superior por tela.
+- Falhas injetadas: `sim.welded` (contato colado, tratado no `solve` como contato na posição atuada), `Proc.st.force`
+  (forçamento de sensor), `Proc.st.sfail` (sensor sem sinal), `Proc.st.burnt` (lâmpada queimada: saída comandada, luz apagada).
+- `LiveScript`: roteiros do modo de teste executados no `simStep`, usando as mesmas entradas da IHM.
+- `Sfx` (síntese Web Audio com volume mestre) e `SfxWatch` (transforma bordas de estado da simulação em sons; estados
+  contínuos viram loops com rampa de subida e descida).
+- Histórico de eventos: `resolve()` compara com o último estado registrado (`sim.lastSnap`), então entradas da IHM,
+  sensores, bobinas, lâmpadas e motores aparecem com o tempo de simulação.

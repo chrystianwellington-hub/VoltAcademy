@@ -7,7 +7,10 @@
 - [x] Contatos comuns NA/NF (reversores), relé de falta de fase, relé de segurança, sensor capacitivo
 - [ ] Exemplo pronto de partida estrela-triângulo (o motor de 6 pontas já reconhece as duas ligações)
 - [ ] Disparo automático do relé térmico por falta de fase prolongada
-- [ ] Ferramentas de desenho livre (linha, retângulo, texto) e copiar/colar seleção múltipla
+- [x] Seleção múltipla, janela de seleção, mover, excluir, copiar, colar e duplicar em grupo
+- [ ] Ferramentas de desenho livre (linha, retângulo, texto)
+- [ ] Entradas analógicas (temperatura, pressão) e seletoras de três posições na IHM
+- [ ] Modo de teste (roteiros) para caixa d’água, portão e partidas de motor
 - [ ] Exportar imagem e PDF (a página publicada no Claude não permite downloads; a versão local permitirá)
 - [x] Motor de tensão por fasores, configuração elétrica do projeto, transformadores e fonte CA/CC configuráveis
 - [ ] Transformador trifásico com neutro no primário (H0) e grupos vetoriais além de 0 e 11

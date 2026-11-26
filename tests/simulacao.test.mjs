@@ -498,9 +498,9 @@ results.push(['Painel: tabela com todas as folhas a partir do projeto real', awa
   return rows.length === d.sheets.length && rows.every((r, i) => r.querySelector('.sn').textContent === String(i + 1).padStart(2, '0') && r.querySelector('.snm').textContent.startsWith(d.sheets[i].name) && +r.querySelector('.sc').textContent === d.comps.filter(c => c.sheet === d.sheets[i].id).length && r.querySelector('.sf').textContent.startsWith(d.sheets[i].size)) &&
     document.querySelector('#tabs .srow.act').dataset.sheet === window.__va.ui.sheet && document.querySelector('#tabs .srow.act').classList.contains('energy-active'); })]);
 await pm.click('#tabs .srow:nth-child(2)'); await pm.waitForTimeout(200);
-results.push(['Painel: clicar na folha troca a folha ativa, o canvas e o indicador', await pm.evaluate(() => { const va = window.__va, s = va.doc().sheets[1]; return va.ui.sheet === s.id && document.querySelector('#tabs .srow.act').dataset.sheet === s.id && /Folha 02 — Comando/.test(document.getElementById('sheetBadge').textContent) && document.querySelectorAll('#world [data-comp]').length === va.doc().comps.filter(c => c.sheet === s.id).length; })]);
+results.push(['Painel: clicar na folha troca a folha ativa, o canvas e o indicador', await pm.evaluate(() => { const va = window.__va, s = va.doc().sheets[1]; return va.ui.sheet === s.id && document.querySelector('#tabs .srow.act').dataset.sheet === s.id && /02.Comando/.test(document.querySelector('#sheetNav .stab.act').textContent) && document.querySelectorAll('#world [data-comp]').length === va.doc().comps.filter(c => c.sheet === s.id).length; })]);
 await pm.click('#sNew'); await pm.waitForTimeout(150); await pm.fill('#dName', 'Sinalização'); await pm.click('#dSave'); await pm.waitForTimeout(200);
-results.push(['Painel: + Nova folha pede o nome, atualiza a tabela e seleciona a folha', await pm.evaluate(() => { const va = window.__va, d = va.doc(), s = d.sheets[d.sheets.length - 1]; return d.sheets.length === 3 && s.name === 'Sinalização' && va.ui.sheet === s.id && document.querySelectorAll('#tabs .srow').length === 3 && document.querySelector('#tabs .srow.act .snm').textContent === 'Sinalização' && /03 — Sinalização/.test(document.getElementById('sheetBadge').textContent); })]);
+results.push(['Painel: + Nova folha pede o nome, atualiza a tabela e seleciona a folha', await pm.evaluate(() => { const va = window.__va, d = va.doc(), s = d.sheets[d.sheets.length - 1]; return d.sheets.length === 3 && s.name === 'Sinalização' && va.ui.sheet === s.id && document.querySelectorAll('#tabs .srow').length === 3 && document.querySelector('#tabs .srow.act .snm').textContent === 'Sinalização' && /03.Sinalização/.test(document.querySelector('#sheetNav .stab.act').textContent); })]);
 await pm.click('#sRen'); await pm.fill('#dName', 'Segurança'); await pm.click('#dSave'); await pm.waitForTimeout(150);
 results.push(['Painel: Renomear altera a folha selecionada e a tabela', await pm.evaluate(() => document.querySelector('#tabs .srow.act .snm').textContent === 'Segurança' && window.__va.doc().sheets[2].name === 'Segurança')]);
 await pm.click('#sDel'); await pm.waitForTimeout(100); await pm.click('#dConfirm'); await pm.waitForTimeout(150);
@@ -609,12 +609,12 @@ results.push(['Continuar exercício: retoma a mesma sessão', await hx.evaluate(
 // Operation / HMI with a solved example
 await hx.evaluate(() => { const va = window.__va; va.load(va.ApplicationRegistry.get('caixa_dagua').exampleProjectReference()); va.setView('operate'); });
 await hx.waitForTimeout(200);
-results.push(['Operação / HMI: aplicação carregada automaticamente e modo identificado', await hx.evaluate(() => /Operação \/ HMI/.test(document.querySelector('[data-nav="operate"]').textContent) && !!document.querySelector('#hmiStage svg') && /SIMULAÇÃO PARADA/.test(document.getElementById('hmiStage').textContent) && document.querySelectorAll('#vOperate [data-hdev]').length === 2)]);
-await hx.click('#opRun'); await hx.waitForTimeout(300);
+results.push(['Operação / HMI: aplicação carregada automaticamente e modo identificado', await hx.evaluate(() => /Operação \/ HMI/.test(document.querySelector('[data-nav="operate"]').textContent) && !!document.querySelector('#hmiStage svg') && /SIMULAÇÃO PARADA/.test(document.getElementById('hmiStage').textContent) && document.querySelectorAll('#vOperate [data-hdev]').length === 2 && !!document.querySelector('#hmiSens'))]);
+await hx.click('#bRun'); await hx.waitForTimeout(300);
 await hx.evaluate(() => { const va = window.__va; va.Proc.st.lvl = 50; va.Proc.st.cons = 0; });
 const s1 = await hx.locator('#vOperate [data-hdev="S1"]').boundingBox();
 await hx.mouse.move(s1.x + s1.width / 2, s1.y + s1.height / 2); await hx.mouse.down(); await hx.waitForTimeout(250); await hx.mouse.up(); await hx.waitForTimeout(600);
-results.push(['Operação / HMI: botoeira S1 da IHM opera o circuito e a bomba gira ao vivo', await hx.evaluate(() => { const va = window.__va; return /SIMULAÇÃO AO VIVO/.test(document.getElementById('hmiStage').textContent) && va.VirtualActuatorEngine.read(va.ApplicationRegistry.get('caixa_dagua')).out.M1.run && /girando/.test(document.getElementById('hmiTags').textContent); })]);
+results.push(['Operação / HMI: botoeira S1 da IHM opera o circuito e a bomba gira ao vivo', await hx.evaluate(() => { const va = window.__va; return /SIMULAÇÃO AO VIVO/.test(document.getElementById('hmiStage').textContent) && va.VirtualActuatorEngine.read(va.ApplicationRegistry.get('caixa_dagua')).out.M1.run && /girando/.test(document.getElementById('hmiOut').textContent); })]);
 await hx.evaluate(() => window.__va.stopSim());
 await hx.evaluate(() => { const va = window.__va; va.load(va.EXAMPLES[0].build()); va.setView('operate'); }); await hx.waitForTimeout(150);
 results.push(['Operação / HMI: sem aplicação preserva o painel genérico', await hx.evaluate(() => !!document.querySelector('#vOperate .opgrid') && !document.getElementById('hmiStage'))]);
@@ -624,6 +624,169 @@ results.push(['Inspetor: associar componente a um dispositivo do exercício', aw
 await hx.evaluate(() => { const va = window.__va; va.setView('lab'); va.labSelect(va.EXAMPLES.findIndex(e => e.app === 'semaforo')); }); await hx.waitForTimeout(300);
 results.push(['Project Lab: exemplos novos com categoria, nível, template de IHM e TAGs', await hx.evaluate(() => /Template de IHM/.test(document.getElementById('labInfo').textContent) && /Intermediário/.test(document.getElementById('labInfo').textContent) && /KT1/.test(document.getElementById('labInfo').textContent))]);
 await hx.close();
+
+// ---- Fase 1: seleção múltipla ----
+const sl = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+sl.on('pageerror', e => errors.push(e.message + ' @ ' + (e.stack || '').split('\n').slice(1, 4).join(' | ')));
+await sl.goto(page); await sl.waitForTimeout(400);
+await sl.evaluate(() => { const va = window.__va; va.load(va.EXAMPLES[0].build()); va.setView('diagram'); document.getElementById('bFit').click(); });
+await sl.waitForTimeout(300);
+const scr = (tag, type) => sl.evaluate(([t, ty]) => { const va = window.__va, c = va.doc().comps.find(x => x.tag === t && (!ty || x.type === ty) && x.sheet === va.ui.sheet), r = document.getElementById('cv').getBoundingClientRect(); return [r.left + va.ui.px + c.x * va.ui.zoom, r.top + va.ui.py + c.y * va.ui.zoom]; }, [tag, type]);
+const clickAt = async ([x, y], mod) => { if (mod) await sl.keyboard.down(mod); await sl.mouse.click(x, y); if (mod) await sl.keyboard.up(mod); await sl.waitForTimeout(80); };
+await clickAt(await scr('S0'));
+results.push(['Seleção: clique seleciona um componente e abre as propriedades', await sl.evaluate(() => { const va = window.__va; return va.ui.sel && va.doc().comps.find(c => c.id === va.ui.sel.id).tag === 'S0' && va.ui.inspOpen; })]);
+await clickAt(await scr('Q1'), 'Control'); await clickAt(await scr('H2'), 'Control'); await clickAt(await scr('FT1'), 'Shift');
+results.push(['Seleção: Ctrl/Shift + clique combinam categorias diferentes', await sl.evaluate(() => { const va = window.__va, tags = [...va.ui.multi].map(id => va.doc().comps.find(c => c.id === id)); return va.ui.multi.size === 4 && new Set(tags.map(c => va.TYPES[c.type].cat)).size >= 3 && document.querySelectorAll('#cv .comp.msel').length === 4; })]);
+await clickAt(await scr('H2'), 'Control');
+results.push(['Seleção: Ctrl + clique remove da seleção', await sl.evaluate(() => window.__va.ui.multi.size === 3)]);
+await sl.keyboard.press('Escape'); await sl.waitForTimeout(80);
+results.push(['Seleção: Esc limpa a seleção', await sl.evaluate(() => window.__va.ui.multi.size === 0 && !window.__va.ui.sel)]);
+await sl.keyboard.press('Control+a'); await sl.waitForTimeout(80);
+results.push(['Seleção: Ctrl+A seleciona todos da folha ativa', await sl.evaluate(() => { const va = window.__va; return va.ui.multi.size === va.doc().comps.filter(c => c.sheet === va.ui.sheet).length; })]);
+await sl.keyboard.press('Escape');
+// marquee left -> right (window) around S0 and S1 only
+const [s0x, s0y] = await scr('S0'), [s1x, s1y] = await scr('S1'), z = await sl.evaluate(() => window.__va.ui.zoom), px0 = await sl.evaluate(() => [window.__va.ui.px, window.__va.ui.py]);
+await sl.mouse.move(s0x - 60 * z, s0y - 70 * z); await sl.mouse.down(); await sl.mouse.move(s1x + 40 * z, s1y + 60 * z, { steps: 6 }); await sl.mouse.up(); await sl.waitForTimeout(80);
+results.push(['Seleção por janela (esquerda → direita): só os totalmente contidos', await sl.evaluate(() => { const va = window.__va, tags = [...va.ui.multi].map(id => va.doc().comps.find(c => c.id === id).tag).sort(); return tags.join() === 'S0,S1'; })]);
+results.push(['Seleção por janela não move a folha nem cria fios', await sl.evaluate(p0 => { const va = window.__va; return va.ui.px === p0[0] && va.ui.py === p0[1] && va.doc().wires.length === 14 && !va.ui.wireStart; }, px0)]);
+await sl.keyboard.press('Escape');
+await sl.mouse.move(s1x + 62 * z, s1y + 52 * z); await sl.mouse.down(); await sl.mouse.move(s0x - 2 * z, s0y - 2 * z, { steps: 6 }); await sl.mouse.up(); await sl.waitForTimeout(80);
+results.push(['Seleção cruzada (direita → esquerda): os que interceptam', await sl.evaluate(() => { const va = window.__va, tags = [...va.ui.multi].map(id => va.doc().comps.find(c => c.id === id).tag); return tags.includes('S0') && tags.includes('S1'); })]);
+// group move
+await sl.keyboard.press('Escape');
+await clickAt(await scr('S1')); await clickAt(await scr('K1'), 'Control');
+const gBefore = await sl.evaluate(() => { const va = window.__va, d = va.doc(); return { pos: d.comps.map(c => [c.id, c.x, c.y]), wires: JSON.stringify(d.wires.map(w => [w.id, w.a, w.b])) }; });
+const [k1x, k1y] = await scr('S1');
+await sl.mouse.move(k1x, k1y); await sl.mouse.down(); await sl.mouse.move(k1x + 120 * z, k1y + 40 * z, { steps: 8 }); await sl.mouse.up(); await sl.waitForTimeout(100);
+results.push(['Movimento em grupo: distâncias, conexões e demais componentes preservados', await sl.evaluate(b => { const va = window.__va, d = va.doc(), sel = va.ui.multi; const moved = d.comps.filter(c => sel.has(c.id)).map(c => { const o = b.pos.find(x => x[0] === c.id); return [c.x - o[1], c.y - o[2]]; }); const still = d.comps.filter(c => !sel.has(c.id)).every(c => { const o = b.pos.find(x => x[0] === c.id); return c.x === o[1] && c.y === o[2]; }); return sel.size === 2 && moved.every(m => m[0] === moved[0][0] && m[1] === moved[0][1]) && moved[0][0] > 0 && still && JSON.stringify(d.wires.map(w => [w.id, w.a, w.b])) === b.wires; }, gBefore)]);
+await sl.keyboard.press('Control+z'); await sl.waitForTimeout(80);
+// copy / paste
+await sl.keyboard.press('Escape'); await clickAt(await scr('S1')); await clickAt(await scr('K1', 'bobina'), 'Control');
+await sl.keyboard.press('Control+c'); await sl.keyboard.press('Control+v'); await sl.waitForTimeout(100);
+results.push(['Copiar e colar grupo: novas TAGs para dispositivos e fios internos copiados', await sl.evaluate(() => { const va = window.__va, d = va.doc(), news = [...va.ui.multi].map(id => d.comps.find(c => c.id === id)); return d.comps.length === 14 && news.length === 2 && news.some(c => c.type === 'bobina' && c.tag === 'K2') && news.some(c => c.type === 'botao_na' && c.tag !== 'S1'); })]);
+await sl.keyboard.press('Delete'); await sl.waitForTimeout(80);
+results.push(['Exclusão em grupo remove só os selecionados', await sl.evaluate(() => window.__va.doc().comps.length === 12 && window.__va.ui.multi.size === 0)]);
+await sl.keyboard.press('Control+a'); await sl.keyboard.press('Delete'); await sl.waitForTimeout(100);
+results.push(['Exclusão de muitos componentes pede confirmação', await sl.evaluate(() => !document.getElementById('modal').hidden && /Excluir 12 componentes/.test(document.getElementById('sheet').textContent) && window.__va.doc().comps.length === 12)]);
+await sl.click('#dConfirm'); await sl.waitForTimeout(80);
+results.push(['Exclusão confirmada remove os componentes e seus fios', await sl.evaluate(() => window.__va.doc().comps.filter(c => c.sheet === window.__va.ui.sheet).length === 0 && window.__va.doc().wires.length === 0)]);
+await sl.keyboard.press('Control+z'); await sl.waitForTimeout(80);
+results.push(['Desfazer restaura a exclusão em grupo', await sl.evaluate(() => window.__va.doc().comps.length === 12 && window.__va.doc().wires.length === 14)]);
+await sl.close();
+
+// ---- Fases 2 e 3: folhas na barra externa e barra superior contextual ----
+const sn = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+sn.on('pageerror', e => errors.push(e.message + ' @ ' + (e.stack || '').split('\n').slice(1, 4).join(' | ')));
+await sn.goto(page); await sn.waitForTimeout(400);
+await sn.evaluate(() => { const va = window.__va; va.load(va.EXAMPLES[1].build()); va.setView('diagram'); });
+await sn.waitForTimeout(200);
+results.push(['Folhas: barra externa mostra todas as folhas com número, nome e conteúdo (painel fechado)', await sn.evaluate(() => { const va = window.__va, tabs = [...document.querySelectorAll('#sheetNav .stab')]; return !va.ui.inspOpen && tabs.length === va.doc().sheets.length && /01\.Força/.test(tabs[0].textContent) && tabs[0].querySelector('.stc').textContent === String(va.doc().comps.filter(c => c.sheet === va.doc().sheets[0].id).length) && tabs[0].classList.contains('act'); })]);
+await sn.click('#sheetNav .stab:nth-child(2)'); await sn.waitForTimeout(150);
+results.push(['Folhas: clicar na aba carrega o diagrama da folha', await sn.evaluate(() => { const va = window.__va; return va.ui.sheet === va.doc().sheets[1].id && document.querySelector('#sheetNav .stab.act').dataset.sheet === va.ui.sheet && document.querySelectorAll('#world [data-comp]').length === va.doc().comps.filter(c => c.sheet === va.ui.sheet).length; })]);
+await sn.evaluate(() => { const va = window.__va; va.ui.inspOpen = true; va.ui.pmTab = 'proj'; va.render(); }); await sn.waitForTimeout(400);
+await sn.click('#sNew'); await sn.fill('#dName', 'Sinalização'); await sn.click('#dSave'); await sn.waitForTimeout(150);
+results.push(['Folhas: nova folha criada no Painel aparece na barra externa', await sn.evaluate(() => { const tabs = [...document.querySelectorAll('#sheetNav .stab')]; return tabs.length === 3 && /03\.Sinalização/.test(document.querySelector('#sheetNav .stab.act').textContent); })]);
+await sn.click('#sRen'); await sn.fill('#dName', 'Controle'); await sn.click('#dSave'); await sn.waitForTimeout(150);
+results.push(['Folhas: renomear atualiza a barra externa', await sn.evaluate(() => /Controle/.test(document.querySelector('#sheetNav .stab.act').textContent))]);
+await sn.click('#sDel'); await sn.click('#dConfirm'); await sn.waitForTimeout(150);
+results.push(['Folhas: excluir atualiza a navegação', await sn.evaluate(() => document.querySelectorAll('#sheetNav .stab').length === 2)]);
+await sn.click('#sheetNav .stab:nth-child(2)'); await sn.click('#sDup'); await sn.waitForTimeout(150);
+results.push(['Folhas: duplicar folha copia componentes e fios com novas TAGs de dispositivos', await sn.evaluate(() => { const va = window.__va, d = va.doc(), a = d.sheets[1], b = d.sheets[2]; const ca = d.comps.filter(c => c.sheet === a.id), cb = d.comps.filter(c => c.sheet === b.id), ib = new Set(cb.map(c => c.id)); return d.sheets.length === 3 && /cópia/.test(b.name) && cb.length === ca.length && d.wires.filter(w => ib.has(w.a.c)).length > 0 && cb.some(c => c.type === 'bobina' && c.tag !== 'K1') && va.ui.sheet === b.id; })]);
+await sn.evaluate(() => { const va = window.__va; va.load({ project: 'uma', comps: [], wires: [] }); va.setView('diagram'); va.ui.inspOpen = true; va.ui.pmTab = 'proj'; va.render(); }); await sn.waitForTimeout(300);
+await sn.click('#sDel'); await sn.waitForTimeout(150);
+results.push(['Folhas: não permite excluir a última folha', await sn.evaluate(() => window.__va.doc().sheets.length === 1)]);
+await sn.evaluate(() => { const va = window.__va; va.load(va.EXAMPLES[0].build()); va.doc().comps.push({ id: 'cx1', type: 'botao_na', x: 900, y: 300, rot: 0, tag: 'S9', sheet: va.doc().sheets[0].id }); va.setView('diagram'); va.render(); });
+results.push(['Folhas: indicador de avisos na aba', await sn.evaluate(() => !!document.querySelector('#sheetNav .stab.act .stw'))]);
+const vis = view => sn.evaluate(v => { const va = window.__va; va.setView(v); return ['#bRun', '#clock', '#bUndo', '#bRedo', '#bFile', '#bHelp', '#bSound', '#bTheme', '#bInsp'].filter(s => !document.querySelector(s).hidden).join(' '); }, view);
+const tb = { diagram: await vis('diagram'), operate: await vis('operate'), home: await vis('home'), tags: await vis('tags'), monitor: await vis('monitor') };
+results.push(['Barra superior: Diagrama com as ferramentas completas', tb.diagram === '#bRun #clock #bUndo #bRedo #bFile #bHelp #bSound #bTheme #bInsp']);
+results.push(['Barra superior: Operação / HMI só Simular, Ajuda e Tema', tb.operate === '#bRun #bHelp #bTheme']);
+results.push(['Barra superior: Início e Listas com Projeto, Ajuda, Som e Tema', tb.home === '#bFile #bHelp #bSound #bTheme' && tb.tags === tb.home]);
+results.push(['Barra superior: Monitoramento com Simular, Projeto, Ajuda, Som e Tema', tb.monitor === '#bRun #clock #bFile #bHelp #bSound #bTheme']);
+results.push(['Barra superior: ferramentas centralizadas na tela em todas as visões', await sn.evaluate(() => ['home', 'operate', 'diagram'].every(v => { window.__va.setView(v); const a = document.getElementById('topActs').getBoundingClientRect(); return Math.abs((a.left + a.right) / 2 - innerWidth / 2) < 3; }))]);
+await sn.close();
+
+// ---- Fases 5 a 10: IHM com entradas/saídas, sensores, sons, falhas, semáforo e monitoramento ----
+const io = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
+io.on('pageerror', e => errors.push(e.message + ' @ ' + (e.stack || '').split('\n').slice(1, 4).join(' | ')));
+await io.goto(page); await io.waitForTimeout(400);
+await io.evaluate(() => { const va = window.__va; va.load(va.ApplicationRegistry.get('semaforo').exampleProjectReference()); va.setView('operate'); });
+await io.waitForTimeout(150);
+results.push(['IHM: entradas com representação do dispositivo (Liga, Desliga, Emergência, Seletora)', await io.evaluate(() => { const k = [...document.querySelectorAll('#hmiIn [data-hdev]')].map(b => b.dataset.hdev + ':' + b.dataset.kind).join(); return k === 'S1:push,S0:push,SE1:emergency,SA1:selector' && document.querySelectorAll('#hmiIn svg').length === 4 && !document.getElementById('opRun'); })]);
+await io.click('#bRun'); await io.waitForTimeout(200);
+await io.click('#hmiIn [data-hdev="SA1"]'); await io.waitForTimeout(100);
+const bS1 = await io.locator('#hmiIn [data-hdev="S1"]').boundingBox();
+await io.mouse.move(bS1.x + bS1.width / 2, bS1.y + 30); await io.mouse.down(); await io.waitForTimeout(200); await io.mouse.up(); await io.waitForTimeout(300);
+results.push(['IHM → motor elétrico: S1 e SA1 pela IHM ligam K1 e o verde no circuito', await io.evaluate(() => { const va = window.__va; return va.sim.coils.K1 && va.sim.timerOn.KT1 && va.VirtualActuatorEngine.read(va.ApplicationRegistry.get('semaforo')).out.H3 && /Automático/.test(document.querySelector('#hmiIn [data-hdev="SA1"]').textContent) && /VERDE/.test(document.getElementById('hmiStage').textContent); })]);
+results.push(['Monitoramento coerente: entradas, saídas, temporizadores e histórico com tempo de simulação', await io.evaluate(() => { const va = window.__va; va.setView('monitor'); const t = document.getElementById('moIO').textContent, ev = document.getElementById('moEvents').textContent; const ok = /Entradas digitais/.test(t) && /SA1/.test(t) && /1 · acionada/.test(t) && /Saídas digitais/.test(t) && /H3/.test(t) && /Temporizadores/.test(t) && /Entrada S1: acionada/.test(ev) && /Contator K1: energizado/.test(ev) && /00:0\d\.\d/.test(ev); va.setView('operate'); return ok; })]);
+// sounds only on real transitions
+results.push(...await io.evaluate(() => {
+  const va = window.__va, out = [], log = [], orig = va.Sfx.play; va.Sfx.play = n => log.push([va.sim.t, n]);
+  va.stopSim(); va.startSim(); va.SfxWatch.reset();
+  const step = n => { for (let i = 0; i < n; i++) { va.simStep(.05); va.SfxWatch.update(); } };
+  step(1); va.HMIBindingEngine.toggle('SA1', true); va.HMIBindingEngine.press('S1', true); step(2); va.HMIBindingEngine.press('S1', false);
+  step(40); const n1 = log.length; step(30); const steady = log.filter(([t]) => t > 2.3 && t < 3.6).length;
+  step(60);
+  const ticks = log.filter(([, n]) => n === 'tick').length, relays = log.filter(([, n]) => n === 'relay').length;
+  out.push(['Sons: comutação do semáforo só quando a cor muda de verdade', ticks >= 2 && steady === 0]);
+  out.push(['Sons: acionamento de relé/contator sem repetir enquanto permanece ligado', relays >= 1 && relays < 20 && log.filter(([t, n]) => n === 'relay' && t > 2.3 && t < 3.6).length === 0]);
+  va.Sfx.play = orig; va.Sfx.on = false; const off = va.Sfx.level() === 0; va.Sfx.on = true; va.ui.mute = true; const mute = va.Sfx.level() === 0; va.ui.mute = false;
+  out.push(['Sons: podem ser desativados (efeitos e botão Som)', off && mute]);
+  return out;
+}));
+// test mode + fault injection (run on the real circuit)
+results.push(...await io.evaluate(() => {
+  const va = window.__va, app = va.ApplicationRegistry.get('semaforo'), out = [], run = (id, secs) => { va.LiveScript.start(app, app.testMode.find(m => m.id === id)); for (let i = 0; i < secs / .05; i++) va.simStep(.05); return va.Proc.faults.map(f => f.code); };
+  let f = run('normal', 12); out.push(['Modo de teste: funcionamento normal sem alarmes e com tempos medidos', !f.length && va.Proc.st.cycles >= 0 && Math.abs(va.Proc.st.durs.G + .05 - 4) < .3 && Math.abs(va.Proc.st.durs.Y + .05 - 2) < .3]);
+  f = run('parada', 9); out.push(['Modo de teste: parada por S0 apaga o semáforo', !va.sim.coils.K1 && !['H1', 'H2', 'H3'].some(k => va.VirtualActuatorEngine.read(app).out[k])]);
+  f = run('conflito', 6); out.push(['Modo de teste: contato colado gera sinalização conflitante detectada', f.includes('conflict') && va.sim.welded.size === 1]);
+  f = run('falha_seq', 16); out.push(['Modo de teste: falha de sequência detectada pela análise do processo', f.includes('sequence') && va.Proc.faults.find(x => x.code === 'sequence').msg.includes('vermelho → amarelo')]);
+  f = run('lampada', 2); out.push(['Modo de teste: lâmpada queimada = comandada mas apagada (falha de sinalização)', f.includes('lampfail:H3') && va.VirtualActuatorEngine.read(app).out.H3 && /H3 queimada/.test(va.sceneSVG(va.hmiView(app).view, 'live'))]);
+  f = run('manual', 3); out.push(['Modo de teste: manual com amarelo intermitente', !f.length && va.Proc.hist.slice(-50).some(h => h.v === 2) && va.Proc.hist.slice(-50).some(h => h.v === 0)]);
+  va.stopSim(); return out;
+}));
+// sensors: automatic, forced, failed — always sent to the electrical engine, never driving outputs directly
+results.push(...await io.evaluate(() => {
+  const va = window.__va, app = va.ApplicationRegistry.get('caixa_dagua'), out = [];
+  va.load(app.exampleProjectReference()); va.setView('operate'); va.startSim(); va.Proc.st.cons = 0; va.Proc.st.lvl = 50;
+  const b2 = va.doc().comps.find(c => c.tag === 'B2'), b1 = va.doc().comps.find(c => c.tag === 'B1');
+  va.HMIBindingEngine.press('S1', true); va.simStep(.05); va.HMIBindingEngine.press('S1', false); for (let i = 0; i < 4; i++) va.simStep(.05);
+  const ran = va.VirtualActuatorEngine.read(app).out.M1.run;
+  va.HMIBindingEngine.forceSensor('B2', '1'); va.simStep(.05);
+  out.push(['Sensores: forçar B2 em 1 é enviado ao circuito, que decide desligar a bomba', ran && va.sim.toggled.has(b2.id) && !va.VirtualActuatorEngine.read(app).out.M1.run && va.Proc.st.lvl < 60]);
+  va.updateHMI();
+  out.push(['Sensores: forçamento identificado (IHM, cena e monitoramento)', /FORÇADO 1/.test(document.getElementById('hmiSens').textContent) && /B2 F/.test(document.getElementById('hmiStage').textContent) && /SENSOR FORÇADO/.test(document.getElementById('hmiDiag').textContent) && /B2/.test(va.monitorIOHTML().split('Sensores forçados')[1])]);
+  va.HMIBindingEngine.forceSensor('B2', 'auto'); va.simStep(.05);
+  out.push(['Sensores: voltar ao automático usa o estado físico', !va.sim.toggled.has(b2.id) && !('B2' in va.Proc.st.force)]);
+  va.Proc.st.lvl = 10; va.HMIBindingEngine.forceSensor('B1', 'fail'); for (let i = 0; i < 6; i++) va.simStep(.05);
+  out.push(['Sensores: falha de sensor envia 0 e a bomba não parte sozinha', !va.sim.toggled.has(b1.id) && !va.VirtualActuatorEngine.read(app).out.M1.run && /SENSOR EM FALHA/.test(va.hmiDiagHTML(app))]);
+  va.HMIBindingEngine.clearInjected(); for (let i = 0; i < 6; i++) va.simStep(.05);
+  out.push(['Sensores: remover falhas devolve o controle ao processo físico', va.VirtualActuatorEngine.read(app).out.M1.run]);
+  va.stopSim();
+  // exercise without circuit: HMI inputs reach the engine, nothing lights by itself
+  va.load(va.ExerciseSession.create(va.ApplicationRegistry.get('semaforo'))); va.startSim(); va.HMIBindingEngine.toggle('SA1', true); va.HMIBindingEngine.press('S1', true); for (let i = 0; i < 10; i++) va.simStep(.05);
+  const o = va.VirtualActuatorEngine.read(va.ApplicationRegistry.get('semaforo')).out;
+  out.push(['IHM não aciona saídas sem o circuito: sem diagrama, nada acende', !o.H1 && !o.H2 && !o.H3 && !o.K1]);
+  va.stopSim();
+  return out;
+}));
+// electrical failures shown from the engine: short + protection, gate motor failure, water overflow
+results.push(...await io.evaluate(() => {
+  const va = window.__va, out = [], sd = va.ApplicationRegistry.get('estrela_triangulo'), d = sd.exampleProjectReference();
+  const k2 = d.comps.find(c => c.type === 'bobina' && c.tag === 'K2'), k3 = d.comps.find(c => c.type === 'bobina' && c.tag === 'K3');
+  for (const c of d.comps) if ((c.x === k2.x && (c.type === 'temp_nf' || (c.type === 'contato_nf' && c.tag === 'K3'))) || (c.x === k3.x && c.type === 'contato_nf' && c.tag === 'K2')) { c.type = 'contato_nf'; c.tag = 'KX'; delete c.dev; }
+  va.load(d); va.setView('operate'); va.startSim(); va.HMIBindingEngine.press('S1', true); va.simStep(.05); va.HMIBindingEngine.press('S1', false);
+  for (let i = 0; i < 80; i++) va.simStep(.05);
+  const al = va.elecAlerts().map(a => a.k); const svg = va.sceneSVG(va.hmiView(sd).view, 'live');
+  out.push(['Falhas elétricas: curto detectado pelo motor, proteção atuada e animação educacional', al.includes('prot') && !!va.sim.spike && va.Proc.faults.some(f => f.code === 'conflict') && /Proteção atuada/.test(svg) && /Q1/.test(va.hmiDiagHTML(sd))]);
+  va.stopSim();
+  const gt = va.ApplicationRegistry.get('portao'); va.load(gt.exampleProjectReference()); va.startSim(); va.HMIBindingEngine.control(gt.controls.find(c => c.id === 'mf'));
+  va.HMIBindingEngine.press('S1', true); va.simStep(.05); va.HMIBindingEngine.press('S1', false); for (let i = 0; i < 20; i++) va.simStep(.05);
+  out.push(['Falhas do portão: motor comandado sem movimento gera alarme', va.Proc.st.pos === 0 && va.Proc.faults.some(f => f.code === 'motorfail') && va.VirtualActuatorEngine.read(gt).out.M1.run]);
+  va.stopSim();
+  return out;
+}));
+await io.close();
 
 const m = await browser.newPage({ viewport: { width: 390, height: 844 } });
 await m.goto(page); await m.waitForTimeout(500);
