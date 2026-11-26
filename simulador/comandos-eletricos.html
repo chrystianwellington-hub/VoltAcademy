@@ -327,6 +327,76 @@ body.warp::after { content: ''; position: fixed; inset: 0; z-index: 90; pointer-
 @keyframes warp { 0% { opacity: 0; transform: scale(.4); } 25% { opacity: 1; } 100% { opacity: 0; transform: scale(2.2); } }
 @media (prefers-reduced-motion: reduce) { .msheet.holo, .modal.closing, .modal.closing .msheet { animation: none; } }
 
+/* ---- Interactive HMI & Practical Exercise Lab ---- */
+.hmi { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 16px; align-items: start; }
+.hmi-main { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.hmi-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; flex-wrap: wrap; }
+.hmi-head h2 { margin: 2px 0 0; }
+.hmi-stage, .ex-scene { border-radius: 16px; overflow: hidden; background: radial-gradient(120% 120% at 50% 30%, #13202E, #070C13); border: 1px solid rgba(101,228,255,.22); box-shadow: 0 0 0 1px rgba(0,0,0,.3), 0 20px 50px rgba(0,0,0,.25); }
+.hmi-svg { display: block; width: 100%; height: auto; font-family: var(--font-body); }
+.hmi-cap { margin: 0; font-size: 12.5px; color: var(--muted); }
+.hmi-side { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.hmi-card { border: 1px solid var(--line); border-radius: 14px; padding: 12px; background: var(--surface); display: flex; flex-direction: column; gap: 8px; margin: 0; }
+.hmi-card .h { margin: 0; }
+.hmi-cmds { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 8px; }
+.hmi-btn { border: 1px solid var(--line); border-radius: 12px; padding: 10px 8px; display: flex; flex-direction: column; align-items: center; gap: 2px; background: var(--surface-2); color: var(--fg); touch-action: none; user-select: none; transition: box-shadow .2s, border-color .2s, transform .1s; }
+.hmi-btn b { font-size: 16px; } .hmi-btn small { font-size: 11px; color: var(--muted); text-align: center; } .hmi-st { font-size: 10.5px; color: var(--muted); font-family: var(--font-mono); }
+.hmi-btn.k-emergency { border-color: rgba(214,59,59,.6); } .hmi-btn.k-emergency b { color: #E33434; }
+.hmi-btn.act { border-color: #FFD600; box-shadow: 0 0 0 1px #FFD600, 0 0 16px rgba(255,214,0,.35); transform: translateY(1px); }
+.hmi-btn:disabled { opacity: .55; }
+.hmi-ctls { display: flex; flex-direction: column; gap: 8px; }
+.hmi-ctl { display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; } .hmi-ctl span { display: flex; justify-content: space-between; color: var(--muted); }
+.hmi-ctl input { accent-color: #FFD600; }
+.hmi-tgl { display: flex; align-items: center; gap: 8px; border: 1px solid var(--line); border-radius: 10px; padding: 7px 10px; font-size: 12.5px; text-align: left; color: var(--fg); background: var(--surface-2); }
+.hmi-tgl .led, .ex-mode .led { width: 9px; height: 9px; border-radius: 50%; background: var(--line); flex: none; }
+.hmi-tgl.act { border-color: rgba(255,214,0,.8); } .hmi-tgl.act .led { background: #FFD600; box-shadow: 0 0 8px #FFD600; }
+.hmi-tags, .ex-tags, #pmApp .dtab { table-layout: fixed; min-width: 0; } .hmi-card .readouts { flex-wrap: wrap; margin-left: 0; flex: 1 1 auto; } .hmi-tags th:first-child { width: 52px; } .hmi-tags th:last-child { width: 36%; } .hmi-tags td { word-break: break-word; } .hmi-tags td small { display: block; }
+.reqs { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; font-size: 12.5px; }
+.reqs li { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 8px; align-items: start; }
+.reqs em { display: block; font-style: normal; margin-top: 4px; font-size: 12px; } .reqs em.fb { color: var(--critical, #D63B3B); } .reqs em.okm { color: var(--ok); } .reqs em.hint { color: var(--accent-ink); }
+.reqs .lnk { font-size: 12px; margin-top: 4px; display: inline-block; }
+.tst { font: 600 10.5px var(--font-mono); padding: 3px 6px; border-radius: 6px; text-align: center; background: var(--surface-2); color: var(--muted); border: 1px solid var(--line); white-space: nowrap; }
+.tst.ok { color: #138A48; border-color: rgba(31,157,85,.5); background: rgba(31,157,85,.1); } .tst.fail { color: #C02828; border-color: rgba(214,59,59,.5); background: rgba(214,59,59,.08); }
+.tst.run { color: #9A7A00; border-color: rgba(255,214,0,.7); background: rgba(255,214,0,.12); } .tst.inc { color: #9A5B00; border-color: rgba(255,170,0,.5); }
+.prog { display: flex; align-items: center; gap: 14px; }
+.ring { --p: 0; width: 76px; height: 76px; border-radius: 50%; flex: none; display: grid; place-items: center; background: conic-gradient(#FFD600 calc(var(--p) * 1%), var(--surface-2) 0); box-shadow: 0 0 14px rgba(255,214,0,.25); }
+.ring b { width: 58px; height: 58px; border-radius: 50%; background: var(--surface); display: grid; place-items: center; font: 700 16px var(--font-mono); }
+.prog .list { flex: 1; }
+.pmacts.two { grid-template-columns: 1fr 1fr; }
+.lab-meta { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; } .lab-meta li { display: flex; justify-content: space-between; gap: 10px; } .lab-meta span { color: #6E8A99; }
+/* Practical Exercise Lab */
+.exlab .lab-item.ex-item { grid-template-columns: 30px minmax(0, 1fr) auto; }
+.ex-name { font: 600 13.5px var(--font-body); line-height: 1.25; } .ex-name small { display: block; margin-top: 3px; font: 500 11px var(--font-mono); color: #6E8A99; }
+.lvl { font-style: normal; } .lvl.l-basico { color: #2BD96B; } .lvl.l-intermediario { color: #FFB800; } .lvl.l-avancado { color: #FF6B6B; }
+.ex-prog { display: block; height: 4px; margin-top: 6px; border-radius: 2px; background: rgba(101,228,255,.15); overflow: hidden; } .ex-prog span { display: block; height: 100%; background: #FFD600; }
+.ex-pct { font: 700 12px var(--font-mono); color: var(--h-yellow); }
+.ex-stage { display: flex; flex-direction: column; gap: 10px; padding: 16px; background: radial-gradient(90% 80% at 50% 40%, #0F1D2C, #060B12); overflow-y: auto; }
+.ex-bar { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.ex-mode { display: inline-flex; align-items: center; gap: 8px; font: 600 11.5px var(--font-mono); letter-spacing: .08em; color: #9BE7FF; padding: 6px 10px; border-radius: 9px; border: 1px solid rgba(101,228,255,.45); background: rgba(11,59,82,.6); }
+.ex-mode .led { background: #65E4FF; box-shadow: 0 0 8px #65E4FF; animation: navGlow 1.6s infinite; }
+.ex-btns { display: flex; gap: 6px; } .ex-btns button { padding: 7px 12px; border-radius: 9px; border: 1px solid rgba(101,228,255,.3); background: rgba(6,11,18,.7); color: #BFE3F0; font-size: 12.5px; } .ex-btns button:hover { border-color: rgba(255,214,0,.6); }
+.ex-cap { margin: 0; min-height: 20px; color: #E9C98A; font-size: 14px; text-align: center; }
+.ex-reqs, .ex-crit { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; font-size: 13px; line-height: 1.4; }
+.ex-tags { width: 100%; border-collapse: collapse; font-size: 12.5px; } .ex-tags td { padding: 4px 6px; border-bottom: 1px solid rgba(101,228,255,.1); } .ex-tags td:first-child { color: var(--h-yellow); font-weight: 700; } .ex-tags td:last-child { color: #6E8A99; }
+.lab-open.ghost { background: transparent; border: 1px solid rgba(255,214,0,.6); color: #FFE680; margin-top: 8px; }
+/* scene primitives */
+.hs-tag rect { fill: #0B1118; stroke: #65E4FF; stroke-opacity: .55; } .hs-tag text { fill: #BFE3F0; font: 700 12px var(--font-mono); text-anchor: middle; }
+.hs-tag.on rect { stroke: #FFD600; stroke-opacity: 1; fill: #2A2300; } .hs-tag.on text { fill: #FFE680; } .hs-tag.warn rect { stroke: #FF6B6B; fill: #2A0B0B; } .hs-tag.warn text { fill: #FFB3B3; }
+.hs-lbl { fill: #8FB7C9; font: 600 12px var(--font-body); text-anchor: middle; } .hs-sub { fill: #6E8A99; font: 500 11px var(--font-mono); text-anchor: middle; } .hmi-svg .l { text-anchor: start; } .hmi-svg .r { text-anchor: end; }
+.hs-big { fill: #E9F6FF; font: 800 26px var(--font-display); text-anchor: middle; } .hs-big.sm { font-size: 18px; } .hmi-svg .warnt { fill: #FF6B6B; }
+.hs-badge { fill: #9BE7FF; font: 700 11px var(--font-mono); text-anchor: middle; letter-spacing: .04em; } .hs-badge.live { fill: #FFE680; } .hs-badge.off { fill: #8892A0; }
+.hs-tank { fill: rgba(16,26,38,.85); stroke: #5B7A90; stroke-width: 2; } .hs-panel { fill: rgba(10,16,24,.82); stroke: rgba(101,228,255,.25); }
+.hs-pipe { fill: none; stroke: #3A4656; stroke-width: 12; stroke-linecap: round; stroke-linejoin: round; } .hs-pipe.sm { stroke-width: 6; }
+.hs-flow { fill: none; stroke: #36C6FF; stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; }
+.hs-mark { stroke: #FFD600; stroke-opacity: .45; stroke-dasharray: 5 5; } .hs-float { fill: #3A4452; stroke: #8892A0; stroke-width: 2; } .hs-float.on { fill: #FFD600; stroke: #FFF0B0; }
+.hs-metal { fill: url(#hsMetal); stroke: #0E141C; } .hs-bezel { fill: #0B1017; stroke: #3A4452; stroke-width: 2; }
+.hs-chip { fill: #121A24; stroke: #3A4656; } .hs-chip.on { fill: #2A2300; stroke: #FFD600; } .hs-chip.warn { fill: #3A0E0E; stroke: #FF3B3B; }
+.hs-chipt { fill: #8FA3B3; font: 700 11.5px var(--font-mono); text-anchor: middle; } .hs-chipt.on { fill: #FFE680; }
+.hs-beam { stroke: #FF3B3B; stroke-width: 2; stroke-dasharray: 6 5; opacity: .9; } .hs-beam.off { opacity: .2; } .hs-eye { fill: #FF3B3B; stroke: #FFB3B3; }
+.hs-limit { fill: #1A2230; stroke: #5B6675; } .hs-limit.on { fill: #FFD600; stroke: #FFF0B0; }
+.hs-wind { fill: none; stroke: #5B6675; stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; } .hs-on .hs-wind { stroke: #FFD600; } .hs-on text { fill: #FFE680; }
+@media (max-width: 1100px) { .hmi { grid-template-columns: 1fr; } }
+
 /* modal */
 .modal { position: fixed; inset: 0; background: rgba(12,14,18,.5); display: grid; place-items: center; z-index: 70;
   padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 16px; }
@@ -686,7 +756,7 @@ canvas.holo { position: absolute; inset: 0; width: 100%; height: 100%; display: 
       </div>
       <aside class="pm" id="pm" aria-label="Painel do projeto"><div class="pmin">
         <div class="pmh"><div><p class="eyebrow" style="margin:0">Project Manager</p><b>Painel do projeto</b></div><button class="x" id="pmClose" aria-label="Fechar painel">×</button></div>
-        <div class="seg pmtabs" role="tablist" aria-label="Seções do painel"><button data-pmtab="proj" class="act" role="tab">Projeto</button><button data-pmtab="props" role="tab">Propriedades</button></div>
+        <div class="seg pmtabs" role="tablist" aria-label="Seções do painel"><button data-pmtab="proj" class="act" role="tab">Projeto</button><button data-pmtab="props" role="tab">Propriedades</button><button data-pmtab="app" role="tab" id="pmTabApp" hidden>Exercício</button></div>
         <div class="pmbody" id="pmProj">
           <section class="pmsec"><p class="pmt"><span>01</span>Visualização</p><div class="seg wide" role="group" aria-label="Aparência"><button data-look="sym" class="act">Símbolos</button><button data-look="2d">2D</button></div></section>
           <section class="pmsec"><p class="pmt"><span>02</span>Folhas do projeto<i id="pmCount"></i></p><div class="sheettab"><div class="srow head" aria-hidden="true"><span>Nº</span><span>Folha</span><span>Comp.</span><span>Formato</span><span></span></div><div id="tabs" role="listbox" aria-label="Folhas"></div></div></section>
@@ -695,6 +765,7 @@ canvas.holo { position: absolute; inset: 0; width: 100%; height: 100%; display: 
           <details class="pmsec" id="pmElec" open><summary class="pmt"><span>05</span>Dados elétricos do projeto</summary><div id="pmElecBody"></div></details>
         </div>
         <div class="pmbody" id="insp" hidden></div>
+        <div class="pmbody" id="pmApp" hidden></div>
       </div></aside>
       <nav class="tools" aria-label="Ferramentas">
         <button class="tool act" data-mode="select" title="Selecionar e mover (V)" aria-label="Selecionar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="m5 3 14 8-6 2-2 6z"/></svg></button>
@@ -745,13 +816,20 @@ canvas.holo { position: absolute; inset: 0; width: 100%; height: 100%; display: 
       </div>
       <aside class="lab-info" id="labInfo"></aside>
     </section>
+    <section class="view labview exlab" data-view="exlab" id="vExLab" hidden>
+      <aside class="lab-side"><button class="lab-back" id="exBack">‹ Início</button><p class="lab-k">Practical Exercise Lab</p><p class="lab-title">Exercícios</p>
+        <div class="lab-list" id="exList" role="listbox" aria-label="Exercícios práticos"></div><p class="lab-count" id="exCount"></p></aside>
+      <div class="lab-stage ex-stage"><div class="ex-bar"><span class="ex-mode" id="exMode"></span><div class="ex-btns"><button id="exPlay">Pausar demonstração</button><button id="exRestart">Reiniciar</button></div></div>
+        <div class="ex-scene" id="exScene"></div><p class="ex-cap" id="exCap" aria-live="polite"></p></div>
+      <aside class="lab-info" id="exInfo"></aside>
+    </section>
     <section class="view scrollview" data-view="tags" id="vTags" hidden></section>
     <section class="view scrollview" data-view="monitor" id="vMonitor" hidden></section>
   </main>
 
   <nav class="bottom" id="bnav" aria-label="Seções">
     <button class="nav act" data-nav="diagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4M7 9l2 2-2 2M11 13h5"/></svg>Diagrama</button>
-    <button class="nav" data-nav="operate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="9" r="2.5"/><circle cx="15.5" cy="9" r="2.5"/><path d="M7 16h10"/></svg>Operação</button>
+    <button class="nav" data-nav="operate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="9" r="2.5"/><circle cx="15.5" cy="9" r="2.5"/><path d="M7 16h10"/></svg>Operação / HMI</button>
     <button class="nav home" data-nav="home"><b class="wm">VOLT<span>ACADEMY</span></b><svg class="mi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M13 2 5 13h6l-1 9 8-12h-6z"/></svg>Início</button>
     <button class="nav" data-nav="tags"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 4v16M12 4v16M18 4v16"/><circle cx="6" cy="9" r="2" fill="var(--surface)"/><circle cx="12" cy="15" r="2" fill="var(--surface)"/><circle cx="18" cy="8" r="2" fill="var(--surface)"/></svg>Listas</button>
     <button class="nav" data-nav="monitor"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4M6 12h3l2-4 2 6 2-3h3"/></svg>Monitoramento</button>
@@ -1039,6 +1117,32 @@ const TX_DEFAULTS = {
   trafo_3f_iso: () => ({ vp: ElectricalNetwork.lineDefault(), vs: 380, va: 15000, conn: 'Dy', nsec: true, hzn: ProjectElectricalConfig.of().hz, tol: 5, eff: 97 }),
   autotrafo: () => ({ vp: 220, vs: 127, va: 1000, hzn: ProjectElectricalConfig.of().hz, tol: 5 }),
 };
+// ---------------- Sensores de processo e temporizador na desenergização (aplicações práticas) ----------------
+const opLimit = (x = -24) => `<path d="M${x + 2} -8 L${x - 6} 0 L${x + 2} 8" fill="none"/>` + L(x + 2, 0, x + 4, 0);            // position switch operator (S00262)
+const opFloat = (x = -24) => `<circle cx="${x - 4}" cy="6" r="5" fill="none"/>` + L(x - 4, 1, x - 4, -10) + L(x - 4, -10, x + 2, -10) + `<path d="M${x - 14} 14 q3 -3 6 0 t6 0 t6 0" fill="none"/>`; // float / liquid level (S00265)
+function photoBox(act, nf) {
+  let s = `<rect x="-36" y="-22" width="46" height="44" fill="none"/>` + `<path d="M-30 -10 l8 6 M-30 -4 l8 6" fill="none"/>` + `<path d="M-24 -6 l2 2 l-3 0 M-24 0 l2 2 l-3 0" fill="none"/>` + T(-13, 16, '◇', 'it sm');
+  s += L(0, -40, 0, -22) + L(0, 22, 0, 40);
+  s += nf ? L(0, -22, 0, -12) + L(0, -12, 6, -12) + L(0, 22, 0, 12) + (act ? L(0, 12, -8, -9) : L(0, 12, 8, -14))
+          : L(0, -22, 0, -12) + L(0, 22, 0, 12) + (act ? L(0, 12, 0, -12) : L(0, 12, -8, -9));
+  return s + L(-10, 0, -5, 0, dash);
+}
+Object.assign(TYPES, {
+  temporizador_off: { name: 'Bobina temporizada (retardo na desenergização)', cat: 'Contatores e relés', pre: 'KT', terms: P2, nums: { a: 'A1', b: 'A2' }, loads: [['a', 'b', 'timer']], tof: true,
+    draw: (c, st) => L(0, -40, 0, -12) + L(0, 12, 0, 40) + coilBox(st.on) + `<rect x="-34" y="-12" width="16" height="24" fill="none"/>` + L(-34, -12, -18, 12) + L(-34, 12, -18, -12) +
+      (st.progress ? `<rect x="-18" y="15" width="${Math.round(36 * (1 - st.progress))}" height="3" fill="var(--warn)" stroke="none"/>` : '') },
+  fim_curso_na: { name: 'Fim de curso NA', cat: 'Comando', pre: 'FC', terms: P2, nums: { a: '13', b: '14' }, inter: 'toggle', act: actToggle, pairs: two,
+    draw: (c, st) => no(0, st.act) + link(-6, -20) + opLimit(-22) },
+  fim_curso_nf: { name: 'Fim de curso NF', cat: 'Comando', pre: 'FC', terms: P2, nums: { a: '11', b: '12' }, inter: 'toggle', act: actToggle, pairs: twoNC,
+    draw: (c, st) => nc(0, st.act) + link(-6, -20) + opLimit(-22) },
+  boia_na: { name: 'Chave de nível (boia) NA', cat: 'Comando', pre: 'B', terms: P2, nums: { a: '13', b: '14' }, inter: 'toggle', act: actToggle, pairs: two,
+    draw: (c, st) => no(0, st.act) + link(-6, -20) + opFloat(-22) },
+  boia_nf: { name: 'Chave de nível (boia) NF', cat: 'Comando', pre: 'B', terms: P2, nums: { a: '11', b: '12' }, inter: 'toggle', act: actToggle, pairs: twoNC,
+    draw: (c, st) => nc(0, st.act) + link(-6, -20) + opFloat(-22) },
+  fotocelula_na: { name: 'Fotocélula NA', cat: 'Comando', pre: 'B', terms: P2, nums: { a: 'BN', b: 'BK' }, inter: 'toggle', act: actToggle, pairs: two, draw: (c, st) => photoBox(st.act, false) },
+  fotocelula_nf: { name: 'Fotocélula NF', cat: 'Comando', pre: 'B', terms: P2, nums: { a: 'BN', b: 'WH' }, inter: 'toggle', act: actToggle, pairs: twoNC, draw: (c, st) => photoBox(st.act, true) },
+});
+const TIMER_T = new Set(['temporizador', 'temporizador_off']);
 TYPES.buzzer = { name: 'Buzzer (campainha)', cat: 'Cargas e sinalização', pre: 'HA', terms: P2, nums: { a: 'X1', b: 'X2' }, loads: [['a', 'b', 'lamp']],
   sound: { mode: 'intermitente', wave: 'square', f1: 1800, f2: 1800 },
   draw: (c, st) => L(0, -40, 0, -14) + `<path d="M-16 6 A16 16 0 0 1 16 6 Z" fill="${st.on ? 'var(--gold)' : 'none'}"/>` + L(0, 6, 0, 40) + soundWaves(st) };
@@ -1187,7 +1291,7 @@ function normalizeWireNumbers() {
 const netOfWire = w => wireNets().find(n => n.includes(w)) || [w];
 function endLabel(e) { const c = compById(e.c); if (!c) return '?'; const T0 = TYPES[c.type], n = T0.nums[e.t] || (Object.keys(T0.terms).length > 1 ? e.t.toUpperCase() : ''); return `${c.tag || T0.name}${n ? ':' + n : ''}`; }
 // ---------- History & persistence ----------
-function serialize() { return JSON.stringify({ app: PLATFORM, kind: 'comandos-eletricos', version: 5, elec: doc.elec || undefined, project: doc.project, author: doc.author, logo: doc.logo || '', dateAuto: doc.dateAuto !== false, date: doc.date || '', dateIso: doc.dateIso || '', sheets: doc.sheets, comps: doc.comps, wires: doc.wires }); }
+function serialize() { return JSON.stringify({ app: PLATFORM, kind: 'comandos-eletricos', version: 6, elec: doc.elec || undefined, app: doc.app || undefined, project: doc.project, author: doc.author, logo: doc.logo || '', dateAuto: doc.dateAuto !== false, date: doc.date || '', dateIso: doc.dateIso || '', sheets: doc.sheets, comps: doc.comps, wires: doc.wires }); }
 function saveLocal() { try { localStorage.setItem('voltacademy.ce.doc', serialize()); localStorage.setItem('voltacademy.ce.sheet', ui.sheet || ''); } catch (e) {} }
 function commit() {
   normalizeWireNumbers();
@@ -1195,6 +1299,7 @@ function commit() {
   hist.stack.push(serialize()); hist.idx = hist.stack.length - 1;
   if (hist.stack.length > 120) { hist.stack.shift(); hist.idx--; }
   saveLocal(); updateTop();
+  if (doc.app && doc.app.mode === 'exercise') ExerciseProgressManager.save();
 }
 function load(json, { keepHistory = false } = {}) {
   const d = typeof json === 'string' ? JSON.parse(json) : json;
@@ -1202,7 +1307,8 @@ function load(json, { keepHistory = false } = {}) {
   for (const c of d.comps) if (!TYPES[c.type]) throw new Error(`Componente desconhecido: ${c.type}`);
   const sheets = (Array.isArray(d.sheets) && d.sheets.length ? d.sheets : [{ id: 's1', name: 'Folha 1' }]).map(s => ({ id: s.id, name: s.name || 'Folha', desc: s.desc || '', size: SIZES[s.size] ? s.size : 'A3', orient: s.orient === 'retrato' ? 'retrato' : 'paisagem', cols: Math.min(40, Math.max(2, +s.cols || 12)), rows: Math.min(26, Math.max(2, +s.rows || 6)) }));
   const ids = new Set(sheets.map(s => s.id));
-  doc = { elec: ProjectElectricalConfig.sanitize(d.elec), project: d.project || 'Projeto sem nome', author: d.author || '', logo: typeof d.logo === 'string' && d.logo.startsWith('data:image/') ? d.logo : '', dateAuto: d.dateAuto !== false, date: d.date || '', dateIso: d.dateIso || '', sheets,
+  const ap = d.app && typeof d.app === 'object' && ApplicationRegistry.get(d.app.id) ? { id: d.app.id, mode: d.app.mode === 'exercise' ? 'exercise' : 'example', session: d.app.session || '', started: d.app.started || '', results: d.app.results && typeof d.app.results === 'object' ? d.app.results : {}, hints: d.app.hints && typeof d.app.hints === 'object' ? d.app.hints : {}, validatedAt: d.app.validatedAt || '' } : null;
+  doc = { app: ap, elec: ProjectElectricalConfig.sanitize(d.elec), project: d.project || 'Projeto sem nome', author: d.author || '', logo: typeof d.logo === 'string' && d.logo.startsWith('data:image/') ? d.logo : '', dateAuto: d.dateAuto !== false, date: d.date || '', dateIso: d.dateIso || '', sheets,
     comps: d.comps.map(c => ({ ...c, sheet: ids.has(c.sheet) ? c.sheet : sheets[0].id })),
     wires: d.wires.map(w => ({ ...w, pts: w.pts ? w.pts.map(p => [...p]) : [] })) };
   const num = x => +String(x).replace(/\D/g, '') || 0;
@@ -1219,7 +1325,7 @@ function lastTag(types, fallback) { const k = doc.comps.filter(c => types.includ
 function nextTag(type) {
   const T0 = TYPES[type]; if (T0.notag) return '';
   if (T0.ref === 'coil') return lastTag(['bobina'], 'K1');
-  if (T0.ref === 'timer') return lastTag(['temporizador'], 'KT1');
+  if (T0.ref === 'timer') return lastTag(['temporizador', 'temporizador_off'], 'KT1');
   if (['ft_na', 'ft_nf', 'rele_termico'].includes(type)) return lastTag(['rele_termico', 'ft_nf', 'ft_na'], 'FT1');
   if (type === 'cabo_in') return lastTag(['cabo_out'], 'W1');
   let n = 1; const used = new Set(doc.comps.map(c => c.tag));
@@ -1392,7 +1498,7 @@ const PowerSupplyModel = {
 };
 // ---- component ratings (educational model; limits configurable per component) ----
 const RATING = { coil: { min: 85, max: 110, what: 'da bobina' }, timer: { min: 85, max: 110, what: 'da bobina' }, sr: { min: 85, max: 110, what: 'do relé' }, lamp: { min: 90, max: 110, what: 'da carga' } };
-const RATED_TYPES = new Set(['bobina', 'temporizador', 'rele_seguranca', 'sinaleiro', 'buzzer', 'buzina', 'sirene']);
+const RATED_TYPES = new Set(['bobina', 'temporizador', 'temporizador_off', 'rele_seguranca', 'sinaleiro', 'buzzer', 'buzina', 'sirene']);
 const ComponentVoltageValidator = {
   check(c, kind, d, diag) {
     if (!d || d.v < 1) return false;   // open circuit or zero potential difference
@@ -1554,7 +1660,7 @@ function solve(maxIter = 40) {
       if (vn && d) {
         const ref = m.conn === 'triângulo' ? vn / SQ3 : vn;   // 6-lead motors: vn is the star (higher) voltage
         if (vl > ref * 1.1) diag.push({ code: 'over', level: 'crit', comp: c, title: 'SOBRETENSÃO', rows: [['Componente', c.tag], ['Tensão nominal', `${nomV(ref)} V entre fases`], ['Tensão aplicada', fmtV(vl, 'CA')]], msg: 'A tensão entre fases aplicada ao motor ultrapassa a nominal (+10%).', hint: m.conn === 'triângulo' ? 'Ligue o motor em estrela ou use uma rede compatível.' : 'Revise a alimentação ou a ligação do motor.' });
-        else if (vl < ref * 0.9) diag.push({ code: 'under', level: 'warn', comp: c, title: 'SUBTENSÃO', rows: [['Componente', c.tag], ['Tensão nominal', `${nomV(ref)} V entre fases`], ['Tensão aplicada', fmtV(vl, 'CA')]], msg: 'A tensão entre fases aplicada ao motor está abaixo da nominal (−10%). O motor perde conjugado e tende a aquecer.' });
+        else if (vl < ref * 0.9 && m.conn !== 'estrela') diag.push({ code: 'under', level: 'warn', comp: c, title: 'SUBTENSÃO', rows: [['Componente', c.tag], ['Tensão nominal', `${nomV(ref)} V entre fases`], ['Tensão aplicada', fmtV(vl, 'CA')]], msg: 'A tensão entre fases aplicada ao motor está abaixo da nominal (−10%). O motor perde conjugado e tende a aquecer.' });
       }
     }
   }
@@ -1573,7 +1679,7 @@ function snapshot() {
     if (c.type === 'sinaleiro') s['Sinaleiro ' + c.tag] = sim.lamps && sim.lamps[c.id] ? 'aceso' : 'apagado';
     if (TYPES[c.type].sound) s[TYPES[c.type].name + ' ' + c.tag] = sim.lamps && sim.lamps[c.id] ? 'tocando' : 'silencioso';
     if (sim.motors && sim.motors[c.id]) s['Motor ' + c.tag] = sim.motors[c.id].msg || 'parado';
-    if (c.type === 'temporizador') s['Temporizador ' + c.tag] = sim.timerDone && sim.timerDone[c.tag] ? 'tempo atingido' : sim.timerOn && sim.timerOn[c.tag] ? 'contando' : 'desligado';
+    if (TIMER_T.has(c.type)) s['Temporizador ' + c.tag] = sim.timerDone && sim.timerDone[c.tag] ? 'tempo atingido' : sim.timerOn && sim.timerOn[c.tag] ? 'contando' : 'desligado';
     if (c.type === 'rele_seguranca') s['Relé de segurança ' + c.tag] = sim.sr && sim.sr[c.tag] ? 'liberado' : 'bloqueado';
   }
   return s;
@@ -1738,21 +1844,27 @@ function previewSound(c) {
 }
 
 let lastTs = 0, raf = 0, lastFrame = 0;
+function simStep(dt) {
+  sim.t += dt;
+  let changed = false;
+  for (const c of doc.comps) if (TIMER_T.has(c.type)) {
+    const on = !!sim.timerOn[c.tag], preset = +c.preset || 0, was = !!sim.timerDone[c.tag];
+    let acc, done;
+    if (TYPES[c.type].tof) { if (on) { acc = 0; done = true; } else { acc = was ? (sim.timerAcc[c.tag] || 0) + dt : 0; done = was && acc < preset; if (!done) acc = 0; } }
+    else { acc = on ? (sim.timerAcc[c.tag] || 0) + dt : 0; done = on && acc >= preset; }
+    sim.timerAcc[c.tag] = acc;
+    if (done !== was) { sim.timerDone[c.tag] = done; changed = true; }
+  }
+  if (updateElectrical(dt)) changed = true;
+  if (VirtualProcessEngine.step(dt)) changed = true;
+  if (changed) { resolve(); updateElectrical(0); }
+  sample();
+  return changed;
+}
 function tick(ts) {
   if (!sim.running) return;
   const dt = lastTs ? Math.min(0.1, (ts - lastTs) / 1000) : 0; lastTs = ts;
-  sim.t += dt;
-  let changed = false;
-  for (const c of doc.comps) if (c.type === 'temporizador') {
-    const on = !!sim.timerOn[c.tag];
-    const acc = on ? (sim.timerAcc[c.tag] || 0) + dt : 0;
-    sim.timerAcc[c.tag] = acc;
-    const done = on && acc >= (+c.preset || 0);
-    if (done !== !!sim.timerDone[c.tag]) { sim.timerDone[c.tag] = done; changed = true; }
-  }
-  if (updateElectrical(dt)) changed = true;
-  if (changed) { resolve(); updateElectrical(0); }
-  sample();
+  const changed = simStep(dt);
   if (sim.short) { stopSim(shortMsg()); return; }
   if (changed) render();
   else if (ts - lastFrame > 33) { lastFrame = ts; frameUpdate(); }
@@ -1763,7 +1875,7 @@ function tick(ts) {
 function frameUpdate() {
   if (ui.view === 'diagram') { renderWorld(); renderStatus(); }
   else if (ui.view === 'monitor') updateMonitorLive();
-  else if (ui.view === 'operate') updateReadoutsOnly();
+  else if (ui.view === 'operate') { if (ApplicationRegistry.current()) updateHMI(); else updateReadoutsOnly(); }
 }
 function shortMsg() { const [a, b] = sim.short || []; return `Curto-circuito entre ${a} e ${b}: dois potenciais diferentes ficaram ligados sem carga no caminho. Confira a fiação e simule de novo.`; }
 function fmtTime(t) { const m = Math.floor(t / 60), s = t - m * 60; return String(m).padStart(2, '0') + ':' + s.toFixed(1).padStart(4, '0'); }
@@ -1773,13 +1885,14 @@ function startSim() {
   showBanner(null);
   sim.events.unshift({ t: 0, msg: 'Simulação iniciada' });
   audioCtx();
+  { const app = ApplicationRegistry.current(); if (app) VirtualProcessEngine.start(app); else { Proc.app = null; Proc.live = false; } }
   resolve(); updateElectrical(0); sample();
   if (sim.short) { stopSim(shortMsg()); return; }
   lastTs = 0; raf = requestAnimationFrame(tick); render();
 }
 function stopSim(msg) {
   cancelAnimationFrame(raf);
-  sim.running = false; updateSound();
+  sim.running = false; Proc.live = false; updateSound();
   const keep = { events: sim.events.slice(), series: sim.series.slice(), marks: sim.marks.slice() }, t = sim.t;
   Object.assign(sim, blankSim(), keep);
   if (keep.events.length) sim.events.unshift({ t, msg: msg ? 'Simulação interrompida: curto-circuito sem proteção no caminho' : 'Simulação parada', level: msg ? 'crit' : '' });
@@ -1960,7 +2073,7 @@ function compState(c, live) {
       const k = T0.loads[0][2];
       st.on = k === 'coil' ? !!sim.coils[c.tag] : k === 'timer' ? !!sim.timerOn[c.tag] : k === 'lamp' ? !!sim.lamps[c.id] : k === 'psu' ? !!sim.psu[c.id] : k === 'sr' ? !!sim.srPowerById[c.id] : false;
     }
-    if (c.type === 'temporizador') st.progress = Math.min(1, (sim.timerAcc[c.tag] || 0) / Math.max(0.1, +c.preset || 0.1));
+    if (TIMER_T.has(c.type)) st.progress = Math.min(1, (sim.timerAcc[c.tag] || 0) / Math.max(0.1, +c.preset || 0.1));
     if (sim.motors[c.id]) { st.motor = sim.motors[c.id]; st.angle = sim.angle[c.id] || 0; }
     st.t = sim.t;
   }
@@ -1999,7 +2112,7 @@ function frameSVG(d, sheet) {
 }
 function crossRefs(d, c) {
   const T0 = TYPES[c.type];
-  if (c.type === 'bobina' || c.type === 'temporizador') {
+  if (c.type === 'bobina' || TIMER_T.has(c.type)) {
     const ref = c.type === 'bobina' ? 'coil' : 'timer';
     const list = d.comps.filter(x => TYPES[x.type].ref === ref && x.tag === c.tag);
     return list.slice(0, 5).map((x, i) => {
@@ -2058,7 +2171,7 @@ function sheetSVG(d, sheetId, live, look = 'sym') {
     s += `<rect class="chit" x="${bx}" y="${by}" width="${bw}" height="${bh}" rx="6"/>`;
     s += symbolSVG(c, st, d, live ? ui.look : look);
     if (!T0.notag) s += `<text x="${T0.tagAt[0]}" y="${T0.tagAt[1]}" class="tag">${esc(c.tag)}</text>`;
-    if (c.type === 'temporizador') s += `<text x="22" y="20" class="num">${(+c.preset || 0).toFixed(1)} s</text>`;
+    if (TIMER_T.has(c.type)) s += `<text x="22" y="20" class="num">${(+c.preset || 0).toFixed(1)} s</text>`;
     const tgt = live && !sim.running && (ui.mode === 'wire' || ui.wireStart);
     for (const [t, [x, y]] of Object.entries(T0.terms)) {
       const hov = tgt && ui.hoverTerm && ui.hoverTerm.c === c.id && ui.hoverTerm.t === t, start = ui.wireStart && ui.wireStart.c === c.id && ui.wireStart.t === t;
@@ -2081,6 +2194,7 @@ function render() {
   if (ui.view === 'monitor') renderMonitor();
   if (ui.view === 'home') renderHome();
   if (ui.view === 'lab') renderLab();
+  if (ui.view === 'exlab') renderExLab();
   updateTop();
   holoSync();
   focusOnView(ui.view);
@@ -2138,7 +2252,7 @@ function renderStatus() {
   const warns = problems();
   let h = `<span class="pill ${sim.running ? 'run' : ''}">${sim.running ? 'Simulando' : 'Edição'}</span>`;
   h += coilTags.map(t => `<span class="chip${sim.coils[t] ? ' on' : ''}"><span class="dot"></span>${esc(t)}</span>`).join('');
-  h += doc.comps.filter(c => c.type === 'temporizador').map(c => `<span class="chip${sim.timerDone[c.tag] ? ' on' : ''}"><span class="dot"></span>${esc(c.tag)} ${sim.running ? Math.min(+c.preset, sim.timerAcc[c.tag] || 0).toFixed(1) : '0.0'}/${(+c.preset).toFixed(1)} s</span>`).join('');
+  h += doc.comps.filter(c => TIMER_T.has(c.type)).map(c => `<span class="chip${sim.timerDone[c.tag] ? ' on' : ''}"><span class="dot"></span>${esc(c.tag)} ${sim.running ? Math.min(+c.preset, sim.timerAcc[c.tag] || 0).toFixed(1) : '0.0'}/${(+c.preset).toFixed(1)} s</span>`).join('');
   h += motors.map(c => { const m = sim.motors[c.id] || {}; return `<span class="chip${m.run ? ' on' : m.msg ? ' warn' : ''}"><span class="dot"></span>${esc(c.tag)} ${esc(m.msg || 'parado')}</span>`; }).join('');
   if (sim.osc) h += `<span class="chip warn">Circuito oscilando: confira selo e intertravamento</span>`;
   const att = sim.running ? sim.diag || [] : ElectricalDiagnostics.static();
@@ -2168,7 +2282,7 @@ function updateReadoutsOnly() { const r = document.querySelector('#vOperate .rea
 function problems() {
   const out = [];
   const tagsOf = types => new Set(doc.comps.filter(c => types.includes(c.type)).map(c => c.tag));
-  const coils = tagsOf(['bobina']), timers = tagsOf(['temporizador']), outs = tagsOf(['cabo_out']), ins = tagsOf(['cabo_in']);
+  const coils = tagsOf(['bobina']), timers = tagsOf(['temporizador', 'temporizador_off']), outs = tagsOf(['cabo_out']), ins = tagsOf(['cabo_in']);
   for (const c of doc.comps) {
     const T0 = TYPES[c.type], where = `(folha ${refOf(doc, c)})`;
     if (T0.ref === 'coil' && !coils.has(c.tag)) out.push(`${c.tag}: contato sem bobina com essa tag ${where}`);
@@ -2179,6 +2293,7 @@ function problems() {
     const linked = Object.keys(T0.terms).some(t => doc.wires.some(w => (w.a.c === c.id && w.a.t === t) || (w.b.c === c.id && w.b.t === t)));
     if (!linked) out.push(`${c.tag || T0.name}: sem nenhuma ligação ${where}`);
   }
+  for (const s of TagBindingManager.issues()) out.push(s);
   for (const d of ElectricalDiagnostics.static()) out.push(`${d.title}: ${d.comp.tag || TYPES[d.comp.type].name} · ${d.msg}`);
   if (!doc.comps.some(c => TYPES[c.type].src && c.type !== 'fonte_24' && !TYPES[c.type].tx)) out.push('Falta alimentação: insira Fase (L) e Neutro (N) ou a fonte trifásica');
   return out;
@@ -2192,7 +2307,10 @@ function renderInspector() {
   ui.pmLastSel = selKey;
   $('#pm').classList.toggle('open', !!ui.inspOpen);
   $('#bInsp').setAttribute('aria-expanded', String(!!ui.inspOpen));
-  $('#pmProj').hidden = ui.pmTab !== 'proj'; el.hidden = ui.pmTab === 'proj';
+  if (ui.pmTab === 'app' && !doc.app) ui.pmTab = 'proj';
+  $('#pmTabApp').hidden = !doc.app; $('#pmTabApp').textContent = doc.app && doc.app.mode === 'exercise' ? 'Exercício' : 'Aplicação';
+  $('#pmProj').hidden = ui.pmTab !== 'proj'; el.hidden = ui.pmTab !== 'props'; $('#pmApp').hidden = ui.pmTab !== 'app';
+  if (ui.pmTab === 'app' && ui.inspOpen) renderPMApp();
   $$('[data-pmtab]').forEach(b => { b.classList.toggle('act', b.dataset.pmtab === ui.pmTab); b.setAttribute('aria-selected', String(b.dataset.pmtab === ui.pmTab)); });
   let h = `<div class="insph"><p class="h">${ui.sel ? (ui.sel.kind === 'wire' ? 'Fio' : 'Componente') : 'Projeto'}</p></div>`;
   if (ui.sel && ui.sel.kind === 'comp') {
@@ -2200,11 +2318,12 @@ function renderInspector() {
     const T0 = TYPES[c.type], dis = sim.running ? 'disabled' : '';
     h += `<p class="title-lg">${esc(T0.name)}</p><p class="muted small">Folha ${refOf(doc, c)} · ${esc(T0.cat)}</p>`;
     if (!T0.notag) h += `<div class="field"><label for="fTag">Tag${T0.ref ? ' (igual à da bobina que comanda este contato)' : T0.linkGroup ? ' (igual à da outra ponta, em qualquer folha)' : ''}</label><input id="fTag" class="mono" value="${esc(c.tag)}" ${dis}></div>`;
+    h += bindFieldHTML(c, dis);
     if (c.type === 'fase') h += `<div class="field"><label for="fPhase">Fase</label><select id="fPhase" ${dis}>${PHASES.map(p => `<option ${c.phase === p ? 'selected' : ''}>${p}</option>`).join('')}</select></div>`;
     if (T0.sound) h += `<div class="field"><label for="fMode">Tipo de som</label><select id="fMode" ${dis}>${Object.entries(SOUND_MODES).map(([k, v]) => `<option value="${k}" ${soundOf(c).mode === k ? 'selected' : ''}>${v}</option>`).join('')}</select></div><div class="row"><button class="btn" id="aPrev">▶ Ouvir 2 s</button></div>`;
     if (c.type === 'sinaleiro') h += `<div class="field"><label for="fColor">Cor do sinaleiro</label><select id="fColor" ${dis}>${Object.keys(LAMP_COLORS).map(k => `<option value="${k}" ${c.color === k ? 'selected' : ''}>${k[0].toUpperCase() + k.slice(1)}</option>`).join('')}</select></div>`;
     if (c.type.startsWith('motor')) h += `<div class="field"><label for="fKw">Potência (kW) · corrente nominal ${fmtN(motorIn(c), 2)} A em ${nomV(motorVL(c))} V</label><input id="fKw" type="number" min="0.25" max="75" step="0.25" value="${+c.kw || 1.5}" ${dis}></div>`;
-    if (c.type === 'temporizador') h += `<div class="field"><label for="fPreset">Tempo de retardo (segundos)</label><input id="fPreset" type="number" min="0.1" max="600" step="0.1" value="${+c.preset}" ${dis}></div>`;
+    if (TIMER_T.has(c.type)) h += `<div class="field"><label for="fPreset">Tempo de retardo (segundos)</label><input id="fPreset" type="number" min="0.1" max="600" step="0.1" value="${+c.preset}" ${dis}></div>`;
     h += elecInspectorHTML(c, dis);
     const nums = Object.values(T0.nums).filter(Boolean);
     if (nums.length > 1) h += `<div class="field"><label>Bornes</label><div class="mono">${nums.join(' · ')}</div></div>`;
@@ -2242,8 +2361,8 @@ function crossList(c) {
   const T0 = TYPES[c.type];
   let list = [];
   if (c.type === 'bobina') list = doc.comps.filter(x => TYPES[x.type].ref === 'coil' && x.tag === c.tag);
-  else if (c.type === 'temporizador') list = doc.comps.filter(x => TYPES[x.type].ref === 'timer' && x.tag === c.tag);
-  else if (T0.ref) list = doc.comps.filter(x => x.tag === c.tag && (T0.ref === 'coil' ? x.type === 'bobina' : x.type === 'temporizador'));
+  else if (TIMER_T.has(c.type)) list = doc.comps.filter(x => TYPES[x.type].ref === 'timer' && x.tag === c.tag);
+  else if (T0.ref) list = doc.comps.filter(x => x.tag === c.tag && (T0.ref === 'coil' ? x.type === 'bobina' : TIMER_T.has(x.type)));
   else if (T0.linkGroup) list = doc.comps.filter(x => x !== c && TYPES[x.type].linkGroup === T0.linkGroup && x.tag === c.tag);
   return list.map(x => ({ id: x.id, label: `${x.tag} · ${TYPES[x.type].name}`, ref: refOf(doc, x) }));
 }
@@ -2258,7 +2377,8 @@ function bindInspector() {
   const on = (id, ev, fn) => { const e = document.getElementById(id); if (e) e.addEventListener(ev, fn); };
   const c = ui.sel && ui.sel.kind === 'comp' ? compById(ui.sel.id) : null;
   on('inspClose', 'click', () => { ui.inspOpen = false; render(); });
-  on('fTag', 'change', e => { const v = e.target.value.trim().toUpperCase().slice(0, 8); if (v) { c.tag = v; commit(); render(); } });
+  on('fTag', 'change', e => { const v = e.target.value.trim().toUpperCase().slice(0, 8); if (v) { c.tag = v; const dv = c.dev && TagBindingManager.device(ApplicationRegistry.current(), c.dev); if (dv && dv.tag !== v) delete c.dev; commit(); render(); } });
+  on('fDev', 'change', e => { TagBindingManager.bind(c, e.target.value); commit(); render(); });
   on('fPhase', 'change', e => { c.phase = e.target.value; commit(); render(); });
   on('fColor', 'change', e => { c.color = e.target.value; commit(); render(); });
   on('fMode', 'change', e => { c.mode = e.target.value; commit(); render(); });
@@ -2346,6 +2466,7 @@ function setActiveCategory(fn) {
 // Other views
 // =====================================================================
 function renderOperate() {
+  { const app = ApplicationRegistry.current(); if (app) return renderOperateHMI(app); $('#vOperate')._key = null; }
   const seenTrip = new Set();
   const inter = doc.comps.filter(c => TYPES[c.type].inter).sort((a, b) => (b.type === 'rele_termico') - (a.type === 'rele_termico'))
     .filter(c => TYPES[c.type].inter !== 'trip' || (!seenTrip.has(c.tag) && seenTrip.add(c.tag)));
@@ -2419,7 +2540,7 @@ function renderMonitor() {
       <div class="ccard"><h3>${motors.length ? 'Corrente dos motores (A)' : 'Corrente de comando (A)'}</h3><p class="sub">Últimos 30 s · partida, regime, sobrecarga e falhas</p><div class="legend" id="lgI"></div><canvas class="chart" id="chI"></canvas><div class="ctip" id="tipI" hidden></div></div>
       <div class="ccard"><h3>Tensão da rede (V)</h3><p class="sub">Últimos 30 s · afundamento no curto-circuito</p><div class="legend" id="lgV"></div><canvas class="chart" id="chV"></canvas><div class="ctip" id="tipV" hidden></div></div>
     </div>
-    <div class="ccard" style="margin-bottom:22px"><h3>Domínios de alimentação</h3><p class="sub">Origem, nível, isolamento e estado de cada alimentação · atenções elétricas</p><div id="moDomains"></div></div>
+    ${ApplicationRegistry.current() ? `<div class="ccard" style="margin-bottom:22px"><h3>Dispositivos da aplicação</h3><p class="sub">${esc(ApplicationRegistry.current().title)} · TAGs e estados reais do motor elétrico</p><div id="moDevs"></div></div>` : ''}<div class="ccard" style="margin-bottom:22px"><h3>Domínios de alimentação</h3><p class="sub">Origem, nível, isolamento e estado de cada alimentação · atenções elétricas</p><div id="moDomains"></div></div>
     <section><div class="vhead" style="margin-bottom:10px"><div><p class="h" style="margin:0">Simular falhas</p><p class="muted small" style="margin:4px 0 0">${dis ? 'Inicie a simulação para provocar falhas.' : 'Veja a proteção atuar, a animação da falha e o efeito nos gráficos.'}</p></div>
       <button class="btn" id="moClear" ${dis ? 'disabled' : ''}>Rearmar proteções</button></div>
       <div class="faults">
@@ -2451,6 +2572,7 @@ function updateMonitorLive() {
   const m = sim.meas || {}, [st] = stateOf();
   $('#moTitle').textContent = sim.running ? 'Simulação em andamento · ' + fmtTime(sim.t) : 'Simulação parada';
   { const dh = domainsHTML(), el = $('#moDomains'); if (el && el._h !== dh) { el.innerHTML = dh; el._h = dh; } }
+  { const app = ApplicationRegistry.current(), el = $('#moDevs'); if (app && el) { const h = devTableHTML(app, VirtualActuatorEngine.read(app)); if (el._h !== h) { el.innerHTML = h; el._h = h; } } }
   const motors = doc.comps.filter(c => c.type.startsWith('motor'));
   const tile = (label, val, cls = '') => `<div class="tile ${cls}"><small>${esc(label)}</small><b>${val}</b></div>`;
   $('#moTiles').innerHTML = tile('Tensão fase-neutro', fmtN(m.v1, 0) + ' V', m.v1 ? 'on' : '') + tile('Tensão fase-fase', fmtN(m.v3, 0) + ' V', m.v3 ? 'on' : '') +
@@ -2740,7 +2862,7 @@ function sheetDependencies(sid) {
   for (const c of here) {
     const T0 = TYPES[c.type]; let o = [];
     if (T0.linkGroup && c.tag) o = away.filter(x => TYPES[x.type].linkGroup === T0.linkGroup && x.tag === c.tag).map(x => `${c.tag}: ${T0.name.toLowerCase()} ligado a ${TYPES[x.type].name.toLowerCase()} na folha ${refOf(doc, x)}`);
-    else if (c.type === 'bobina' || c.type === 'temporizador') o = away.filter(x => TYPES[x.type].ref === (c.type === 'bobina' ? 'coil' : 'timer') && x.tag === c.tag).map(x => `${c.tag}: a bobina comanda ${TYPES[x.type].name.toLowerCase()} na folha ${refOf(doc, x)}`);
+    else if (c.type === 'bobina' || TIMER_T.has(c.type)) o = away.filter(x => TYPES[x.type].ref === (c.type === 'bobina' ? 'coil' : 'timer') && x.tag === c.tag).map(x => `${c.tag}: a bobina comanda ${TYPES[x.type].name.toLowerCase()} na folha ${refOf(doc, x)}`);
     else if (T0.ref) o = away.filter(x => x.type === (T0.ref === 'coil' ? 'bobina' : 'temporizador') && x.tag === c.tag).map(x => `${c.tag}: contato comandado pela bobina da folha ${refOf(doc, x)}`);
     out.push(...o);
   }
@@ -2895,7 +3017,7 @@ function elecInspectorHTML(c, dis) {
     h += `<div class="card ecard"><p class="h">Fonte CA/CC</p>${li([['Entrada aplicada', apTxt], ['Saída', on ? `${PowerSupplyModel.vout(c)} VCC` : 'sem saída'], ['Potência nominal', c.iout ? `${fmtN(PowerSupplyModel.vout(c) * c.iout, 0)} W` : '—'], ['Estado', on ? 'ligada' : sim.running ? 'desligada' : 'simulação parada']])}</div>`;
   }
   if (RATED_TYPES.has(c.type)) {
-    const on = c.type === 'bobina' ? sim.coils[c.tag] : c.type === 'temporizador' ? sim.timerOn[c.tag] : c.type === 'rele_seguranca' ? sim.srPowerById[c.id] : sim.lamps[c.id];
+    const on = c.type === 'bobina' ? sim.coils[c.tag] : TIMER_T.has(c.type) ? sim.timerOn[c.tag] : c.type === 'rele_seguranca' ? sim.srPowerById[c.id] : sim.lamps[c.id];
     h += `<div class="frow">${fld('Tensão nominal (V)', num('vn', c.vn, 6, 1000, 1, 'não especificada'))}${fld('Tipo', sel('vk', [['CA', 'CA'], ['CC', 'CC'], ['CA/CC', 'CA/CC']], c.vk || 'CA'))}</div>`;
     h += `<div class="frow">${fld('Frequência', sel('hzn', [['', 'qualquer'], [50, '50 Hz'], [60, '60 Hz']], c.hzn, true))}${fld('Potência (VA)', num('va', c.va, 0.1, 5000, 0.1, 'opcional'))}</div>`;
     const R = RATING[(T0.loads || [[0, 0, 'coil']])[0][2]] || RATING.coil;
@@ -2987,6 +3109,160 @@ function toggleNavigation() {
   if (focus.navigationExpanded) { focus.manualOverride = false; setNavigation(false); }
   else { focus.manualOverride = true; setNavigation(true); }
 }
+// ---------- OperationHMI: contextual Operação / HMI ----------
+const KIND_LABEL = k => DEVICE_KINDS[k] ? DEVICE_KINDS[k].label : k;
+function devStateText(d, v) {
+  const io = DEVICE_KINDS[d.kind].io;
+  if (io === 'motor') return v && v.run ? `girando${v.conn ? ' · ' + v.conn : ''}${v.dir ? ' · ' + v.dir : ''}` : (v && v.msg) || 'parado';
+  if (io === 'coil') return v ? 'energizado' : 'desligado';
+  if (io === 'timer') { const x = timerOf(v); return x.done ? (x.tof && !x.on ? `desliga em ${Math.max(0, x.preset - x.acc).toFixed(1)} s` : 'contato atuado') : x.on ? `contando ${Math.min(x.acc, x.preset || 0).toFixed(1)} s` : 'repouso'; }
+  if (io === 'lamp') return v ? (d.kind === 'alarm' ? 'tocando' : 'aceso') : (d.kind === 'alarm' ? 'silenciosa' : 'apagado');
+  if (io === 'overload') return v ? 'disparado' : 'normal';
+  if (io === 'push') return v ? 'pressionado' : 'repouso';
+  return v ? 'atuado' : 'repouso';
+}
+const isActive = v => !!(v && (typeof v !== 'object' || v.run || v.done || v.on));
+function devTableHTML(app, io) {
+  return `<table class="dtab hmi-tags"><thead><tr><th>TAG</th><th>Dispositivo</th><th>Estado</th></tr></thead><tbody>${app.devices.map(d => { const v = io.out[d.id], pr = io.present[d.id];
+    return `<tr class="${isActive(v) ? 'on' : ''}"><td class="mono"><b>${esc(d.tag)}</b></td><td>${esc(d.name)}<small class="muted"> · ${esc(KIND_LABEL(d.kind))}${pr ? '' : ' · <span class="warnt">não está no diagrama</span>'}</small></td><td><span class="dot"></span>${esc(pr ? devStateText(d, v) : '—')}</td></tr>`; }).join('')}</tbody></table>`;
+}
+function reqStatus(app, req) {
+  const res = (doc.app && doc.app.results) || {}, st = req.tests.map(id => (res[id] || {}).status || 'pend');
+  return st.includes('run') ? 'run' : st.includes('fail') ? 'fail' : st.includes('inc') ? 'inc' : st.every(s => s === 'ok') ? 'ok' : 'pend';
+}
+const statusChip = s => `<span class="tst ${s}">${TEST_STATUS[s]}</span>`;
+function hmiView(app) {
+  const io = VirtualActuatorEngine.read(app), live = sim.running && Proc.live && Proc.app === app;
+  const st = live ? Proc.st : (Proc.app === app && Proc.st ? Proc.st : VirtualProcessEngine.init(app));
+  return { io, view: { app, out: io.out, sens: live || Proc.app === app ? Proc.sens : VirtualProcessEngine.sensors(app, st), st, t: sim.running ? sim.t : 0, hist: Proc.app === app ? Proc.hist : [] }, live };
+}
+function renderOperateHMI(app) {
+  const el = $('#vOperate'), key = app.applicationId + '|' + sim.running;
+  if (el._key === key) return updateHMI();
+  el._key = key;
+  const dis = sim.running ? '' : 'disabled', cmds = app.devices.filter(d => ['push', 'emergency', 'selector'].includes(d.kind)), ex = doc.app && doc.app.mode === 'exercise';
+  const ctl = c => c.kind === 'param' ? `<label class="hmi-ctl"><span>${esc(c.label)} <b class="mono" data-ctlv="${c.id}"></b></span><input type="range" data-ctl="${c.id}" min="${c.min}" max="${c.max}" step="${c.step}" ${dis}></label>`
+    : `<button class="hmi-tgl" data-ctl="${c.id}" ${dis}><span class="led"></span>${esc(c.invertLabel || c.label)}</button>`;
+  el.innerHTML = `<div class="hmi">
+    <div class="hmi-main"><div class="hmi-head"><div><p class="eyebrow">Operação / HMI · ${esc(app.family)}</p><h2>${esc(app.title)}</h2></div>
+      <button class="bigrun ${sim.running ? 'on' : ''}" id="opRun">${sim.running ? 'Parar simulação' : 'Iniciar simulação'}</button></div>
+      <div class="hmi-stage" id="hmiStage"></div>
+      <p class="hmi-cap">${sim.running ? 'O ambiente responde somente às saídas reais do seu circuito. Os sensores virtuais enviam os estados de volta ao motor elétrico.' : 'Inicie a simulação para o ambiente virtual responder ao circuito do diagrama.'}</p></div>
+    <aside class="hmi-side">
+      <section class="hmi-card"><p class="h">Comandos</p><div class="hmi-cmds">${cmds.map(d => `<button class="hmi-btn k-${d.kind}" data-hdev="${d.id}" ${dis}><b class="mono">${esc(d.tag)}</b><small>${esc(d.name)}</small><span class="hmi-st" data-hst="${d.id}"></span></button>`).join('') || '<p class="muted small">Sem comandos manuais.</p>'}</div>
+        ${(app.controls || []).length ? `<p class="h" style="margin-top:12px">Condições do processo</p><div class="hmi-ctls">${app.controls.map(ctl).join('')}</div>` : ''}</section>
+      <section class="hmi-card"><p class="h">Dispositivos e TAGs</p><div id="hmiTags"></div></section>
+      <section class="hmi-card"><p class="h">Informações elétricas</p><div id="hmiElec"></div></section>
+      <section class="hmi-card"><p class="h">Diagnósticos</p><div id="hmiDiag"></div></section>
+      ${ex ? `<section class="hmi-card"><p class="h">Requisitos do exercício</p><div id="hmiReq"></div><button class="btn" id="hmiGoVal">Validar no Painel do projeto</button></section>` : ''}
+    </aside></div>`;
+  $('#opRun').addEventListener('click', () => sim.running ? stopSim() : startSim());
+  $$('#vOperate [data-hdev]').forEach(b => {
+    const d = TagBindingManager.device(app, b.dataset.hdev);
+    if (d.kind === 'push') { b.addEventListener('pointerdown', ev => { if (!sim.running) return; b.setPointerCapture(ev.pointerId); HMIBindingEngine.press(d.id, true); updateHMI(); }); const up = () => { HMIBindingEngine.press(d.id, false); updateHMI(); }; b.addEventListener('pointerup', up); b.addEventListener('pointercancel', up); }
+    else b.addEventListener('click', () => { HMIBindingEngine.toggle(d.id); updateHMI(); });
+  });
+  $$('#vOperate [data-ctl]').forEach(x => { const c = app.controls.find(k => k.id === x.dataset.ctl);
+    if (x.type === 'range') x.addEventListener('input', () => { HMIBindingEngine.control(c, +x.value); updateHMI(); });
+    else x.addEventListener('click', () => { HMIBindingEngine.control(c); updateHMI(); }); });
+  const gv = $('#hmiGoVal'); if (gv) gv.addEventListener('click', () => { ui.view = 'diagram'; ui.inspOpen = true; ui.pmTab = 'app'; render(); });
+  updateHMI();
+}
+function updateHMI() {
+  const app = ApplicationRegistry.current(); if (!app || !$('#hmiStage')) return;
+  const { io, view, live } = hmiView(app);
+  $('#hmiStage').innerHTML = sceneSVG(view, live ? 'live' : 'idle');
+  const set = (id, h) => { const e = $(id); if (e && e._h !== h) { e.innerHTML = h; e._h = h; } };
+  set('#hmiTags', devTableHTML(app, io));
+  set('#hmiElec', readoutsHTML());
+  const diag = [...(Proc.app === app ? Proc.faults : []).map(f => `<div class="diag ${f.level}"><b>${f.level === 'crit' ? 'FALHA DO PROCESSO' : 'ATENÇÃO'}</b><p>${esc(f.msg)}</p></div>`), ...(sim.running ? sim.diag || [] : []).map(d => ElectricalDiagnostics.html(d)), ...TagBindingManager.issues(app).map(s => `<div class="diag warn"><b>VÍNCULO DE TAG</b><p>${esc(s)}</p></div>`)];
+  set('#hmiDiag', diag.join('') || '<p class="muted small" style="margin:0">Nenhum diagnóstico.</p>');
+  if ($('#hmiReq')) set('#hmiReq', `<ul class="reqs">${app.exerciseRequirements.map(r => `<li>${statusChip(reqStatus(app, r))}<span>${esc(r.text)}</span></li>`).join('')}</ul>`);
+  $$('#vOperate [data-hst]').forEach(s => { const d = TagBindingManager.device(app, s.dataset.hst), v = io.out[d.id]; s.textContent = io.present[d.id] ? devStateText(d, v) : 'fora do diagrama'; s.parentElement.classList.toggle('act', !!v); });
+  for (const c of app.controls || []) { const x = $(`#vOperate [data-ctl="${c.id}"]`); if (!x) continue; const st = view.st;
+    if (c.kind === 'param') { if (document.activeElement !== x) x.value = st[c.param]; const lv = $(`#vOperate [data-ctlv="${c.id}"]`); if (lv) lv.textContent = `${(+st[c.param]).toFixed(1)} ${c.unit || ''}`; }
+    else { const on = c.kind === 'overload' ? TagBindingManager.comps(TagBindingManager.device(app, c.dev), app).some(k => sim.overload.has(k.id)) : c.kind === 'manual' ? !!st.manual[c.dev] : !!st[c.param]; x.classList.toggle('act', c.invertLabel ? !on : on); } }
+}
+
+// ---------- Practical Exercise Lab ----------
+const EX = { sel: 0, raf: 0, last: 0, playing: true, lastDraw: 0 };
+function renderExLab() {
+  const apps = ExerciseLibraryRegistry.list(), idx = ExerciseProgressManager.index(), app = apps[EX.sel] || apps[0];
+  $('#exCount').textContent = `${apps.length} exercícios · 7 famílias de aplicação`;
+  $('#exList').innerHTML = apps.map((a, i) => { const p = idx[a.applicationId]; return `<button class="lab-item ex-item${i === EX.sel ? ' act' : ''}" data-ex="${i}"><span class="lab-id">${String(i + 1).padStart(2, '0')}</span><span class="ex-name">${esc(a.title)}<small>${esc(a.category)} · <i class="lvl l-${a.difficulty.toLowerCase().normalize('NFD').replace(/[^a-z]/g, '')}">${esc(a.difficulty)}</i></small>${p ? `<span class="ex-prog"><span style="width:${p.pct}%"></span></span>` : ''}</span>${p ? `<b class="ex-pct">${p.pct}%</b>` : ''}</button>`; }).join('');
+  const saved = idx[app.applicationId] && ExerciseProgressManager.load(app.applicationId);
+  $('#exInfo').innerHTML = `<p class="lab-k">${esc(app.family)}</p><h2>${esc(app.title)}</h2><p class="lab-desc">${esc(app.description)}</p>
+    <div class="lab-stats"><div><b>${app.exerciseRequirements.length}</b><span>requisitos</span></div><div><b>${app.testScenarios.length}</b><span>testes</span></div><div><b>${app.devices.length}</b><span>TAGs</span></div></div>
+    <p class="lab-k">Objetivo</p><p>${esc(app.objective)}</p>
+    <p class="lab-k">Requisitos de funcionamento</p><ol class="ex-reqs">${app.exerciseRequirements.map(r => `<li>${esc(r.text)}</li>`).join('')}</ol>
+    <p class="lab-k">TAGs e dispositivos disponíveis</p><table class="ex-tags">${app.devices.map(d => `<tr><td class="mono">${esc(d.tag)}</td><td>${esc(d.name)}</td><td>${esc(KIND_LABEL(d.kind))}</td></tr>`).join('')}</table>
+    <p class="lab-k">Critérios de avaliação</p><ul class="ex-crit">${app.criteria.map(c => `<li>${esc(c)}</li>`).join('')}</ul>
+    <p class="lab-k">Alimentação prevista</p><p class="mono">${esc(ElectricalNetwork.label(app.electricalConfig))} · folhas ${esc(app.sheets.join(' e '))} em branco</p>
+    <button class="lab-open" id="exStart">INICIAR EXERCÍCIO</button>${saved ? `<button class="lab-open ghost" id="exResume">CONTINUAR (${idx[app.applicationId].pct}% concluído)</button>` : ''}
+    <p class="muted small" style="margin:8px 0 0">O exercício abre o editor com as folhas em branco. O diagrama resolvido não é carregado.</p>`;
+  $('#exStart').addEventListener('click', () => ExerciseSession.start(app));
+  const r = $('#exResume'); if (r) r.addEventListener('click', () => ExerciseSession.start(app, { resume: true }));
+  if (!DemoRunner.s || DemoRunner.s.app !== app) DemoRunner.start(app);
+  $('#exPlay').textContent = EX.playing ? 'Pausar demonstração' : 'Reproduzir demonstração';
+  drawExScene(); exLoop();
+}
+function drawExScene() {
+  const s = DemoRunner.s; if (!s) return;
+  $('#exScene').innerHTML = sceneSVG({ app: s.app, out: s.out, sens: s.sens, st: s.st, t: s.t, hist: s.hist }, 'demo');
+  $('#exCap').textContent = s.caption || '';
+  $('#exMode').innerHTML = '<span class="led"></span>DEMONSTRATION MODE · comportamento esperado (não executa o seu circuito)';
+}
+function exLoop() {
+  if (EX.raf) return;
+  const f = ts => {
+    EX.raf = 0; if (ui.view !== 'exlab' || document.hidden) return;
+    const dt = EX.last ? Math.min(.1, (ts - EX.last) / 1000) : 0; EX.last = ts;
+    if (EX.playing) DemoRunner.step(dt);
+    if (ts - EX.lastDraw > 40) { EX.lastDraw = ts; drawExScene(); }
+    EX.raf = requestAnimationFrame(f);
+  };
+  EX.last = 0; EX.raf = requestAnimationFrame(f);
+}
+
+// ---------- Project Manager: exercise / application progress ----------
+function renderPMApp() {
+  const app = ApplicationRegistry.current(), el = $('#pmApp'); if (!app || !el) return;
+  const ex = doc.app.mode === 'exercise', sm = ExerciseProgressManager.summary(app), res = doc.app.results || {}, busy = ExerciseValidationEngine.running, io = VirtualActuatorEngine.read(app);
+  el.innerHTML = `<section class="pmsec"><p class="pmt"><span>${ex ? 'EX' : 'EXEMPLO'}</span>${esc(app.family)}</p><b style="font-size:15px">${esc(app.title)}</b>
+      <p class="muted small" style="margin:0">${ex ? `Sessão ${esc(doc.app.session || '')} · progresso salvo neste navegador e no arquivo do projeto.` : 'Exemplo resolvido: os mesmos testes do exercício podem ser executados.'}</p>
+      <div class="prog"><div class="ring" style="--p:${sm.pct}"><b>${sm.pct}%</b></div><ul class="list"><li><span class="muted">Testes</span><span class="mono">${sm.total}</span></li><li><span class="muted">Aprovados</span><span class="mono">${sm.passed}</span></li><li><span class="muted">Pendentes</span><span class="mono">${sm.pending}</span></li></ul></div>
+      <div class="pmacts two"><button class="btn pri" id="exValidate" ${busy ? 'disabled' : ''}>${busy ? 'Validando…' : 'Validar exercício'}</button><button class="btn" id="exReset">Reiniciar teste</button></div>
+      <button class="btn" id="exHMI">Abrir Operação / HMI</button></section>
+    <section class="pmsec"><p class="pmt"><span>REQ</span>Requisitos</p><ul class="reqs">${app.exerciseRequirements.map(r => { const s = reqStatus(app, r), lvl = (doc.app.hints || {})[r.id] || 0, fails = r.tests.map(id => res[id]).filter(x => x && (x.status === 'fail' || x.status === 'inc'));
+      return `<li>${statusChip(s)}<span>${esc(r.text)}${fails.map(f => `<em class="fb">${esc(f.msg)}</em>`).join('')}${r.hints.slice(0, lvl).map((h, i) => `<em class="hint">Dica ${i + 1}: ${esc(h)}</em>`).join('')}${lvl < r.hints.length ? `<button class="lnk" data-hint="${r.id}">${lvl ? 'Mais uma dica' : 'Pedir dica'}</button>` : ''}</span></li>`; }).join('')}</ul></section>
+    <details class="pmsec"><summary class="pmt"><span>TST</span>Cenários de teste</summary><ul class="reqs">${app.testScenarios.map(sc => { const r = res[sc.id] || { status: 'pend' }; return `<li>${statusChip(r.status)}<span><b class="mono">${sc.id}</b> ${esc(sc.title)}${r.msg && r.status !== 'pend' ? `<em class="${r.status === 'ok' ? 'okm' : 'fb'}">${esc(r.msg)}</em>` : ''}</span></li>`; }).join('')}</ul></details>
+    <details class="pmsec" open><summary class="pmt"><span>TAG</span>Dispositivos da aplicação</summary>${devTableHTML(app, io)}</details>
+    ${TagBindingManager.issues(app).length ? `<section class="pmsec"><p class="pmt"><span>!</span>Diagnósticos de vínculo</p>${TagBindingManager.issues(app).map(s => `<div class="diag warn"><p style="margin:0">${esc(s)}</p></div>`).join('')}</section>` : ''}`;
+  $('#exValidate').addEventListener('click', () => { ExerciseValidationEngine.validate(() => renderPMApp()); });
+  $('#exReset').addEventListener('click', () => { if (sim.running) stopSim(); startSim(); flashInfo('Simulação reiniciada com as condições iniciais do exercício'); });
+  $('#exHMI').addEventListener('click', () => { ui.view = 'operate'; render(); });
+  $$('#pmApp [data-hint]').forEach(b => b.addEventListener('click', () => { const h = doc.app.hints = doc.app.hints || {}; h[b.dataset.hint] = (h[b.dataset.hint] || 0) + 1; commit(); render(); }));
+}
+
+// ---------- inspector: bind a component to an application device ----------
+function bindFieldHTML(c, dis) {
+  const app = ApplicationRegistry.current(); if (!app || TYPES[c.type].notag) return '';
+  const opts = TagBindingManager.options(c, app), cur = TagBindingManager.devOf(c, app);
+  if (!opts.length) return `<p class="muted small" style="margin:0">Este tipo de componente não corresponde a nenhum dispositivo da aplicação.</p>`;
+  return `<div class="field"><label for="fDev">Dispositivo da aplicação</label><select id="fDev" ${dis}><option value="">— sem vínculo —</option>${opts.map(d => `<option value="${d.id}" ${cur && cur.id === d.id ? 'selected' : ''}>${esc(d.tag)} · ${esc(d.name)}</option>`).join('')}</select>
+    <small class="muted">${cur ? `Vinculado a ${esc(cur.tag)} (${esc(KIND_LABEL(cur.kind).toLowerCase())})${c.dev ? '' : ' pela TAG'}.` : 'Sem vínculo: a IHM e os testes não enxergam este componente.'}</small></div>`;
+}
+function labAppHTML(e) {
+  const app = ApplicationRegistry.get(e.app); if (!app) return '';
+  return `<p class="lab-k">Aplicação</p><ul class="lab-meta"><li><span>Família</span><b>${esc(app.family)}</b></li><li><span>Categoria</span><b>${esc(app.category)}</b></li><li><span>Nível</span><b>${esc(app.difficulty)}</b></li>
+    <li><span>Template de IHM</span><b>${esc(app.sceneTemplate)}</b></li><li><span>Alimentação</span><b>${esc(ElectricalNetwork.label(app.electricalConfig))}</b></li></ul>
+    <p class="lab-k">Dispositivos (TAGs)</p><p class="mono" style="font-size:12px">${app.devices.map(d => esc(d.tag)).join(' · ')}</p>`;
+}
+$('#exBack').addEventListener('click', () => { ui.view = 'home'; render(); });
+$('#exList').addEventListener('click', ev => { const b = ev.target.closest('[data-ex]'); if (!b) return; EX.sel = +b.dataset.ex; DemoRunner.start(ExerciseLibraryRegistry.list()[EX.sel]); renderExLab(); });
+$('#exPlay').addEventListener('click', () => { EX.playing = !EX.playing; $('#exPlay').textContent = EX.playing ? 'Pausar demonstração' : 'Reproduzir demonstração'; });
+$('#exRestart').addEventListener('click', () => { DemoRunner.start(ExerciseLibraryRegistry.list()[EX.sel]); EX.playing = true; renderExLab(); });
+
 $('#navToggle').addEventListener('click', toggleNavigation);
 if (window.ResizeObserver) new ResizeObserver(() => { if (ui.view === 'diagram') renderWorld(); }).observe($('#cv'));
 
@@ -3317,6 +3593,885 @@ const EXAMPLES = [
       W(s0, 'b', ktc, 'a', BLACK); W(ktc, 'b', h1, 'a', BLACK); W(h1, 'b', n, 'a', BLUE, [[700, 620], [200, 620]]);
       return d; } },
 ];
+
+// =====================================================================
+// INTERACTIVE HMI & PRACTICAL EXERCISE ENGINE
+//  ApplicationRegistry · ExampleLibraryRegistry · ExerciseLibraryRegistry · TagBindingManager ·
+//  HMIBindingEngine · VirtualActuatorEngine · VirtualSensorEngine · VirtualProcessEngine ·
+//  DemoRunner · ExerciseSession · ExerciseTestRunner · ExerciseValidationEngine · ExerciseProgressManager
+//  The electrical engine drives the actuators; the virtual process only computes physics and
+//  sends sensor states back. Nothing here decides how the student's circuit should behave.
+// =====================================================================
+const DEVICE_KINDS = {
+  motor: { label: 'Motor', io: 'motor', types: ['motor_3f', 'motor_6p'] },
+  contactor: { label: 'Contator', io: 'coil', types: ['bobina', 'contator_forca', 'contato_na', 'contato_nf', 'contato_comum'] },
+  relay: { label: 'Relé auxiliar', io: 'coil', types: ['bobina', 'contato_na', 'contato_nf', 'contato_comum'] },
+  timer: { label: 'Temporizador', io: 'timer', types: ['temporizador', 'temporizador_off', 'temp_na', 'temp_nf'] },
+  overload: { label: 'Relé térmico', io: 'overload', types: ['rele_termico', 'ft_na', 'ft_nf'] },
+  push: { label: 'Botoeira', io: 'push', types: ['botao_na', 'botao_nf', 'pulsador_na_nf', 'pulsador_comum'] },
+  emergency: { label: 'Emergência', io: 'toggle', types: ['emergencia', 'emergencia_na'] },
+  selector: { label: 'Chave seletora', io: 'toggle', types: ['seletora', 'seletora_nf'] },
+  level: { label: 'Chave de nível', io: 'sensor', types: ['boia_na', 'boia_nf', 'sensor_cap_na', 'sensor_cap_nf'] },
+  limit: { label: 'Fim de curso', io: 'sensor', types: ['fim_curso_na', 'fim_curso_nf', 'sensor', 'sensor_ind_nf'] },
+  photo: { label: 'Fotocélula', io: 'sensor', types: ['fotocelula_na', 'fotocelula_nf'] },
+  sensor: { label: 'Sensor', io: 'sensor', types: ['sensor', 'sensor_ind_nf', 'sensor_cap_na', 'sensor_cap_nf', 'boia_na', 'boia_nf', 'fim_curso_na', 'fim_curso_nf', 'fotocelula_na', 'fotocelula_nf'] },
+  lamp: { label: 'Sinalizador', io: 'lamp', types: ['sinaleiro'] },
+  alarm: { label: 'Alarme sonoro', io: 'lamp', types: ['buzzer', 'buzina', 'sirene'] },
+};
+const ApplicationRegistry = {
+  list: [], byId: {},
+  register(app) { this.list.push(app); this.byId[app.applicationId] = app; return app; },
+  get(id) { return this.byId[id] || null; },
+  current() { return doc && doc.app ? this.get(doc.app.id) : null; },
+};
+const ExampleLibraryRegistry = { list: () => ApplicationRegistry.list.filter(a => a.exampleProjectReference) };
+const ExerciseLibraryRegistry = { list: () => ApplicationRegistry.list.filter(a => a.exerciseRequirements && a.testScenarios) };
+
+// ---- TAG binding: stable device ids, tag fallback, type compatibility ----
+const TagBindingManager = {
+  device(app, id) { return app ? app.devices.find(d => d.id === id) || null : null; },
+  compatible(dev, type) { return DEVICE_KINDS[dev.kind].types.includes(type); },
+  devOf(c, app = ApplicationRegistry.current()) {
+    if (!app) return null;
+    if (c.dev) { const d = this.device(app, c.dev); return d && this.compatible(d, c.type) ? d : null; }
+    return app.devices.find(d => d.tag === c.tag && this.compatible(d, c.type)) || null;
+  },
+  comps(dev, app = ApplicationRegistry.current()) { return doc.comps.filter(c => { const d = this.devOf(c, app); return d && d.id === dev.id; }); },
+  options(c, app = ApplicationRegistry.current()) { return app ? app.devices.filter(d => this.compatible(d, c.type)) : []; },
+  bind(c, devId, app = ApplicationRegistry.current()) {
+    if (!devId) { delete c.dev; return; }
+    const d = this.device(app, devId); if (!d || !this.compatible(d, c.type)) return false;
+    c.dev = d.id; c.tag = d.tag; return true;
+  },
+  issues(app = ApplicationRegistry.current()) {
+    if (!app) return [];
+    const out = [];
+    for (const c of doc.comps) {
+      const T0 = TYPES[c.type];
+      if (c.dev) { const d = this.device(app, c.dev); if (!d) out.push(`${c.tag || T0.name}: associado a um dispositivo que não existe nesta aplicação`); else if (!this.compatible(d, c.type)) out.push(`${c.tag}: ${T0.name.toLowerCase()} não é compatível com ${d.tag} (${DEVICE_KINDS[d.kind].label.toLowerCase()})`); continue; }
+      const same = app.devices.find(d => d.tag === c.tag);
+      if (same && !this.compatible(same, c.type) && !T0.notag) out.push(`${c.tag}: na aplicação ${same.tag} é ${DEVICE_KINDS[same.kind].label.toLowerCase()} (${same.name}), mas foi usado num(a) ${T0.name.toLowerCase()}`);
+    }
+    return out;
+  },
+};
+
+// ---- actuators: read the real outputs of the electrical engine ----
+const VirtualActuatorEngine = {
+  read(app) {
+    const out = {}, present = {};
+    for (const d of app.devices) {
+      const cs = TagBindingManager.comps(d, app); present[d.id] = cs.length > 0;
+      const io = DEVICE_KINDS[d.kind].io;
+      if (io === 'motor') { const c = cs.find(x => sim.motors && sim.motors[x.id]) || cs[0], m = (c && sim.motors[c.id]) || {}; out[d.id] = { run: !!m.run, dir: m.dir || null, conn: m.conn || null, msg: m.msg || '', cur: c && sim.meas && sim.meas.motors ? sim.meas.motors[c.id] || 0 : 0 }; }
+      else if (io === 'coil') out[d.id] = !!sim.coils[d.tag];
+      else if (io === 'timer') { const tc = cs.find(c => TIMER_T.has(c.type)); out[d.id] = { on: !!sim.timerOn[d.tag], done: !!sim.timerDone[d.tag], acc: sim.timerAcc[d.tag] || 0, preset: tc ? +tc.preset || 0 : 0, tof: !!(tc && TYPES[tc.type].tof) }; }
+      else if (io === 'lamp') out[d.id] = cs.some(c => sim.lamps && sim.lamps[c.id]);
+      else if (io === 'overload') out[d.id] = sim.tripped.has(d.tag);
+      else if (io === 'push') out[d.id] = cs.some(c => sim.pressed.has(c.id));
+      else out[d.id] = cs.some(c => sim.toggled.has(c.id));
+    }
+    return { out, present, sens: { ...(Proc.sens || {}) }, st: Proc.st, t: sim.t };
+  },
+};
+// ---- HMI commands → electrical engine ----
+const HMIBindingEngine = {
+  press(devId, on) {
+    const app = ApplicationRegistry.current(), d = TagBindingManager.device(app, devId); if (!d || !sim.running) return;
+    for (const c of TagBindingManager.comps(d, app)) if (TYPES[c.type].inter === 'push') on ? sim.pressed.add(c.id) : sim.pressed.delete(c.id);
+    resolve(); if (sim.short) stopSim(shortMsg());
+  },
+  toggle(devId, val) {
+    const app = ApplicationRegistry.current(), d = TagBindingManager.device(app, devId); if (!d || !sim.running) return;
+    const cs = TagBindingManager.comps(d, app).filter(c => TYPES[c.type].inter === 'toggle');
+    const next = val === undefined ? !cs.some(c => sim.toggled.has(c.id)) : val;
+    for (const c of cs) next ? sim.toggled.add(c.id) : sim.toggled.delete(c.id);
+    resolve(); if (sim.short) stopSim(shortMsg());
+  },
+  control(ctl, val) {
+    const app = Proc.app; if (!app || !sim.running) return;
+    if (ctl.kind === 'manual') Proc.st.manual[ctl.dev] = val === undefined ? !Proc.st.manual[ctl.dev] : val;
+    else if (ctl.kind === 'param') Proc.st[ctl.param] = val;
+    else if (ctl.kind === 'flag') Proc.st[ctl.param] = val === undefined ? !Proc.st[ctl.param] : val;
+    else if (ctl.kind === 'overload') { const d = TagBindingManager.device(app, ctl.dev), cs = d ? TagBindingManager.comps(d, app) : []; const on = val === undefined ? !cs.some(c => sim.overload.has(c.id)) : val; for (const c of cs) on ? sim.overload.add(c.id) : sim.overload.delete(c.id); if (on) sim.events.unshift({ t: sim.t, msg: `Sobrecarga simulada em ${ctl.dev}`, level: 'warn' }); }
+    Proc.sens = VirtualProcessEngine.sensors(app, Proc.st);
+    if (VirtualSensorEngine.apply(app, Proc.sens)) { resolve(); if (sim.short) stopSim(shortMsg()); }
+  },
+};
+// ---- sensors: virtual process → electrical engine ----
+const VirtualSensorEngine = {
+  apply(app, sens) {
+    let changed = false;
+    for (const [id, on] of Object.entries(sens)) {
+      const d = TagBindingManager.device(app, id); if (!d) continue;
+      for (const c of TagBindingManager.comps(d, app)) if (TYPES[c.type].inter === 'toggle' && sim.toggled.has(c.id) !== !!on) { on ? sim.toggled.add(c.id) : sim.toggled.delete(c.id); changed = true; }
+    }
+    return changed;
+  },
+};
+// ---- physical process (shared by live simulation, demonstration and tests) ----
+const Proc = { app: null, live: false, st: null, sens: {}, faults: [], hist: [] };
+const VirtualProcessEngine = {
+  init(app, over = {}) { const P = PROCESS[app.sceneTemplate]; return { ...P.init(app.physicalParameters || {}), ...(app.initialConditions || {}), ...over, manual: { ...((app.initialConditions || {}).manual || {}), ...(over.manual || {}) } }; },
+  sensors(app, st) {
+    const P = PROCESS[app.sceneTemplate], s = { ...P.sensors(st, app.physicalParameters || {}) };
+    for (const d of app.devices) if (DEVICE_KINDS[d.kind].io === 'sensor' && !(d.id in s)) s[d.id] = !!st.manual[d.id];
+    return s;
+  },
+  start(app, over) {
+    Object.assign(Proc, { app, live: true, st: this.init(app, over), faults: [], hist: [] });
+    Proc.sens = this.sensors(app, Proc.st); VirtualSensorEngine.apply(app, Proc.sens);
+  },
+  stop() { Proc.live = false; },
+  fault(target, code, level, msg) {
+    if (target.faults.some(f => f.code === code)) return;
+    target.faults.push({ code, level, msg, t: target === Proc ? sim.t : 0 });
+    if (target === Proc && !sim.headless) { sim.events.unshift({ t: sim.t, msg: `Processo: ${msg}`, level: level === 'crit' ? 'crit' : 'warn' }); sim.marks.push({ t: sim.t, label: msg.split(':')[0] }); }
+  },
+  step(dt) {
+    const app = Proc.app; if (!app || !Proc.live) return false;
+    const io = VirtualActuatorEngine.read(app), P = PROCESS[app.sceneTemplate];
+    P.step(Proc.st, io.out, dt, app.physicalParameters || {}, (code, level, msg) => this.fault(Proc, code, level, msg));
+    Proc.sens = this.sensors(app, Proc.st);
+    if (P.hist) { Proc.hist.push({ t: sim.t, v: P.hist(io.out, Proc.st) }); if (Proc.hist.length > 400) Proc.hist.shift(); }
+    return VirtualSensorEngine.apply(app, Proc.sens);
+  },
+};
+// ---- reference timers for demonstrations (never used by the live simulation) ----
+const refTimer = (mem, k, on, preset, dt, tof = false) => {
+  const m = mem[k] || (mem[k] = { acc: 0, done: false, was: false });
+  if (!tof) { m.acc = on ? m.acc + dt : 0; m.done = on && m.acc >= preset; }
+  else { if (on) { m.acc = 0; m.done = true; } else if (m.done) { m.acc += dt; if (m.acc >= preset) m.done = false; } }
+  return { on, done: m.done, acc: m.acc, preset, tof };
+};
+const DemoRunner = {
+  s: null,
+  start(app) { this.s = { app, t: 0, st: VirtualProcessEngine.init(app), mem: {}, inp: { press: {}, tog: {} }, until: {}, idx: 0, faults: [], hist: [], out: {}, sens: {}, caption: '' }; this.s.sens = VirtualProcessEngine.sensors(app, this.s.st); this.s.out = app.reference(this.s.inp, this.s.sens, this.s.mem, 0, this.s.st); },
+  step(dt) {
+    const s = this.s; if (!s) return; const app = s.app, seq = app.demonstrationSequence; s.t += dt;
+    while (s.idx < seq.script.length && seq.script[s.idx].at <= s.t) {
+      const e = seq.script[s.idx++];
+      if (e.do === 'press') { s.inp.press[e.dev] = true; s.until[e.dev] = s.t + (e.dur || .4); }
+      if (e.do === 'toggle') s.inp.tog[e.dev] = e.value === undefined ? !s.inp.tog[e.dev] : e.value;
+      if (e.do === 'set') s.st[e.param] = e.value;
+      if (e.do === 'manual') s.st.manual[e.dev] = e.value;
+      if (e.say) s.caption = e.say;
+    }
+    for (const [k, u] of Object.entries(s.until)) if (s.t >= u) { s.inp.press[k] = false; delete s.until[k]; }
+    s.sens = VirtualProcessEngine.sensors(app, s.st);
+    s.out = app.reference(s.inp, s.sens, s.mem, dt, s.st);
+    const P = PROCESS[app.sceneTemplate];
+    P.step(s.st, s.out, dt, app.physicalParameters || {}, (code, level, msg) => VirtualProcessEngine.fault(s, code, level, msg));
+    s.sens = VirtualProcessEngine.sensors(app, s.st);
+    if (P.hist) { s.hist.push({ t: s.t, v: P.hist(s.out, s.st) }); if (s.hist.length > 400) s.hist.shift(); }
+    if (s.t >= seq.len) this.start(app);
+  },
+};
+
+// ---- exercise sessions, tests and progress ----
+const TEST_STATUS = { pend: 'Não testado', run: 'Em execução', ok: 'Aprovado', fail: 'Reprovado', na: 'Não aplicável', inc: 'Inconclusivo' };
+const ExerciseSession = {
+  create(app) {
+    return { project: `Exercício · ${app.title}`, author: doc ? doc.author : '', elec: { ...app.electricalConfig },
+      sheets: app.sheets.map((name, i) => ({ id: 's' + (i + 1), name, desc: '', size: 'A3', orient: 'paisagem', cols: 12, rows: 6 })), comps: [], wires: [],
+      app: { id: app.applicationId, mode: 'exercise', session: 'ex-' + Date.now().toString(36), started: new Date().toISOString(), results: {}, hints: {} } };
+  },
+  start(app, { resume = false } = {}) {
+    const saved = resume ? ExerciseProgressManager.load(app.applicationId) : null;
+    createProject(saved || this.create(app));
+    ui.inspOpen = true; ui.pmTab = 'app'; render();
+  },
+};
+const ExerciseProgressManager = {
+  key: id => 'voltacademy.ex.' + id,
+  summary(app, d = doc) {
+    const total = app.testScenarios.length, res = (d && d.app && d.app.results) || {};
+    const passed = app.testScenarios.filter(s => res[s.id] && res[s.id].status === 'ok').length;
+    return { total, passed, pending: total - passed, pct: total ? Math.round(100 * passed / total) : 0 };
+  },
+  index() { try { return JSON.parse(localStorage.getItem('voltacademy.ex.index') || '{}'); } catch (e) { return {}; } },
+  save() {
+    const app = ApplicationRegistry.current(); if (!app || !doc.app || doc.app.mode !== 'exercise') return;
+    try {
+      localStorage.setItem(this.key(app.applicationId), serialize());
+      const idx = this.index(); idx[app.applicationId] = { ...this.summary(app), at: new Date().toISOString(), session: doc.app.session }; localStorage.setItem('voltacademy.ex.index', JSON.stringify(idx));
+    } catch (e) {}
+  },
+  load(id) { try { const s = localStorage.getItem(this.key(id)); return s ? JSON.parse(s) : null; } catch (e) { return null; } },
+};
+const ExerciseTestRunner = {
+  // Runs one scenario headless on the student's real circuit + the virtual process, then restores the idle state.
+  run(app, sc) {
+    const need = (sc.needs || app.needs || []).map(id => TagBindingManager.device(app, id)).filter(d => !TagBindingManager.comps(d, app).length);
+    if (need.length) return { status: 'inc', msg: `Não encontrei no diagrama: ${need.map(d => d.tag).join(', ')}. Use essas TAGs ou associe os componentes aos dispositivos para o teste conseguir operar o circuito.` };
+    if (!doc.comps.some(c => TYPES[c.type].src)) return { status: 'inc', msg: 'O diagrama ainda não tem alimentação (fase e neutro ou fonte trifásica).' };
+    if (sim.running) stopSim();
+    Object.assign(sim, blankSim(), { running: true, headless: true });
+    VirtualProcessEngine.start(app, sc.init || {});
+    resolve(); updateElectrical(0);
+    const dt = .05, acts = (sc.steps || []).slice().sort((a, b) => a.at - b.at), hist = [], held = {};
+    let k = 0, shortAt = null;
+    const doAct = a => {
+      const d = TagBindingManager.device(app, a.dev), cs = d ? TagBindingManager.comps(d, app) : [];
+      if (a.do === 'press') { for (const c of cs) if (TYPES[c.type].inter === 'push') sim.pressed.add(c.id); held[a.dev] = sim.t + (a.dur ?? .3); }
+      if (a.do === 'toggle') { const v = a.value === undefined ? !cs.some(c => sim.toggled.has(c.id)) : a.value; for (const c of cs) if (TYPES[c.type].inter === 'toggle') v ? sim.toggled.add(c.id) : sim.toggled.delete(c.id); }
+      if (a.do === 'manual') Proc.st.manual[a.dev] = a.value;
+      if (a.do === 'set') Proc.st[a.param] = a.value;
+      if (a.do === 'overload') for (const c of cs) sim.overload.add(c.id);
+      if (a.do === 'trip') sim.tripped.add(d ? d.tag : a.dev);
+      Proc.sens = VirtualProcessEngine.sensors(app, Proc.st); VirtualSensorEngine.apply(app, Proc.sens);
+      resolve();
+    };
+    while (sim.t < sc.timeout) {
+      while (k < acts.length && acts[k].at <= sim.t + 1e-9) doAct(acts[k++]);
+      for (const [dev, u] of Object.entries(held)) if (sim.t >= u) { const d = TagBindingManager.device(app, dev); for (const c of TagBindingManager.comps(d, app)) sim.pressed.delete(c.id); delete held[dev]; resolve(); }
+      if (sim.short) { shortAt = { t: sim.t, pair: sim.short }; break; }
+      simStep(dt);
+      if (sim.short) { shortAt = { t: sim.t, pair: sim.short }; break; }
+      const io = VirtualActuatorEngine.read(app); io.faults = Proc.faults.map(f => f.code); io.protTrip = Object.keys(sim.faults).length > 0; hist.push({ t: sim.t, io });
+    }
+    const faults = Proc.faults.slice();
+    Object.assign(sim, blankSim()); Proc.live = false; Proc.app = null;
+    if (shortAt) return { status: 'fail', msg: `Curto-circuito entre ${shortAt.pair[0]} e ${shortAt.pair[1]} aos ${shortAt.t.toFixed(1)} s do teste: dois potenciais ficaram ligados sem carga. ${sc.onShort || ''}`.trim() };
+    return this.evaluate(sc, hist, faults);
+  },
+  evaluate(sc, hist, faults) {
+    const at = (t0, t1) => hist.filter(h => h.t >= t0 - 1e-9 && h.t <= t1 + 1e-9);
+    for (const ck of sc.checks) {
+      let ok = true;
+      if (ck.by !== undefined) ok = at(ck.from || 0, ck.by).some(h => ck.cond(h.io));
+      else if (ck.hold) ok = at(ck.hold[0], ck.hold[1]).every(h => ck.cond(h.io));
+      else if (ck.never) ok = !at(ck.from || 0, Infinity).some(h => ck.never(h.io));
+      else if (ck.when) {
+        const trig = at(ck.from || 0, ck.limit ?? Infinity).find(h => ck.when(h.io));
+        if (!trig) return { status: ck.noTrig === 'fail' ? 'fail' : 'inc', msg: ck.noTrigMsg || 'A condição de disparo do teste não ocorreu.' };
+        ok = at(trig.t, trig.t + ck.within).some(h => ck.then(h.io));
+      } else if (ck.post) { const r = ck.post(hist, faults); ok = r === true; if (!ok && typeof r === 'string') return { status: 'fail', msg: r }; }
+      if (!ok) return { status: 'fail', msg: ck.fail };
+    }
+    return { status: 'ok', msg: sc.okMsg || 'Requisito atendido pelo circuito.' };
+  },
+};
+const ExerciseValidationEngine = {
+  running: false,
+  async validate(onStep) {
+    const app = ApplicationRegistry.current(); if (!app || this.running) return;
+    this.running = true;
+    const res = doc.app.results = doc.app.results || {};
+    for (const sc of app.testScenarios) res[sc.id] = { status: 'run', msg: '' };
+    onStep && onStep();
+    for (const sc of app.testScenarios) {
+      await new Promise(r => setTimeout(r, 0));
+      let r; try { r = ExerciseTestRunner.run(app, sc); } catch (e) { r = { status: 'inc', msg: 'O teste não pôde ser concluído: ' + e.message }; Object.assign(sim, blankSim()); }
+      res[sc.id] = { ...r, at: new Date().toISOString() };
+      onStep && onStep();
+    }
+    doc.app.validatedAt = new Date().toISOString();
+    this.running = false; commit(); ExerciseProgressManager.save(); render();
+    return res;
+  },
+  // runs all scenarios synchronously (used by automated checks of the reference examples)
+  runAllSync(app) { const out = {}; for (const sc of app.testScenarios) out[sc.id] = ExerciseTestRunner.run(app, sc); return out; },
+};
+// ---- VirtualProcessEngine models: physics only; inputs are the real actuator states ----
+const PROCESS = {
+  water: {
+    init: p => ({ lvl: 50, src: true, cons: p.cons ?? 2, pumpFail: false, flow: 0, dryT: 0, ovT: 0 }),
+    step(st, out, dt, p, fault) {
+      const run = !!(out.M1 && out.M1.run), pumping = run && st.src && !st.pumpFail;
+      st.flow = pumping ? p.fill : 0;
+      st.lvl = Math.max(0, Math.min(100, st.lvl + (st.flow - (st.lvl > 0 ? st.cons : 0)) * dt));
+      if (pumping && st.lvl >= 99.9) { st.ovT += dt; if (st.ovT > .3) fault('overflow', 'crit', 'Transbordamento: a bomba continuou ligada com o reservatório superior cheio'); } else st.ovT = 0;
+      if (run && !st.src) { st.dryT += dt; if (st.dryT > 1) fault('dry', 'crit', 'Bomba operando a seco: falta de água no reservatório inferior'); } else st.dryT = 0;
+      if (run && st.pumpFail) fault('pumpfail', 'warn', 'Falha da bomba: motor ligado sem vazão (falha mecânica simulada)');
+    },
+    sensors: (st, p) => ({ B1: st.lvl <= p.low, B2: st.lvl >= p.high }),
+    hist: (out, st) => st.lvl,
+  },
+  gate: {
+    init: () => ({ pos: 0, obst: false, endT: 0, crash: false }),
+    step(st, out, dt, p, fault) {
+      const m = out.M1 || {}, dir = m.run ? (m.dir === 'horário' ? 1 : -1) : 0;
+      if (out.K1 && out.K2) fault('conflict', 'crit', 'Comandos conflitantes: abertura (K1) e fechamento (K2) acionados juntos');
+      let next = st.pos + dir * p.speed * dt;
+      if (dir < 0 && st.obst && next <= p.obstAt) { next = Math.max(next, p.obstAt - 1); if (st.pos <= p.obstAt) { st.crash = true; fault('crash', 'crit', 'Colisão: o portão continuou fechando com obstáculo na fotocélula'); } }
+      st.pos = Math.max(0, Math.min(100, next));
+      const atEnd = (dir > 0 && st.pos >= 100) || (dir < 0 && st.pos <= 0);
+      if (atEnd) { st.endT += dt; if (st.endT > .6) fault(dir > 0 ? 'limitOpen' : 'limitClose', 'crit', dir > 0 ? 'O portão continuou recebendo comando de abertura após atingir o fim de curso' : 'O portão continuou recebendo comando de fechamento após atingir o fim de curso'); }
+      else st.endT = 0;
+    },
+    sensors: st => ({ FC1: st.pos >= 99.5, FC2: st.pos <= .5, B1: !!st.obst }),
+    hist: (out, st) => st.pos,
+  },
+  traffic: {
+    init: () => ({ conflictT: 0 }),
+    step(st, out, dt, p, fault) {
+      const n = ['H1', 'H2', 'H3'].filter(k => out[k]).length;
+      if (n > 1) { st.conflictT += dt; if (st.conflictT > .15) fault('conflict', 'crit', 'Estados conflitantes: mais de uma cor acesa ao mesmo tempo'); } else st.conflictT = 0;
+    },
+    sensors: () => ({}),
+    hist: out => (out.H1 ? 1 : 0) | (out.H2 ? 2 : 0) | (out.H3 ? 4 : 0),
+  },
+  flipflop: { init: () => ({ pulses: 0, was: false }), step(st, out) { if (out.S1 && !st.was) st.pulses++; st.was = !!out.S1; }, sensors: () => ({}), hist: out => (out.K1 ? 1 : 0) | (out.S1 ? 2 : 0) },
+  stardelta: {
+    init: () => ({ speed: 0 }),
+    step(st, out, dt, p, fault) {
+      const m = out.M1 || {}, target = m.run ? (m.conn === 'estrela' ? .9 : 1) : 0;
+      st.speed += (target - st.speed) * Math.min(1, dt * (m.run ? 1.1 : .6));
+      if (out.K2 && out.K3) fault('conflict', 'crit', 'Conflito grave: contatores de estrela (K2) e triângulo (K3) energizados ao mesmo tempo');
+    },
+    sensors: () => ({}),
+    hist: (out, st) => st.speed,
+  },
+  emergency: { init: () => ({ x: 0 }), step(st, out, dt) { if ((out.M1 && out.M1.run)) st.x = (st.x + dt * 60) % 1000; }, sensors: () => ({}), hist: out => (out.M1 && out.M1.run ? 1 : 0) },
+  timers: { init: () => ({}), step() {}, sensors: () => ({}), hist: out => Object.keys(out).filter(k => /^H|^HA/.test(k) && out[k]).join(',') },
+};
+// ---- HMISceneRenderer: SVG scenes fed only by actuator/sensor states (live) or the reference sequence (demo) ----
+const HS = {
+  tag(x, y, t, on = false, warn = false) { const w = 14 + String(t).length * 8.2; return `<g class="hs-tag${on ? ' on' : ''}${warn ? ' warn' : ''}" transform="translate(${x} ${y})"><rect x="${-w / 2}" y="-11" width="${w}" height="22" rx="5"/><text y="4.5">${esc(t)}</text></g>`; },
+  lamp(x, y, r, col, on, tag) { return `<g transform="translate(${x} ${y})">${on ? `<circle r="${r * 2.4}" fill="${col}" opacity=".22" filter="url(#hsBlur)"/>` : ''}<circle r="${r + 4}" class="hs-bezel"/><circle r="${r}" fill="${on ? col : '#1A2029'}" stroke="${col}" stroke-opacity="${on ? 1 : .35}" stroke-width="2"/>${on ? `<circle r="${r * .45}" cx="${-r * .25}" cy="${-r * .25}" fill="#fff" opacity=".55"/>` : ''}${tag ? this.tag(0, r + 22, tag, on) : ''}</g>`; },
+  fan(x, y, r, ang, run) { return `<g transform="translate(${x} ${y}) rotate(${ang})">${[0, 120, 240].map(a => `<path d="M0 0 Q${r * .5} ${-r * .25} ${r * .95} 0 Q${r * .5} ${r * .25} 0 0Z" transform="rotate(${a})" fill="${run ? '#FFD600' : '#5B6675'}" opacity="${run ? .95 : .8}"/>`).join('')}<circle r="${r * .18}" fill="#0B1017" stroke="#8892A0"/></g>`; },
+  motor(x, y, run, ang, tag, sub = '') { return `<g transform="translate(${x} ${y})"><rect x="-46" y="-34" width="92" height="68" rx="10" class="hs-metal"/>${[...Array(6)].map((_, i) => `<line x1="${-38 + i * 15}" y1="-34" x2="${-38 + i * 15}" y2="34" stroke="#0E141C" stroke-width="3" opacity=".5"/>`).join('')}<circle cx="0" cy="0" r="22" fill="#0B1017" stroke="${run ? '#FFD600' : '#3A4452'}" stroke-width="2"/>${this.fan(0, 0, 18, ang, run)}${run ? '<circle r="30" fill="none" stroke="#FFD600" stroke-opacity=".35" stroke-width="6" filter="url(#hsBlur)"/>' : ''}${this.tag(0, 52, tag, run)}${sub ? `<text y="72" class="hs-sub">${esc(sub)}</text>` : ''}</g>`; },
+  chip(x, y, label, on, warn) { return `<g transform="translate(${x} ${y})"><rect x="-38" y="-15" width="76" height="30" rx="7" class="hs-chip${on ? ' on' : ''}${warn ? ' warn' : ''}"/><text y="5" class="hs-chipt${on ? ' on' : ''}">${esc(label)}</text></g>`; },
+  bar(x, y, w, f, col = '#FFD600') { return `<rect x="${x}" y="${y}" width="${w}" height="8" rx="4" fill="#1A2230"/><rect x="${x}" y="${y}" width="${Math.max(0, Math.min(1, f)) * w}" height="8" rx="4" fill="${col}"/>`; },
+  defs: `<defs><filter id="hsBlur" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="6"/></filter>
+    <linearGradient id="hsWater" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#36C6FF" stop-opacity=".9"/><stop offset="1" stop-color="#0866B8" stop-opacity=".95"/></linearGradient>
+    <linearGradient id="hsMetal" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4A5563"/><stop offset=".5" stop-color="#2C3541"/><stop offset="1" stop-color="#1B222C"/></linearGradient>
+    <pattern id="hsGrid" width="24" height="24" patternUnits="userSpaceOnUse"><path d="M24 0H0V24" fill="none" stroke="#65E4FF" stroke-opacity=".06"/></pattern></defs>`,
+};
+const timerOf = o => o && typeof o === 'object' ? o : { on: false, done: false, acc: 0, preset: 0 };
+const SCENES = {
+  water(v) {
+    const { out, sens, st, t } = v, lvl = st.lvl, run = out.M1 && out.M1.run, flowing = st.flow > 0, ang = run ? (t * 900) % 360 : 0, p = v.app.physicalParameters;
+    const tx = 470, ty = 70, tw = 210, th = 250, wy = ty + th - th * lvl / 100, ly = ty + th - th * p.low / 100, hy = ty + th - th * p.high / 100;
+    const dash = flowing ? `stroke-dasharray="10 10" stroke-dashoffset="${-(t * 60) % 20}"` : '';
+    return `<rect width="760" height="420" fill="url(#hsGrid)"/>
+      <rect x="40" y="300" width="230" height="96" rx="8" class="hs-tank"/><rect x="44" y="${st.src ? 316 : 384}" width="222" height="${st.src ? 76 : 8}" rx="5" fill="url(#hsWater)"/><text x="155" y="414" class="hs-lbl">Reservatório inferior${st.src ? '' : ' · SEM ÁGUA'}</text>
+      <path d="M150 316 V250 H300" class="hs-pipe"/><path d="M380 250 H420 V40 H${tx + 60} V${ty + 6}" class="hs-pipe"/>
+      <path d="M150 316 V250 H300" class="hs-flow" ${dash} opacity="${flowing ? 1 : 0}"/><path d="M380 250 H420 V40 H${tx + 60} V${ty + 6}" class="hs-flow" ${dash} opacity="${flowing ? 1 : 0}"/>
+      ${HS.motor(340, 250, run, ang, 'M1', st.pumpFail ? 'falha: sem vazão' : run ? 'bomba ligada' : 'bomba parada')}
+      <rect x="${tx}" y="${ty}" width="${tw}" height="${th}" rx="10" class="hs-tank"/>
+      <clipPath id="hsTankClip"><rect x="${tx + 4}" y="${ty + 4}" width="${tw - 8}" height="${th - 8}" rx="7"/></clipPath>
+      <g clip-path="url(#hsTankClip)"><rect x="${tx}" y="${wy}" width="${tw}" height="${th}" fill="url(#hsWater)"/><path d="M${tx} ${wy} q26 ${-5} 52 0 t52 0 t52 0 t52 0 t52 0" transform="translate(${-((t * 30) % 52)} 0)" fill="none" stroke="#9BE7FF" stroke-width="2" opacity=".7"/></g>
+      <line x1="${tx - 6}" y1="${hy}" x2="${tx + tw + 6}" y2="${hy}" class="hs-mark"/><line x1="${tx - 6}" y1="${ly}" x2="${tx + tw + 6}" y2="${ly}" class="hs-mark"/>
+      <g><line x1="${tx + tw - 24}" y1="${hy - 30}" x2="${tx + tw - 24}" y2="${hy - 4}" stroke="#8892A0" stroke-width="2"/><circle cx="${tx + tw - 24}" cy="${hy + (sens.B2 ? -6 : 6)}" r="8" class="hs-float${sens.B2 ? ' on' : ''}"/>${HS.tag(tx + tw + 30, hy, 'B2', sens.B2)}</g>
+      <g><line x1="${tx + 24}" y1="${ly - 30}" x2="${tx + 24}" y2="${ly - 4}" stroke="#8892A0" stroke-width="2"/><circle cx="${tx + 24}" cy="${ly + (sens.B1 ? 6 : -6)}" r="8" class="hs-float${sens.B1 ? ' on' : ''}"/>${HS.tag(tx - 30, ly, 'B1', sens.B1)}</g>
+      <text x="${tx + tw / 2}" y="${ty + 40}" class="hs-big">${Math.round(lvl)}%</text><text x="${tx + tw / 2}" y="${ty + 60}" class="hs-lbl">Reservatório superior</text>
+      <path d="M${tx + tw} ${ty + th - 20} H${tx + tw + 40} V${ty + th + 40}" class="hs-pipe"/>${st.cons > 0 && lvl > 0 ? [0, 1, 2].map(i => `<circle cx="${tx + tw + 40}" cy="${ty + th + 46 + ((t * 70 + i * 14) % 40)}" r="3" fill="#36C6FF"/>`).join('') : ''}<text x="${tx + tw + 28}" y="${ty + th + 92}" class="hs-sub r">consumo ${(st.cons || 0).toFixed(1)}%/s</text>
+      <g transform="translate(60 40)"><rect x="-20" y="-24" width="250" height="120" rx="12" class="hs-panel"/><text x="105" y="-4" class="hs-lbl">Painel</text>
+        ${HS.lamp(20, 32, 12, '#2BD96B', out.H1, 'H1')}${HS.lamp(80, 32, 12, '#FF3B3B', out.H2, 'H2')}${HS.chip(160, 22, 'K1', out.K1)}${HS.chip(160, 62, 'FT1', out.FT1, out.FT1)}</g>`;
+  },
+  gate(v) {
+    const { out, sens, st, t } = v, m = out.M1 || {}, pos = st.pos, x0 = 150, w = 330, gx = x0 + pos / 100 * (w - 20), opening = m.run && m.dir === 'horário', closing = m.run && m.dir !== 'horário';
+    const beam = sens.B1 ? `<line x1="${x0 - 22}" y1="300" x2="${x0 + 110}" y2="300" class="hs-beam"/><line x1="${x0 + 150}" y1="300" x2="${x0 + w + 22}" y2="300" class="hs-beam off"/>` : `<line x1="${x0 - 22}" y1="300" x2="${x0 + w + 22}" y2="300" class="hs-beam"/>`;
+    return `<rect width="760" height="420" fill="url(#hsGrid)"/><rect x="0" y="352" width="760" height="68" fill="#121821"/><line x1="0" y1="352" x2="760" y2="352" stroke="#2A3442" stroke-width="3"/>
+      <rect x="${x0 - 40}" y="150" width="22" height="202" rx="4" class="hs-metal"/><rect x="${x0 + w + 18}" y="150" width="22" height="202" rx="4" class="hs-metal"/><rect x="${x0 + w + 40}" y="150" width="300" height="202" fill="#10161F" stroke="#2A3442"/>
+      <line x1="${x0 - 20}" y1="340" x2="${x0 + w + 330}" y2="340" stroke="#5B6675" stroke-width="4"/>
+      ${beam}<circle cx="${x0 - 22}" cy="300" r="6" class="hs-eye"/><circle cx="${x0 + w + 22}" cy="300" r="6" class="hs-eye"/>${HS.tag(x0 - 26, 270, 'B1', sens.B1, sens.B1)}
+      ${st.obst ? `<g transform="translate(${x0 + 118} 282)"><rect x="-26" y="-34" width="52" height="68" rx="6" fill="#B65C1A" stroke="#FFB27A"/><text y="5" class="hs-lbl" fill="#FFE2C8">obstáculo</text></g>` : ''}
+      <g transform="translate(${gx} 0)"><rect x="0" y="170" width="${w - 6}" height="164" rx="4" fill="#26303D" stroke="${m.run ? '#FFD600' : '#4A5563'}" stroke-width="2"/>${[...Array(12)].map((_, i) => `<rect x="${12 + i * 26}" y="182" width="10" height="140" rx="2" fill="#3A4656"/>`).join('')}<rect x="0" y="246" width="${w - 6}" height="10" fill="#4A5563"/></g>
+      <g transform="translate(${x0 + w + 200} 110)"><rect x="-58" y="-40" width="116" height="80" rx="10" class="hs-metal"/>${HS.fan(0, 0, 22, m.run ? (t * (opening ? 700 : -700)) % 360 : 0, m.run)}${HS.tag(0, 58, 'M1', m.run)}<text y="-50" class="hs-lbl">${opening ? 'ABRINDO →' : closing ? '← FECHANDO' : 'PARADO'}</text></g>
+      <g transform="translate(${x0 + w + 300} 330)"><rect x="-12" y="-14" width="24" height="28" rx="4" class="hs-limit${sens.FC1 ? ' on' : ''}"/>${HS.tag(0, -32, 'FC1', sens.FC1)}<text y="34" class="hs-sub">aberto</text></g>
+      <g transform="translate(${x0 + 14} 330)"><rect x="-12" y="-14" width="24" height="28" rx="4" class="hs-limit${sens.FC2 ? ' on' : ''}"/>${HS.tag(0, -32, 'FC2', sens.FC2)}<text y="34" class="hs-sub">fechado</text></g>
+      <g transform="translate(70 70)"><rect x="-40" y="-40" width="310" height="80" rx="12" class="hs-panel"/>${HS.chip(0, 0, 'K1 abrir', out.K1)}${HS.chip(90, 0, 'K2 fechar', out.K2, out.K1 && out.K2)}${HS.lamp(180, 0, 11, '#FFB800', out.H1 && Math.sin(t * 9) > 0, '')}<text x="180" y="30" class="hs-sub">H1</text><text x="240" y="5" class="hs-big sm">${Math.round(pos)}%</text></g>
+      <text x="380" y="404" class="hs-sub">Modelo educacional: não é um sistema de segurança certificado para portões reais.</text>`;
+  },
+  traffic(v) {
+    const { out, t } = v, tm = ['KT1', 'KT2', 'KT3'].map(k => timerOf(out[k])), stage = out.H3 ? 'VERDE' : out.H2 ? 'AMARELO' : out.H1 ? 'VERMELHO' : '—';
+    const n = ['H1', 'H2', 'H3'].filter(k => out[k]).length;
+    return `<rect width="760" height="420" fill="url(#hsGrid)"/><rect x="0" y="300" width="760" height="120" fill="#141A22"/>${[...Array(8)].map((_, i) => `<rect x="${30 + i * 92}" y="356" width="56" height="6" fill="#C9CED6" opacity=".6"/>`).join('')}
+      <rect x="194" y="150" width="12" height="160" fill="#3A4452"/><rect x="150" y="20" width="100" height="250" rx="18" fill="#0E1319" stroke="#3A4452" stroke-width="3"/>
+      ${HS.lamp(200, 70, 26, '#FF3B3B', out.H1, '')}${HS.lamp(200, 145, 26, '#FFB800', out.H2, '')}${HS.lamp(200, 220, 26, '#2BD96B', out.H3, '')}
+      ${HS.tag(290, 70, 'H1 vermelho', out.H1)}${HS.tag(290, 145, 'H2 amarelo', out.H2)}${HS.tag(290, 220, 'H3 verde', out.H3)}
+      <g transform="translate(450 50)"><rect x="-20" y="-28" width="290" height="${tm.length * 54 + 40}" rx="12" class="hs-panel"/><text x="125" y="-6" class="hs-lbl">Temporizadores (estado real)</text>
+      ${['KT1', 'KT2', 'KT3'].map((k, i) => { const x = tm[i]; return `<g transform="translate(0 ${20 + i * 54})">${HS.tag(18, 0, k, x.done)}<text x="50" y="5" class="hs-sub l">${x.preset ? `${Math.min(x.acc, x.preset).toFixed(1)} / ${x.preset.toFixed(1)} s` : 'não encontrado no diagrama'}</text>${HS.bar(50, 14, 190, x.preset ? x.acc / x.preset : 0, x.done ? '#2BD96B' : '#FFD600')}</g>`; }).join('')}</g>
+      <text x="575" y="270" class="hs-big">${stage}</text>${n > 1 ? '<text x="575" y="296" class="hs-lbl warnt">CONFLITO: mais de uma cor acesa</text>' : `<text x="575" y="296" class="hs-lbl">${out.S1 ? 'S1 habilitado' : 'S1 desabilitado'}</text>`}`;
+  },
+  flipflop(v) {
+    const { out, st, t } = v, on = !!out.K1;
+    return `<rect width="760" height="420" fill="url(#hsGrid)"/>
+      <g transform="translate(150 210)"><rect x="-70" y="-90" width="140" height="180" rx="16" class="hs-metal"/><circle r="${out.S1 ? 34 : 38}" fill="#1F7A3E" stroke="#2BD96B" stroke-width="4"/><circle r="22" fill="#2BD96B" opacity="${out.S1 ? .9 : .5}"/>${HS.tag(0, 112, 'S1 pulso', out.S1)}</g>
+      <path d="M230 210 H330" class="hs-pipe sm"/><g transform="translate(400 210)"><rect x="-70" y="-60" width="140" height="120" rx="12" class="hs-panel"/><text y="-28" class="hs-lbl">Memória (K1)</text><text y="20" class="hs-big">${on ? '1' : '0'}</text>${HS.tag(0, 82, 'K1', on)}</g>
+      <path d="M470 210 H540" class="hs-pipe sm"/><g transform="translate(620 190)">${on ? '<circle r="80" fill="#FFD600" opacity=".22" filter="url(#hsBlur)"/>' : ''}<path d="M-34 10 a40 40 0 1 1 68 0 l-10 22 h-48z" fill="${on ? '#FFE680' : '#252D38'}" stroke="${on ? '#FFD600' : '#4A5563'}" stroke-width="3"/><rect x="-22" y="34" width="44" height="18" rx="4" fill="#5B6675"/>${HS.tag(0, 90, 'H1 carga', out.H1)}</g>
+      <text x="400" y="380" class="hs-sub">Pulsos em S1: ${st.pulses || 0} · memória e carga mostradas a partir das saídas K1 e H1</text>`;
+  },
+  stardelta(v) {
+    const { out, st, t } = v, m = out.M1 || {}, kt = timerOf(out.KT1), conflict = out.K2 && out.K3, stage = conflict ? 'CONFLITO' : m.run ? (m.conn === 'estrela' ? 'ESTRELA (Y)' : m.conn === 'triângulo' ? 'TRIÂNGULO (Δ)' : 'LIGADO') : out.K1 ? 'LIGAÇÃO INCOMPLETA' : 'PARADO';
+    const rpm = Math.round(st.speed * 1750), cur = m.cur || 0;
+    return `<rect width="760" height="420" fill="url(#hsGrid)"/>
+      <g transform="translate(200 200) scale(1.6)">${HS.motor(0, 0, m.run, m.run ? (t * 1600 * st.speed) % 360 : 0, 'M1')}</g>
+      <g transform="translate(200 345)"><text class="hs-sub">Velocidade estimada ${rpm} rpm · corrente estimada ${fmtN(cur, 1)} A</text><text y="16" class="hs-sub">(grandezas ilustrativas, modelo simplificado)</text></g>
+      <g transform="translate(460 40)"><rect x="-30" y="-24" width="290" height="190" rx="12" class="hs-panel"/><text x="115" y="-4" class="hs-lbl">Contatores</text>
+        ${HS.chip(20, 30, 'K1 linha', out.K1)}${HS.chip(115, 30, 'K2 estrela', out.K2, conflict)}${HS.chip(210, 30, 'K3 triâng.', out.K3, conflict)}
+        <g transform="translate(0 84)">${HS.tag(20, 0, 'KT1', kt.done)}<text x="52" y="5" class="hs-sub l">${kt.preset ? `${Math.min(kt.acc, kt.preset).toFixed(1)} / ${kt.preset.toFixed(1)} s` : 'temporizador'}</text>${HS.bar(52, 14, 170, kt.preset ? kt.acc / kt.preset : 0)}</g>
+        <g transform="translate(115 140)">${HS.chip(-60, 0, 'FT1', out.FT1, out.FT1)}<text x="40" y="5" class="hs-sub">${out.FT1 ? 'relé disparado' : 'proteção normal'}</text></g></g>
+      <g transform="translate(590 290)"><rect x="-130" y="-50" width="260" height="100" rx="12" class="hs-panel"/>
+        <g transform="translate(-70 0)" class="${m.conn === 'estrela' ? 'hs-on' : 'hs-off'}"><path d="M0 0 V-30 M0 0 L-26 15 M0 0 L26 15" class="hs-wind"/><text y="40" class="hs-sub">Y</text></g>
+        <g transform="translate(70 0)" class="${m.conn === 'triângulo' ? 'hs-on' : 'hs-off'}"><path d="M0 -30 L26 15 L-26 15 Z" class="hs-wind"/><text y="40" class="hs-sub">Δ</text></g></g>
+      <text x="590" y="390" class="hs-big ${conflict ? 'warnt' : ''}">${stage}</text>`;
+  },
+  emergency(v) {
+    const { out, st, t } = v, run = !!(out.M1 && out.M1.run), emer = !!out.SE1, flash = out.H2 && Math.sin(t * 10) > 0;
+    return `<rect width="760" height="420" fill="url(#hsGrid)"/>
+      <g transform="translate(40 230)"><rect x="0" y="0" width="420" height="34" rx="17" fill="#1B222C" stroke="#4A5563" stroke-width="2"/>${[...Array(14)].map((_, i) => `<line x1="${((i * 32 + st.x) % 420)}" y1="4" x2="${((i * 32 + st.x) % 420)}" y2="30" stroke="#3A4452" stroke-width="3"/>`).join('')}
+        ${[0, 1, 2].map(i => `<rect x="${(i * 150 + st.x * 1.0) % 400}" y="-44" width="54" height="44" rx="4" fill="#B67A2A" stroke="#E7B36A"/>`).join('')}<circle cx="17" cy="17" r="14" fill="#2C3541"/><circle cx="403" cy="17" r="14" fill="#2C3541"/></g>
+      <g transform="translate(590 336) scale(.85)">${HS.motor(0, 0, run, run ? (t * 800) % 360 : 0, 'M1')}</g><text x="660" y="340" class="hs-sub l">${run ? 'esteira em movimento' : 'parada'}</text>
+      <g transform="translate(590 150)"><rect x="-120" y="-120" width="240" height="250" rx="16" fill="#E7C51C" stroke="#8A7410" stroke-width="3"/><rect x="-104" y="-104" width="208" height="218" rx="10" fill="#1A1F27"/>
+        <circle cy="${emer ? 6 : 0}" r="${emer ? 50 : 54}" fill="#C21F1F" stroke="#FF6B6B" stroke-width="3"/><circle cy="${emer ? 6 : 0}" r="34" fill="#E33434"/>${HS.tag(0, 82, emer ? 'SE1 ACIONADA' : 'SE1', emer, emer)}</g>
+      <g transform="translate(70 70)"><rect x="-40" y="-40" width="360" height="90" rx="12" class="hs-panel"/>${HS.lamp(0, 0, 13, '#2BD96B', out.H1, '')}<text y="34" class="hs-sub">H1 operação</text>${HS.lamp(90, 0, 13, '#FF3B3B', flash, '')}<text x="90" y="34" class="hs-sub">H2 emergência</text>${HS.chip(190, 0, 'KA1 rearme', out.KA1)}${HS.chip(280, 0, 'K1', out.K1)}</g>
+      <text x="380" y="412" class="hs-sub">Simulação educacional: um comando simples não equivale a uma arquitetura de segurança certificada.</text>`;
+  },
+  timers(v) {
+    const { out, app, t } = v, devs = app.devices;
+    const tms = devs.filter(d => d.kind === 'timer'), lamps = devs.filter(d => d.kind === 'lamp' || d.kind === 'alarm'), ins = devs.filter(d => ['push', 'selector', 'sensor', 'level'].includes(d.kind));
+    const hist = v.hist.slice(-200);
+    return `<rect width="760" height="420" fill="url(#hsGrid)"/>
+      <g transform="translate(40 40)"><rect x="-20" y="-24" width="330" height="${Math.max(1, tms.length) * 64 + 40}" rx="12" class="hs-panel"/><text x="145" y="-4" class="hs-lbl">Temporizadores (estado real do circuito)</text>
+      ${tms.map((d, i) => { const x = timerOf(out[d.id]), f = x.preset ? (x.tof ? (x.done ? 1 - x.acc / x.preset : 0) : x.acc / x.preset) : 0; return `<g transform="translate(0 ${24 + i * 64})">${HS.tag(26, 0, d.tag, x.done)}<text x="60" y="5" class="hs-sub l">${x.tof ? 'TOF' : 'TON'} · ${x.preset ? (x.tof ? (x.done && !x.on ? `desliga em ${Math.max(0, x.preset - x.acc).toFixed(1)} s` : x.on ? 'energizado' : 'repouso') : `${Math.min(x.acc, x.preset).toFixed(1)} / ${x.preset.toFixed(1)} s`) : 'não encontrado no diagrama'}</text>${HS.bar(60, 16, 220, f, x.done ? '#2BD96B' : '#FFD600')}</g>`; }).join('')}</g>
+      <g transform="translate(420 40)"><rect x="-20" y="-24" width="320" height="150" rx="12" class="hs-panel"/><text x="140" y="-4" class="hs-lbl">Sinalização</text>
+      ${lamps.map((d, i) => d.kind === 'alarm' ? `<g transform="translate(${30 + i * 90} 50)"><path d="M-16 -12 h10 l14 -12 v48 l-14 -12 h-10z" fill="${out[d.id] ? '#FFD600' : '#3A4452'}"/>${out[d.id] ? `<path d="M14 -10 q10 10 0 20 M20 -16 q16 16 0 32" fill="none" stroke="#FFD600" stroke-width="2.5" opacity="${.5 + .5 * Math.sin(t * 12)}"/>` : ''}${HS.tag(0, 58, d.tag, out[d.id])}</g>` : HS.lamp(30 + i * 90, 46, 16, d.color || '#FFD600', out[d.id], d.tag)).join('')}</g>
+      <g transform="translate(420 230)"><rect x="-20" y="-24" width="320" height="${ins.length * 40 + 30}" rx="12" class="hs-panel"/><text x="140" y="-4" class="hs-lbl">Entradas</text>${ins.map((d, i) => `<g transform="translate(0 ${20 + i * 40})">${HS.tag(30, 0, d.tag, out[d.id])}<text x="70" y="5" class="hs-sub l">${esc(d.name)} · ${out[d.id] ? 'acionado' : 'repouso'}</text></g>`).join('')}</g>
+      <g transform="translate(40 ${70 + Math.max(1, tms.length) * 64})"><text x="0" y="0" class="hs-lbl l">Linha do tempo das saídas (últimos 10 s)</text>
+      ${lamps.map((d, i) => { const y = 16 + i * 26, pts = hist.map((h, k) => `${k * 1.5},${y + (String(h.v).split(',').includes(d.id) ? 0 : 14)}`).join(' '); return `<text x="-6" y="${y + 12}" class="hs-sub r">${d.tag}</text><polyline points="${pts}" fill="none" stroke="#FFD600" stroke-width="2"/>`; }).join('')}</g>`;
+  },
+};
+function sceneSVG(view, mode) {
+  const [txt, cls, fill, stroke] = mode === 'demo' ? ['MODO DEMONSTRAÇÃO · sequência de referência, não é o seu circuito', '', '#0B3B52', '#65E4FF'] : mode === 'live' ? ['SIMULAÇÃO AO VIVO · saídas reais do seu circuito', 'live', '#3B3000', '#FFD600'] : ['SIMULAÇÃO PARADA · inicie para o ambiente responder ao circuito', 'off', '#1A2029', '#4A5563'];
+  const w = Math.round(txt.length * 7.3 + 30);
+  return `<svg viewBox="0 0 760 452" class="hmi-svg" role="img" aria-label="Ambiente virtual: ${esc(view.app.title)}">${HS.defs}<rect width="760" height="452" fill="#070C13"/><g transform="translate(0 32)">${SCENES[view.app.sceneTemplate](view)}</g><g transform="translate(12 6)"><rect width="${w}" height="22" rx="7" fill="${fill}" stroke="${stroke}"/><text x="${w / 2}" y="15" class="hs-badge ${cls}">${txt}</text></g></svg>`;
+}
+// ---- ladder layout for the solved examples (vertical rungs between a phase rail and a neutral rail) ----
+function appBuilder(title, sheets) {
+  const B = builder(title, sheets), { C, W } = B;
+  const topT = c => Object.entries(TYPES[c.type].terms).sort((a, b) => a[1][1] - b[1][1])[0][0];
+  const botT = c => Object.entries(TYPES[c.type].terms).sort((a, b) => b[1][1] - a[1][1])[0][0];
+  B.ladder = (rungs, o = {}) => {
+    const x0 = o.x0 ?? 200, top = o.top ?? 90, dx = o.dx ?? 110, dy = o.dy ?? 116, gap = o.gap ?? 30;
+    const R = rungs.map(r => Array.isArray(r) ? { items: r } : r);
+    const rowsOf = it => it.name ? 0 : it.par ? Math.max(...it.par.map(b => b.length)) : 1;
+    const names = {}; let maxRow = 1;
+    for (const r of R) { let row = r.from ? names[r.from] : 0; for (const it of r.items) { if (it.name) names[it.name] = row; row += rowsOf(it); } maxRow = Math.max(maxRow, row); }
+    const yRow = k => top + 66 + k * dy, yN = yRow(maxRow - 1) + 40 + 44;
+    const fase = C('fase', x0 - 80, top - 20, ''), neu = C('neutro', x0 - 80, yN + 20, '');
+    let rail = [fase, 'a'], nrail = [neu, 'a'], x = x0; const nodes = {};
+    const place = (s, xx, yy) => C(s[0], xx, yy, s[1] || '', s[2] || {});
+    for (const r of R) {
+      let prev, row = r.from ? names[r.from] : 0;
+      if (r.from) prev = [nodes[r.from]]; else { const j = C('juncao', x, top, ''); W(...rail, j, 'a'); rail = [j, 'a']; prev = [[j, 'a']]; }
+      for (const it of r.items) {
+        if (it.name) { if (prev.length > 1) { const j = C('juncao', x, yRow(row) - 58, ''); for (const p of prev) W(...p, j, 'a'); prev = [[j, 'a']]; } nodes[it.name] = prev[0]; continue; }
+        if (!it.par) { const c = place(it, x, yRow(row)); for (const p of prev) W(...p, c, topT(c)); prev = [[c, botT(c)]]; row++; continue; }
+        const ends = [];
+        it.par.forEach((br, b) => { let p = prev; br.forEach((s, k) => { const c = place(s, x + b * dx, yRow(row + k)); for (const q of p) W(...q, c, topT(c)); p = [[c, botT(c)]]; }); ends.push(...p); });
+        row += rowsOf(it); prev = ends;
+      }
+      const jn = C('juncao', x, yN, ''); W(...nrail, jn, 'a', BLUE); nrail = [jn, 'a']; for (const p of prev) W(...p, jn, 'a', BLUE);
+      x += Math.max(1, ...r.items.map(it => it.par ? it.par.length : 1)) * dx + gap;
+    }
+  };
+  B.forceDirect = (motorType = 'motor_3f') => {
+    const f = C('fonte_3f', 100, 140, 'X1'), q = C('disjuntor_motor', 300, 280, 'Q1'), k = C('contator_forca', 300, 440, 'K1'), ft = C('rele_termico', 300, 600, 'FT1'), m = C(motorType, 300, 760, 'M1');
+    W(f, 'l1', q, 'l1', BLACK, [[260, 100]]); W(f, 'l2', q, 'l2', BLACK, [[300, 120]]); W(f, 'l3', q, 'l3', BLACK, [[340, 140]]);
+    for (const [a, b] of [['t1', 'l1'], ['t2', 'l2'], ['t3', 'l3']]) { W(q, a, k, b, BLACK); W(k, a, ft, b, BLACK); }
+    return { f, q, k, ft, m };
+  };
+  return B;
+}
+const finishExample = (app, d) => { for (const c of d.comps) { const dv = app.devices.find(x => x.tag === c.tag && TagBindingManager.compatible(x, c.type)); if (dv) c.dev = dv.id; } d.elec = { ...app.electricalConfig }; d.app = { id: app.applicationId, mode: 'example' }; return d; };
+const NET_STD = Object.freeze({ net: '3f_n', v: 380, ref: 'line', hz: 60 });
+const RUN = d => io => !!(io.out[d] && io.out[d].run);
+const ON = d => io => !!io.out[d];
+const DONE = d => io => !!(io.out[d] && io.out[d].done);
+const press = (dev, at, dur = .3) => ({ do: 'press', dev, at, dur });
+const tog = (dev, at, value) => ({ do: 'toggle', dev, at, value });
+const segs = (hist, f) => { const out = []; for (const h of hist) { const v = f(h.io); const L = out[out.length - 1]; if (L && L.v === v) L.t1 = h.t; else out.push({ v, t0: h.t, t1: h.t }); } return out; };
+const LAMP = { verde: '#2BD96B', vermelho: '#FF3B3B', amarelo: '#FFB800', azul: '#3BA7FF', branco: '#E9EDF3' };
+
+// ===================== 1. Emergência e alarme =====================
+ApplicationRegistry.register({
+  applicationId: 'emergencia', family: 'Comandos com botoeira de emergência', title: 'Esteira com emergência e rearme', category: 'Segurança de máquinas', difficulty: 'Intermediário', sceneTemplate: 'emergency',
+  description: 'Esteira transportadora acionada por M1 com botoeira de emergência com retenção (SE1), parada, partida e rearme.',
+  objective: 'Interromper a máquina pela emergência, manter o bloqueio até a liberação e exigir rearme e um novo comando de partida.',
+  expected: 'S2 rearma (KA1) e apaga H2. S1 dá partida em K1 com selo. SE1 derruba tudo e fica retida; S1 não religa. Liberar SE1 e rearmar não dá partida: só um novo S1 religa.',
+  testInstructions: 'Rearme com S2, dê partida em S1, acione SE1 e tente religar. Libere SE1, rearme e confirme que a esteira continua parada até um novo S1.',
+  electricalConfig: NET_STD, sheets: ['Força', 'Comando'],
+  devices: [{ id: 'M1', tag: 'M1', kind: 'motor', name: 'Motor da esteira' }, { id: 'K1', tag: 'K1', kind: 'contactor', name: 'Contator do motor' }, { id: 'KA1', tag: 'KA1', kind: 'relay', name: 'Relé de rearme' },
+    { id: 'FT1', tag: 'FT1', kind: 'overload', name: 'Relé térmico' }, { id: 'SE1', tag: 'SE1', kind: 'emergency', name: 'Botoeira de emergência (retenção)' }, { id: 'S0', tag: 'S0', kind: 'push', name: 'Parada' },
+    { id: 'S1', tag: 'S1', kind: 'push', name: 'Partida' }, { id: 'S2', tag: 'S2', kind: 'push', name: 'Rearme' }, { id: 'H1', tag: 'H1', kind: 'lamp', name: 'Em operação', color: LAMP.verde }, { id: 'H2', tag: 'H2', kind: 'lamp', name: 'Emergência / aguardando rearme', color: LAMP.vermelho }],
+  needs: ['M1', 'SE1', 'S1', 'S2', 'S0'], physicalParameters: {}, initialConditions: {},
+  controls: [{ id: 'ovl', kind: 'overload', dev: 'M1', label: 'Sobrecarga no motor' }],
+  demonstrationSequence: { len: 23, script: [{ at: .2, say: 'Ao energizar, o sistema fica bloqueado: H2 pede rearme.' }, { at: 2.5, do: 'press', dev: 'S2', say: 'S2 rearma o sistema (KA1).' }, { at: 4, do: 'press', dev: 'S1', say: 'S1 dá partida: a esteira anda.' },
+    { at: 8, do: 'toggle', dev: 'SE1', value: true, say: 'Emergência acionada: tudo para e fica retido.' }, { at: 10, do: 'press', dev: 'S1', say: 'Com a emergência ativa, S1 não religa.' }, { at: 12.5, do: 'toggle', dev: 'SE1', value: false, say: 'Emergência liberada: a esteira continua parada.' },
+    { at: 14, do: 'press', dev: 'S2', say: 'O rearme não dá partida sozinho.' }, { at: 16, do: 'press', dev: 'S1', say: 'Só um novo comando em S1 religa.' }, { at: 20, do: 'press', dev: 'S0', say: 'S0 para a esteira.' }] },
+  reference(inp, sens, mem) { mem.ka = !inp.tog.SE1 && (inp.press.S2 || !!mem.ka); mem.k = mem.ka && !inp.press.S0 && (inp.press.S1 || !!mem.k); return { M1: { run: mem.k, dir: 'horário' }, K1: mem.k, KA1: mem.ka, SE1: !!inp.tog.SE1, S0: !!inp.press.S0, S1: !!inp.press.S1, S2: !!inp.press.S2, H1: mem.k, H2: !mem.ka, FT1: false }; },
+  exampleProjectReference() {
+    const B = appBuilder('Esteira com emergência e rearme', ['Força', 'Comando']); const { m, ft, f } = B.forceDirect(); const { W } = B;
+    W(ft, 't1', m, 'u', BLACK); W(ft, 't2', m, 'v', BLACK); W(ft, 't3', m, 'w', BLACK); W(f, 'pe', m, 'pe', GREEN, [[380, 180]]); B.S(2);
+    B.ladder([[['emergencia', 'SE1'], { par: [[['botao_na', 'S2']], [['contato_na', 'KA1']]] }, ['bobina', 'KA1']],
+      [['ft_nf', 'FT1'], ['contato_na', 'KA1'], ['botao_nf', 'S0'], { par: [[['botao_na', 'S1']], [['contato_na', 'K1']]] }, ['bobina', 'K1']],
+      [['contato_na', 'K1'], ['sinaleiro', 'H1', { color: 'verde' }]], [['contato_nf', 'KA1'], ['sinaleiro', 'H2', { color: 'vermelho' }]]]);
+    return finishExample(this, B.d);
+  },
+  exerciseRequirements: [
+    { id: 'R1', text: 'Após o rearme (S2), S1 dá partida na esteira M1 e ela continua ligada ao soltar S1.', tests: ['E1'], hints: ['Pense em duas memórias: uma para o rearme e outra para o motor.', 'O rearme pode ser um relé (KA1) com selo, alimentado através do contato NF da emergência.', 'K1 só pode ser alimentado através de um contato NA de KA1.'] },
+    { id: 'R2', text: 'A emergência SE1 interrompe a esteira imediatamente e mantém o bloqueio enquanto estiver acionada.', tests: ['E2', 'E3'], hints: ['A emergência deve abrir o circuito de comando, não apenas o de K1.', 'Se KA1 cair com SE1, K1 cai junto.', 'Use o contato NF de SE1 em série com a bobina de KA1.'] },
+    { id: 'R3', text: 'Liberar a emergência ou rearmar não religa a esteira: é preciso um novo S1.', tests: ['E4'], hints: ['O selo de K1 deve se perder quando KA1 cai.', 'S2 deve alimentar apenas KA1, nunca K1.', 'Confira se K1 tem algum caminho que não passe por S1 ou pelo próprio selo.'] },
+    { id: 'R4', text: 'S0 para a esteira a qualquer momento.', tests: ['E5'], hints: ['S0 é NF e fica em série com o selo de K1.'] },
+    { id: 'R5', text: 'H1 indica operação e H2 indica emergência ou falta de rearme.', tests: ['E6'], hints: ['H1 pode usar um contato NA de K1.', 'H2 pode usar um contato NF de KA1.'] },
+  ],
+  testScenarios: [
+    { id: 'E1', title: 'Partida após rearme', timeout: 3, steps: [press('S2', .3), press('S1', 1)], checks: [{ by: 1.6, from: 1, cond: RUN('M1'), fail: 'A esteira não ligou após rearme (S2) e partida (S1).' }, { hold: [1.6, 2.8], cond: RUN('M1'), fail: 'A esteira não ficou ligada depois de soltar S1 (falta o selo).' }] },
+    { id: 'E2', title: 'Emergência interrompe', timeout: 4.5, steps: [press('S2', .3), press('S1', 1), tog('SE1', 2, true)], checks: [{ by: 1.8, from: 1, cond: RUN('M1'), fail: 'Não foi possível ligar a esteira antes de testar a emergência.' }, { hold: [2.3, 4.3], cond: io => !RUN('M1')(io), fail: 'A esteira continuou funcionando com a emergência acionada.' }] },
+    { id: 'E3', title: 'Bloqueio com emergência ativa', timeout: 5, steps: [press('S2', .3), tog('SE1', .8, true), press('S1', 1.5), press('S2', 2.5), press('S1', 3.2)], checks: [{ hold: [.9, 4.8], cond: io => !RUN('M1')(io), fail: 'Foi possível dar partida com a emergência ativa.' }] },
+    { id: 'E4', title: 'Rearme não religa sozinho', timeout: 7.5, steps: [press('S2', .3), press('S1', 1), tog('SE1', 2, true), tog('SE1', 3, false), press('S2', 4), press('S1', 6.2)], checks: [{ hold: [2.3, 6.1], cond: io => !RUN('M1')(io), fail: 'A carga voltou a funcionar automaticamente após liberar a emergência ou rearmar.' }, { by: 7.2, from: 6.2, cond: RUN('M1'), fail: 'Depois do rearme, um novo comando em S1 deveria religar a esteira.' }] },
+    { id: 'E5', title: 'Parada por S0', timeout: 4.5, steps: [press('S2', .3), press('S1', 1), press('S0', 2.5)], checks: [{ by: 1.8, from: 1, cond: RUN('M1'), fail: 'Não foi possível ligar a esteira antes de testar S0.' }, { hold: [2.9, 4.3], cond: io => !RUN('M1')(io), fail: 'S0 não interrompeu a esteira.' }] },
+    { id: 'E6', title: 'Sinalização H1 e H2', timeout: 4.5, needs: ['M1', 'S1', 'S2', 'SE1', 'H1', 'H2'], steps: [press('S2', .5), press('S1', 1.2), tog('SE1', 3, true)], checks: [{ by: .3, cond: ON('H2'), fail: 'H2 deveria acender enquanto o sistema não foi rearmado.' }, { never: io => !!io.out.H1 !== RUN('M1')(io), from: .2, fail: 'H1 não acompanhou o funcionamento da esteira.' }, { by: 4.4, from: 3.1, cond: ON('H2'), fail: 'H2 não sinalizou a emergência.' }] },
+  ],
+  criteria: ['Bloqueio imediato pela emergência', 'Retenção do estado de emergência', 'Rearme sem partida automática', 'Novo comando de partida obrigatório', 'Sinalização coerente'],
+});
+
+// ===================== 2. Temporizadores =====================
+const timerApp = o => ApplicationRegistry.register({ family: 'Comandos com temporizadores', category: 'Temporização', sceneTemplate: 'timers', electricalConfig: NET_STD, sheets: ['Comando'], physicalParameters: {}, initialConditions: {}, controls: [], ...o });
+timerApp({
+  applicationId: 'temp_energizacao', title: 'Temporização na energização (TON)', difficulty: 'Básico',
+  description: 'S1 liga K1 com selo e inicia KT1. Depois de 3 s, H2 sinaliza que o tempo foi atingido. S0 desliga e zera a contagem.',
+  objective: 'Usar um relé temporizado com retardo na energização e entender que a contagem reinicia quando a bobina perde energia.',
+  expected: 'S1 liga K1 e H1. KT1 conta 3 s e o contato temporizado acende H2. S0 desliga tudo e a próxima partida conta 3 s de novo.',
+  testInstructions: 'Pressione S1 e acompanhe a barra de KT1. Pressione S0 e dê nova partida.',
+  devices: [{ id: 'S0', tag: 'S0', kind: 'push', name: 'Desliga' }, { id: 'S1', tag: 'S1', kind: 'push', name: 'Liga' }, { id: 'K1', tag: 'K1', kind: 'contactor', name: 'Contator principal' }, { id: 'KT1', tag: 'KT1', kind: 'timer', name: 'Temporizador TON (3 s)' },
+    { id: 'H1', tag: 'H1', kind: 'lamp', name: 'Ligado', color: LAMP.verde }, { id: 'H2', tag: 'H2', kind: 'lamp', name: 'Tempo atingido', color: LAMP.amarelo }],
+  needs: ['S1', 'K1', 'KT1', 'H2'],
+  demonstrationSequence: { len: 12, script: [{ at: .3, say: 'Sistema desligado.' }, { at: 1, do: 'press', dev: 'S1', say: 'S1 liga K1 e KT1 começa a contar.' }, { at: 4.2, say: 'Após 3 s o contato de KT1 acende H2.' }, { at: 7, do: 'press', dev: 'S0', say: 'S0 desliga tudo e zera a contagem.' }, { at: 8.5, do: 'press', dev: 'S1', say: 'Nova partida: a contagem recomeça do zero.' }] },
+  reference(inp, sens, mem, dt) { mem.k = !inp.press.S0 && (inp.press.S1 || !!mem.k); const kt = refTimer(mem, 'KT1', mem.k, 3, dt); return { S0: !!inp.press.S0, S1: !!inp.press.S1, K1: mem.k, KT1: kt, H1: mem.k, H2: kt.done }; },
+  exampleProjectReference() { const B = appBuilder('Temporização na energização (TON)', ['Comando']);
+    B.ladder([[['botao_nf', 'S0'], { par: [[['botao_na', 'S1']], [['contato_na', 'K1']]] }, { name: 'A' }, ['bobina', 'K1']], { from: 'A', items: [['temporizador', 'KT1', { preset: 3 }]] }, { from: 'A', items: [['sinaleiro', 'H1', { color: 'verde' }]] }, [['temp_na', 'KT1'], ['sinaleiro', 'H2', { color: 'amarelo' }]]]);
+    return finishExample(this, B.d); },
+  exerciseRequirements: [
+    { id: 'R1', text: 'S1 liga K1 com selo e H1 indica ligado.', tests: ['TON1'], hints: ['Use um contato NA de K1 em paralelo com S1.'] },
+    { id: 'R2', text: 'H2 acende 3 s depois da partida (KT1 com retardo na energização, 3 s).', tests: ['TON2'], hints: ['KT1 deve ser energizado junto com K1.', 'H2 é alimentado pelo contato temporizado NA (67-68) de KT1.', 'Ajuste o tempo de KT1 em 3 s no painel de propriedades.'] },
+    { id: 'R3', text: 'S0 desliga tudo e a próxima partida volta a contar 3 s.', tests: ['TON3'], hints: ['Se KT1 perde energia a contagem zera.'] },
+  ],
+  testScenarios: [
+    { id: 'TON1', title: 'Partida com selo', timeout: 3.2, steps: [press('S1', .5)], checks: [{ by: 1, cond: io => ON('K1')(io) && (io.present.H1 ? ON('H1')(io) : true), fail: 'S1 não ligou K1 (ou H1 não acendeu).' }, { hold: [1, 3], cond: ON('K1'), fail: 'K1 não ficou selado após soltar S1.' }] },
+    { id: 'TON2', title: 'Tempo de 3 s', timeout: 4.5, steps: [press('S1', .5)], checks: [{ hold: [.6, 3.2], cond: io => !ON('H2')(io), fail: 'H2 acendeu antes de 3 s.' }, { by: 4.1, from: 3.3, cond: ON('H2'), fail: 'H2 não acendeu cerca de 3 s após a partida.' }] },
+    { id: 'TON3', title: 'S0 zera a contagem', timeout: 10, steps: [press('S1', .5), press('S0', 5), press('S1', 6)], checks: [{ by: 5.5, from: 5, cond: io => !ON('K1')(io) && !ON('H2')(io), fail: 'S0 não desligou K1 e H2.' }, { hold: [6.1, 8.6], cond: io => !ON('H2')(io), fail: 'A contagem não reiniciou depois de S0: H2 acendeu cedo.' }, { by: 9.7, from: 8.8, cond: ON('H2'), fail: 'Após a nova partida H2 não acendeu.' }] },
+  ],
+  criteria: ['Selo de K1', 'Retardo de 3 s', 'Reinício da contagem'],
+});
+timerApp({
+  applicationId: 'temp_desenergizacao', title: 'Temporização na desenergização (TOF)', difficulty: 'Básico',
+  description: 'Exaustor H1 continua ligado por 3 s depois que a chave S1 é desligada, para retirar o calor residual.',
+  objective: 'Usar um relé temporizado com retardo na desenergização (TOF).',
+  expected: 'Com S1 ligada H1 acende na hora. Ao desligar S1, H1 fica aceso por 3 s e então apaga. Religando antes do fim, o tempo recomeça.',
+  testInstructions: 'Ligue S1, desligue e conte o tempo até H1 apagar.',
+  devices: [{ id: 'S1', tag: 'S1', kind: 'selector', name: 'Chave liga/desliga' }, { id: 'KT1', tag: 'KT1', kind: 'timer', name: 'Temporizador TOF (3 s)' }, { id: 'H1', tag: 'H1', kind: 'lamp', name: 'Exaustor', color: LAMP.amarelo }],
+  needs: ['S1', 'KT1', 'H1'],
+  demonstrationSequence: { len: 11, script: [{ at: 1, do: 'toggle', dev: 'S1', value: true, say: 'S1 ligada: o exaustor H1 liga na hora.' }, { at: 4, do: 'toggle', dev: 'S1', value: false, say: 'S1 desligada: H1 continua por 3 s.' }, { at: 7.2, say: 'Tempo atingido: H1 apaga.' }] },
+  reference(inp, sens, mem, dt) { const kt = refTimer(mem, 'KT1', !!inp.tog.S1, 3, dt, true); return { S1: !!inp.tog.S1, KT1: kt, H1: kt.done }; },
+  exampleProjectReference() { const B = appBuilder('Temporização na desenergização (TOF)', ['Comando']);
+    B.ladder([[['seletora', 'S1'], ['temporizador_off', 'KT1', { preset: 3 }]], [['temp_na', 'KT1'], ['sinaleiro', 'H1', { color: 'amarelo' }]]]); return finishExample(this, B.d); },
+  exerciseRequirements: [
+    { id: 'R1', text: 'H1 liga assim que S1 é ligada.', tests: ['TOF1'], hints: ['Na temporização na desenergização o contato muda na hora em que a bobina recebe energia.'] },
+    { id: 'R2', text: 'Ao desligar S1, H1 permanece ligado por 3 s e depois desliga.', tests: ['TOF2'], hints: ['Use a bobina temporizada com retardo na desenergização.', 'H1 é alimentado pelo contato temporizado NA de KT1.'] },
+    { id: 'R3', text: 'Religar S1 antes do fim reinicia o tempo.', tests: ['TOF3'], hints: ['O TOF recomeça sempre que a bobina volta a ser energizada.'] },
+  ],
+  testScenarios: [
+    { id: 'TOF1', title: 'Liga imediato', timeout: 1.6, steps: [tog('S1', .5, true)], checks: [{ by: 1, cond: ON('H1'), fail: 'H1 não ligou junto com S1.' }] },
+    { id: 'TOF2', title: 'Retardo de 3 s ao desligar', timeout: 7, steps: [tog('S1', .5, true), tog('S1', 2.5, false)], checks: [{ hold: [2.6, 5.2], cond: ON('H1'), fail: 'H1 desligou antes de 3 s.' }, { by: 6.2, from: 5.6, cond: io => !ON('H1')(io), fail: 'H1 não desligou cerca de 3 s após S1 ser desligada.' }] },
+    { id: 'TOF3', title: 'Reinício do tempo', timeout: 9.5, steps: [tog('S1', .5, true), tog('S1', 2, false), tog('S1', 3.5, true), tog('S1', 5, false)], checks: [{ hold: [2.1, 7.6], cond: ON('H1'), fail: 'Religar S1 não reiniciou o tempo de desligamento.' }, { by: 8.8, from: 8.1, cond: io => !ON('H1')(io), fail: 'H1 não desligou após o novo tempo.' }] },
+  ],
+  criteria: ['Acionamento imediato', 'Retardo de 3 s no desligamento', 'Reinício do tempo'],
+});
+timerApp({
+  applicationId: 'temp_pulso', title: 'Pulso temporizado', difficulty: 'Intermediário',
+  description: 'Um toque rápido em S1 liga a carga H1 por exatamente 2 s, como um alimentador dosador.',
+  objective: 'Gerar um pulso de duração fixa a partir de um comando momentâneo, usando selo e contato temporizado NF.',
+  expected: 'Ao tocar S1, K1 liga com selo e H1 acende; KT1 conta 2 s e o contato NF de KT1 abre o selo: K1 e H1 desligam. Um novo toque repete o pulso.',
+  testInstructions: 'Toque S1 rapidamente e meça o tempo de H1 aceso. Repita.',
+  devices: [{ id: 'S1', tag: 'S1', kind: 'push', name: 'Pulso' }, { id: 'K1', tag: 'K1', kind: 'contactor', name: 'Contator da carga' }, { id: 'KT1', tag: 'KT1', kind: 'timer', name: 'Temporizador (2 s)' }, { id: 'H1', tag: 'H1', kind: 'lamp', name: 'Carga', color: LAMP.amarelo }],
+  needs: ['S1', 'K1', 'KT1', 'H1'],
+  demonstrationSequence: { len: 10, script: [{ at: 1, do: 'press', dev: 'S1', dur: .25, say: 'Um toque em S1 liga a carga.' }, { at: 3.1, say: 'Depois de 2 s o pulso termina sozinho.' }, { at: 5.5, do: 'press', dev: 'S1', dur: .25, say: 'Novo toque, novo pulso de 2 s.' }] },
+  reference(inp, sens, mem, dt) { const prev = mem.k; const kt0 = mem.KT1 ? mem.KT1.done : false; mem.k = (inp.press.S1 || !!prev) && !kt0; const kt = refTimer(mem, 'KT1', mem.k, 2, dt); return { S1: !!inp.press.S1, K1: mem.k, KT1: kt, H1: mem.k }; },
+  exampleProjectReference() { const B = appBuilder('Pulso temporizado', ['Comando']);
+    B.ladder([[{ par: [[['botao_na', 'S1']], [['contato_na', 'K1']]] }, ['temp_nf', 'KT1'], ['bobina', 'K1']], [['contato_na', 'K1'], ['temporizador', 'KT1', { preset: 2 }]], [['contato_na', 'K1'], ['sinaleiro', 'H1', { color: 'amarelo' }]]]); return finishExample(this, B.d); },
+  exerciseRequirements: [
+    { id: 'R1', text: 'Um toque em S1 liga H1, que permanece aceso depois de soltar S1.', tests: ['P1'], hints: ['A carga precisa de selo.'] },
+    { id: 'R2', text: 'H1 desliga sozinho 2 s depois do toque.', tests: ['P1'], hints: ['O tempo é contado por KT1 energizado junto com K1.', 'Um contato temporizado NF em série com o selo encerra o pulso.'] },
+    { id: 'R3', text: 'Um novo toque gera um novo pulso de 2 s.', tests: ['P2'], hints: ['Quando K1 cai, KT1 perde energia e zera a contagem.'] },
+  ],
+  testScenarios: [
+    { id: 'P1', title: 'Pulso de 2 s', timeout: 3.6, steps: [press('S1', .5, .3)], checks: [{ by: 1, cond: ON('H1'), fail: 'H1 não ligou com o toque em S1.' }, { hold: [1, 2.3], cond: ON('H1'), fail: 'H1 apagou antes de 2 s (selo ou tempo incorretos).' }, { by: 3.2, from: 2.7, cond: io => !ON('H1')(io), fail: 'O pulso não terminou cerca de 2 s após o toque.' }] },
+    { id: 'P2', title: 'Novo pulso', timeout: 7.5, steps: [press('S1', .5, .3), press('S1', 4, .3)], checks: [{ by: 4.5, from: 4, cond: ON('H1'), fail: 'O segundo toque não gerou um novo pulso.' }, { by: 6.8, from: 6.2, cond: io => !ON('H1')(io), fail: 'O segundo pulso não terminou após 2 s.' }] },
+  ],
+  criteria: ['Selo do pulso', 'Duração de 2 s', 'Repetição'],
+});
+timerApp({
+  applicationId: 'temp_ciclico', title: 'Temporização cíclica (pisca-pisca)', difficulty: 'Intermediário',
+  description: 'Com a chave S1 ligada, o sinalizador H1 pisca: 1 s aceso, 1 s apagado, continuamente.',
+  objective: 'Montar um oscilador com dois temporizadores em que um reinicia o outro.',
+  expected: 'KT1 conta o tempo aceso; ao terminar, KT2 conta o tempo apagado e, ao terminar, reinicia KT1. Desligando S1 tudo apaga.',
+  testInstructions: 'Ligue S1 e observe o ritmo de H1 e as barras de KT1 e KT2.',
+  devices: [{ id: 'S1', tag: 'S1', kind: 'selector', name: 'Habilita pisca' }, { id: 'KT1', tag: 'KT1', kind: 'timer', name: 'Tempo aceso (1 s)' }, { id: 'KT2', tag: 'KT2', kind: 'timer', name: 'Tempo apagado (1 s)' }, { id: 'H1', tag: 'H1', kind: 'lamp', name: 'Sinalizador intermitente', color: LAMP.amarelo }],
+  needs: ['S1', 'KT1', 'KT2', 'H1'],
+  demonstrationSequence: { len: 12, script: [{ at: 1, do: 'toggle', dev: 'S1', value: true, say: 'S1 ligada: H1 pisca 1 s aceso, 1 s apagado.' }, { at: 9, do: 'toggle', dev: 'S1', value: false, say: 'S1 desligada: H1 apaga.' }] },
+  reference(inp, sens, mem, dt) { const en = !!inp.tog.S1, k2d = mem.KT2 ? mem.KT2.done : false; const kt1 = refTimer(mem, 'KT1', en && !k2d, 1, dt); const kt2 = refTimer(mem, 'KT2', kt1.done, 1, dt); return { S1: en, KT1: kt1, KT2: kt2, H1: en && !kt1.done }; },
+  exampleProjectReference() { const B = appBuilder('Temporização cíclica (pisca-pisca)', ['Comando']);
+    B.ladder([[['seletora', 'S1'], { name: 'E' }, ['temp_nf', 'KT2'], ['temporizador', 'KT1', { preset: 1 }]], [['temp_na', 'KT1'], ['temporizador', 'KT2', { preset: 1 }]], { from: 'E', items: [['temp_nf', 'KT1'], ['sinaleiro', 'H1', { color: 'amarelo' }]] }]); return finishExample(this, B.d); },
+  exerciseRequirements: [
+    { id: 'R1', text: 'Com S1 ligada, H1 pisca continuamente (aceso cerca de 1 s, apagado cerca de 1 s).', tests: ['C1'], hints: ['Um temporizador mede o tempo aceso e outro o tempo apagado.', 'O fim de KT2 precisa desenergizar KT1 para recomeçar o ciclo.', 'H1 pode usar o contato temporizado NF de KT1.'] },
+    { id: 'R2', text: 'Desligando S1, H1 apaga e não pisca mais.', tests: ['C2'], hints: ['S1 deve alimentar todo o circuito do oscilador.'] },
+  ],
+  testScenarios: [
+    { id: 'C1', title: 'Ritmo de 1 s', timeout: 9, steps: [tog('S1', .5, true)], checks: [{ post: hist => { const s = segs(hist.filter(h => h.t > .5), ON('H1')).filter(x => x.t1 - x.t0 > .12); const on = s.filter(x => x.v), off = s.filter(x => !x.v); if (on.length < 3) return 'H1 não piscou: esperado acender e apagar repetidamente com S1 ligada.'; const bad = [...on.slice(0, -1), ...off.slice(1, -1)].find(x => x.t1 - x.t0 < .7 || x.t1 - x.t0 > 1.45); return bad ? `Intervalo ${bad.v ? 'aceso' : 'apagado'} de ${(bad.t1 - bad.t0).toFixed(1)} s; o esperado é cerca de 1 s.` : true; }, fail: '' }] },
+    { id: 'C2', title: 'Desabilitar', timeout: 6.5, steps: [tog('S1', .5, true), tog('S1', 4, false)], checks: [{ hold: [4.2, 6.3], cond: io => !ON('H1')(io), fail: 'H1 continuou piscando com S1 desligada.' }] },
+  ],
+  criteria: ['Oscilação contínua', 'Tempos de 1 s', 'Desabilitação'],
+});
+timerApp({
+  applicationId: 'temp_alarme', title: 'Alarme temporizado', difficulty: 'Intermediário',
+  description: 'O sensor de falha B1 só dispara o alarme se a falha durar mais de 3 s. S2 reconhece e silencia a buzina, mantendo o alarme visual até a falha sumir.',
+  objective: 'Filtrar falhas de curta duração com retardo na energização e implementar reconhecimento de alarme.',
+  expected: 'B1 ativo por menos de 3 s não dispara nada. Mais de 3 s: H1 e a buzina HA1 ligam. S2 silencia HA1 (KA1 sela) e H1 continua até B1 voltar ao normal.',
+  testInstructions: 'Acione B1 por pouco tempo e depois por mais de 3 s. Reconheça com S2 e normalize B1.',
+  devices: [{ id: 'B1', tag: 'B1', kind: 'sensor', name: 'Sensor de falha' }, { id: 'KT1', tag: 'KT1', kind: 'timer', name: 'Filtro de 3 s' }, { id: 'KA1', tag: 'KA1', kind: 'relay', name: 'Reconhecimento' }, { id: 'S2', tag: 'S2', kind: 'push', name: 'Reconhecer' },
+    { id: 'H1', tag: 'H1', kind: 'lamp', name: 'Alarme visual', color: LAMP.vermelho }, { id: 'HA1', tag: 'HA1', kind: 'alarm', name: 'Buzina' }],
+  controls: [{ id: 'b1', kind: 'manual', dev: 'B1', label: 'Falha no sensor B1' }],
+  needs: ['B1', 'KT1', 'H1', 'HA1'],
+  demonstrationSequence: { len: 16, script: [{ at: 1, do: 'manual', dev: 'B1', value: true, say: 'Falha curta em B1…' }, { at: 2.5, do: 'manual', dev: 'B1', value: false, say: '…menor que 3 s: nenhum alarme.' }, { at: 4, do: 'manual', dev: 'B1', value: true, say: 'Falha persistente em B1.' }, { at: 7.2, say: 'Após 3 s: H1 e a buzina HA1 ligam.' }, { at: 9.5, do: 'press', dev: 'S2', say: 'S2 reconhece: a buzina silencia, H1 continua.' }, { at: 12, do: 'manual', dev: 'B1', value: false, say: 'Falha normalizada: o alarme apaga.' }] },
+  reference(inp, sens, mem, dt) { const kt = refTimer(mem, 'KT1', !!sens.B1, 3, dt); mem.ka = kt.done && (inp.press.S2 || !!mem.ka); return { B1: !!sens.B1, S2: !!inp.press.S2, KT1: kt, KA1: mem.ka, H1: kt.done, HA1: kt.done && !mem.ka }; },
+  exampleProjectReference() { const B = appBuilder('Alarme temporizado', ['Comando']);
+    B.ladder([[['sensor', 'B1'], ['temporizador', 'KT1', { preset: 3 }]], [['temp_na', 'KT1'], { name: 'T' }, ['contato_nf', 'KA1'], ['buzina', 'HA1']], { from: 'T', items: [['sinaleiro', 'H1', { color: 'vermelho' }]] }, { from: 'T', items: [{ par: [[['botao_na', 'S2']], [['contato_na', 'KA1']]] }, ['bobina', 'KA1']] }]);
+    return finishExample(this, B.d); },
+  exerciseRequirements: [
+    { id: 'R1', text: 'Falhas de B1 com menos de 3 s não disparam o alarme.', tests: ['A1'], hints: ['B1 energiza um temporizador com retardo na energização.'] },
+    { id: 'R2', text: 'Falha de B1 por mais de 3 s liga H1 e a buzina HA1.', tests: ['A2'], hints: ['H1 e HA1 são alimentados pelo contato temporizado NA de KT1.'] },
+    { id: 'R3', text: 'S2 silencia HA1 e mantém H1 até B1 normalizar; uma nova falha volta a tocar a buzina.', tests: ['A3', 'A4'], hints: ['KA1 com selo guarda o reconhecimento.', 'O selo de KA1 deve passar pelo contato de KT1 para se desfazer quando a falha some.', 'HA1 fica em série com um NF de KA1.'] },
+  ],
+  testScenarios: [
+    { id: 'A1', title: 'Falha curta filtrada', timeout: 5, steps: [{ do: 'manual', dev: 'B1', value: true, at: .5 }, { do: 'manual', dev: 'B1', value: false, at: 2 }], checks: [{ hold: [0, 4.8], cond: io => !ON('H1')(io) && !ON('HA1')(io), fail: 'O alarme disparou com uma falha de menos de 3 s.' }] },
+    { id: 'A2', title: 'Falha persistente', timeout: 4.6, steps: [{ do: 'manual', dev: 'B1', value: true, at: .5 }], checks: [{ hold: [.5, 3.2], cond: io => !ON('H1')(io), fail: 'H1 acendeu antes de 3 s de falha.' }, { by: 4.3, from: 3.5, cond: io => ON('H1')(io) && ON('HA1')(io), fail: 'Depois de 3 s de falha, H1 e HA1 deveriam ligar.' }] },
+    { id: 'A3', title: 'Reconhecimento', timeout: 8, needs: ['B1', 'KT1', 'H1', 'HA1', 'S2'], steps: [{ do: 'manual', dev: 'B1', value: true, at: .5 }, press('S2', 5), { do: 'manual', dev: 'B1', value: false, at: 6.5 }], checks: [{ by: 5.5, from: 5, cond: io => !ON('HA1')(io) && ON('H1')(io), fail: 'S2 deveria silenciar HA1 mantendo H1 aceso.' }, { hold: [5.5, 6.4], cond: io => !ON('HA1')(io), fail: 'A buzina voltou a tocar depois do reconhecimento.' }, { by: 7.2, from: 6.5, cond: io => !ON('H1')(io), fail: 'H1 não apagou depois que B1 normalizou.' }] },
+    { id: 'A4', title: 'Nova falha após reconhecer', timeout: 12.5, needs: ['B1', 'KT1', 'H1', 'HA1', 'S2'], steps: [{ do: 'manual', dev: 'B1', value: true, at: .5 }, press('S2', 5), { do: 'manual', dev: 'B1', value: false, at: 6.5 }, { do: 'manual', dev: 'B1', value: true, at: 8 }], checks: [{ by: 12, from: 11.1, cond: ON('HA1'), fail: 'Uma nova falha não voltou a acionar a buzina (o reconhecimento ficou preso).' }] },
+  ],
+  criteria: ['Filtro de 3 s', 'Alarme visual e sonoro', 'Reconhecimento com selo', 'Rearme automático do reconhecimento'],
+});
+
+// ===================== 3. Partida estrela-triângulo =====================
+ApplicationRegistry.register({
+  applicationId: 'estrela_triangulo', family: 'Partida estrela-triângulo', title: 'Partida estrela-triângulo', category: 'Partida de motores', difficulty: 'Avançado', sceneTemplate: 'stardelta',
+  description: 'Motor de 6 pontas (380/660 V) parte em estrela com K1 e K2 e, após KT1, passa para triângulo com K1 e K3, sem que K2 e K3 se encontrem.',
+  objective: 'Reduzir a corrente de partida com a sequência estrela → triângulo e garantir o intertravamento entre K2 e K3.',
+  expected: 'S1: K1 e K2 ligam (estrela) e KT1 conta 3 s. No fim: K2 desliga e K3 liga (triângulo). K2 e K3 nunca juntos. S0 ou FT1 param tudo.',
+  testInstructions: 'Dê partida em S1, acompanhe o estágio e a barra de KT1. Teste S0 e o disparo de FT1.',
+  electricalConfig: NET_STD, sheets: ['Força', 'Comando'],
+  devices: [{ id: 'M1', tag: 'M1', kind: 'motor', name: 'Motor 380/660 V (6 pontas)' }, { id: 'K1', tag: 'K1', kind: 'contactor', name: 'Contator de linha' }, { id: 'K2', tag: 'K2', kind: 'contactor', name: 'Contator estrela' }, { id: 'K3', tag: 'K3', kind: 'contactor', name: 'Contator triângulo' },
+    { id: 'KT1', tag: 'KT1', kind: 'timer', name: 'Tempo de partida (3 s)' }, { id: 'FT1', tag: 'FT1', kind: 'overload', name: 'Relé térmico' }, { id: 'S0', tag: 'S0', kind: 'push', name: 'Parada' }, { id: 'S1', tag: 'S1', kind: 'push', name: 'Partida' }],
+  needs: ['M1', 'K1', 'K2', 'K3', 'KT1', 'S1'], physicalParameters: {}, initialConditions: {},
+  controls: [{ id: 'ovl', kind: 'overload', dev: 'M1', label: 'Sobrecarga no motor' }],
+  demonstrationSequence: { len: 14, script: [{ at: .5, say: 'Motor parado.' }, { at: 1, do: 'press', dev: 'S1', say: 'S1: K1 + K2 ligam o motor em estrela.' }, { at: 4.2, say: 'Fim de KT1: K2 desliga e só então K3 liga (triângulo).' }, { at: 10, do: 'press', dev: 'S0', say: 'S0 desliga todos os contatores.' }] },
+  reference(inp, sens, mem, dt) {
+    mem.k1 = !inp.press.S0 && (inp.press.S1 || !!mem.k1); const kt = refTimer(mem, 'KT1', mem.k1 && !mem.k3, 3, dt);
+    mem.k3 = mem.k1 && (kt.done || !!mem.k3); mem.k2 = mem.k1 && !kt.done && !mem.k3;
+    return { S0: !!inp.press.S0, S1: !!inp.press.S1, K1: mem.k1, K2: mem.k2, K3: mem.k3, KT1: kt, FT1: false, M1: { run: mem.k1 && (mem.k2 || mem.k3), dir: 'horário', conn: mem.k2 ? 'estrela' : mem.k3 ? 'triângulo' : null, cur: mem.k1 ? (mem.k2 ? 9 : 14) : 0 } };
+  },
+  exampleProjectReference() {
+    const B = appBuilder('Partida estrela-triângulo', ['Força', 'Comando']), { C, W } = B;
+    const f = C('fonte_3f', 100, 140, 'X1'), q = C('disjuntor_motor', 300, 260, 'Q1'), k1 = C('contator_forca', 300, 400, 'K1'), ft = C('rele_termico', 300, 540, 'FT1'), m = C('motor_6p', 320, 780, 'M1', { vn: 660, kw: 4 });
+    const k3 = C('contator_forca', 600, 560, 'K3'), k2 = C('contator_forca', 860, 640, 'K2');
+    W(f, 'l1', q, 'l1', BLACK, [[260, 100]]); W(f, 'l2', q, 'l2', BLACK, [[300, 120]]); W(f, 'l3', q, 'l3', BLACK, [[340, 140]]);
+    for (const [a, b] of [['t1', 'l1'], ['t2', 'l2'], ['t3', 'l3']]) { W(q, a, k1, b, BLACK); W(k1, a, ft, b, BLACK); W(ft, a, k3, b, BLACK); }
+    W(ft, 't1', m, 'u1', BLACK); W(ft, 't2', m, 'v1', BLACK); W(ft, 't3', m, 'w1', BLACK);
+    W(k3, 't1', m, 'w2', BLACK); W(k3, 't2', m, 'u2', BLACK); W(k3, 't3', m, 'v2', BLACK);
+    W(m, 'u2', k2, 'l1', BLACK); W(m, 'v2', k2, 'l2', BLACK); W(m, 'w2', k2, 'l3', BLACK); W(k2, 't1', k2, 't2', BLACK); W(k2, 't2', k2, 't3', BLACK);
+    B.S(2);
+    B.ladder([[['ft_nf', 'FT1'], ['botao_nf', 'S0'], { par: [[['botao_na', 'S1']], [['contato_na', 'K1']]] }, { name: 'A' }, ['bobina', 'K1']],
+      { from: 'A', items: [['contato_nf', 'K3'], ['temporizador', 'KT1', { preset: 3 }]] },
+      { from: 'A', items: [['temp_nf', 'KT1'], ['contato_nf', 'K3'], ['bobina', 'K2']] },
+      { from: 'A', items: [{ par: [[['temp_na', 'KT1']], [['contato_na', 'K3']]] }, ['contato_nf', 'K2'], ['bobina', 'K3']] }]);
+    return finishExample(this, B.d);
+  },
+  exerciseRequirements: [
+    { id: 'R1', text: 'S1 liga K1 e K2: o motor parte em estrela e KT1 começa a contar 3 s.', tests: ['SD1'], hints: ['K1 tem selo; KT1 e K2 são alimentados depois do selo.', 'No circuito de força, K2 une U2, V2 e W2 (ponto estrela).'] },
+    { id: 'R2', text: 'Ao fim de KT1, K2 desliga e K3 liga: o motor passa para triângulo.', tests: ['SD2'], hints: ['Use o contato temporizado NF de KT1 para K2 e o NA para K3.', 'K3 precisa de selo, porque KT1 é desligado quando K3 entra.'] },
+    { id: 'R3', text: 'K2 e K3 nunca podem estar energizados juntos (intertravamento).', tests: ['SD3'], hints: ['Coloque um NF de K3 no ramo de K2 e um NF de K2 no ramo de K3.', 'No circuito de força, K2 e K3 juntos são um curto entre fases.'] },
+    { id: 'R4', text: 'S0 e a sobrecarga (FT1) desligam o motor.', tests: ['SD4', 'SD5'], hints: ['FT1 95-96 e S0 ficam em série antes de todo o comando.'] },
+    { id: 'R5', text: 'A tensão da rede é compatível com o motor ligado em triângulo.', tests: ['SD6'], hints: ['Em triângulo cada enrolamento recebe a tensão entre fases da rede.', 'Um motor 380/660 V trabalha em triângulo numa rede de 380 V.'] },
+  ],
+  testScenarios: [
+    { id: 'SD1', title: 'Partida em estrela', timeout: 2, steps: [press('S1', .5)], checks: [{ by: 1, cond: io => ON('K1')(io) && ON('K2')(io) && !ON('K3')(io) && io.out.M1.conn === 'estrela', fail: 'A partida não começou em estrela (K1 + K2 com o motor em Y).' }] },
+    { id: 'SD2', title: 'Transição para triângulo', timeout: 5.5, steps: [press('S1', .5)], checks: [{ hold: [.6, 3.2], cond: io => !ON('K3')(io), fail: 'K3 (triângulo) ligou antes do fim do tempo de partida.' }, { by: 4.4, from: 3.3, cond: io => ON('K3')(io) && !ON('K2')(io) && io.out.M1.conn === 'triângulo', fail: 'O motor não passou para triângulo (K1 + K3) após o tempo de KT1.' }] },
+    { id: 'SD3', title: 'Intertravamento estrela/triângulo', timeout: 6, steps: [press('S1', .5)], onShort: 'O contato de estrela permaneceu energizado durante o acionamento do contator de triângulo.', checks: [{ never: io => ON('K2')(io) && ON('K3')(io), fail: 'O contato de estrela permaneceu energizado durante o acionamento do contator de triângulo.' }] },
+    { id: 'SD4', title: 'Parada por S0', timeout: 7, steps: [press('S1', .5), press('S0', 5.5)], checks: [{ by: 6, from: 5.5, cond: io => !RUN('M1')(io) && !ON('K1')(io) && !ON('K2')(io) && !ON('K3')(io), fail: 'S0 não desligou todos os contatores.' }] },
+    { id: 'SD5', title: 'Proteção por sobrecarga', timeout: 7, needs: ['M1', 'K1', 'K2', 'K3', 'KT1', 'S1', 'FT1'], steps: [press('S1', .5), { do: 'trip', dev: 'FT1', at: 5 }], checks: [{ by: 5.5, from: 5, cond: io => !RUN('M1')(io), fail: 'O disparo do relé térmico FT1 não desligou o motor.' }] },
+    { id: 'SD6', title: 'Tensão do triângulo', timeout: .2, steps: [], checks: [{ post: () => { const app = ApplicationRegistry.get('estrela_triangulo'), c = TagBindingManager.comps(TagBindingManager.device(app, 'M1'), app)[0]; if (!c) return 'Motor M1 não encontrado.'; if (!+c.vn) return 'Informe a tensão nominal do motor M1 (propriedades) para validar a ligação em triângulo.'; const vd = +c.vn / SQ3, vl = ElectricalNetwork.describe().vLine; return vl && Math.abs(vl - vd) <= vd * .1 ? true : `Em triângulo cada enrolamento recebe ${nomV(vl)} V, mas o motor M1 (${c.vn} V em estrela) suporta ${nomV(vd)} V em triângulo.`; }, fail: '' }] },
+  ],
+  criteria: ['Partida em estrela', 'Tempo de partida', 'Transição sem sobreposição', 'Intertravamento K2/K3', 'Parada e proteção', 'Compatibilidade de tensão'],
+});
+
+// ===================== 4. Flip-flop =====================
+ApplicationRegistry.register({
+  applicationId: 'flip_flop', family: 'Flip-flop', title: 'Flip-flop com um botão', category: 'Lógica de relés', difficulty: 'Avançado', sceneTemplate: 'flipflop',
+  description: 'Uma única botoeira de pulso S1 liga e desliga a carga K1 alternadamente, com memória entre os pulsos.',
+  objective: 'Construir uma memória alternada com relés, sem que a carga alterne várias vezes enquanto o botão continua pressionado.',
+  expected: '1º pulso liga, 2º desliga, 3º liga de novo. Segurar S1 não faz a carga oscilar. H1 acompanha a carga.',
+  testInstructions: 'Dê pulsos em S1 e depois segure S1 por alguns segundos.',
+  electricalConfig: NET_STD, sheets: ['Comando'],
+  devices: [{ id: 'S1', tag: 'S1', kind: 'push', name: 'Botoeira de pulso' }, { id: 'K1', tag: 'K1', kind: 'contactor', name: 'Carga (memória)' }, { id: 'KA1', tag: 'KA1', kind: 'relay', name: 'Relé auxiliar de ligar (opcional)' },
+    { id: 'KA2', tag: 'KA2', kind: 'relay', name: 'Relé auxiliar de desligar (opcional)' }, { id: 'H1', tag: 'H1', kind: 'lamp', name: 'Sinalizador da carga', color: LAMP.amarelo }],
+  needs: ['S1', 'K1'], physicalParameters: {}, initialConditions: {}, controls: [],
+  demonstrationSequence: { len: 14, script: [{ at: 1, do: 'press', dev: 'S1', say: '1º pulso: a carga liga.' }, { at: 3.5, do: 'press', dev: 'S1', say: '2º pulso: a carga desliga.' }, { at: 6, do: 'press', dev: 'S1', say: '3º pulso: liga de novo.' }, { at: 8.5, do: 'press', dev: 'S1', dur: 3, say: 'Segurando S1, a carga não fica alternando.' }] },
+  reference(inp, sens, mem) { if (inp.press.S1 && !mem.was) mem.k = !mem.k; mem.was = !!inp.press.S1; return { S1: !!inp.press.S1, K1: !!mem.k, KA1: false, KA2: false, H1: !!mem.k }; },
+  exampleProjectReference() { const B = appBuilder('Flip-flop com um botão', ['Comando']);
+    B.ladder([[['botao_na', 'S1'], { par: [[['contato_nf', 'K1'], ['contato_nf', 'KA2']], [['contato_na', 'KA1']]] }, ['bobina', 'KA1']],
+      [['botao_na', 'S1'], { par: [[['contato_na', 'K1'], ['contato_nf', 'KA1']], [['contato_na', 'KA2']]] }, ['bobina', 'KA2']],
+      [{ par: [[['contato_na', 'KA1']], [['contato_na', 'K1'], ['contato_nf', 'KA2']]] }, ['bobina', 'K1']], [['contato_na', 'K1'], ['sinaleiro', 'H1', { color: 'amarelo' }]]], { dx: 100 });
+    return finishExample(this, B.d); },
+  exerciseRequirements: [
+    { id: 'R1', text: 'O primeiro pulso em S1 liga a carga K1, que permanece ligada.', tests: ['F1'], hints: ['A carga precisa de selo, mas o selo deve poder ser desfeito pelo próximo pulso.'] },
+    { id: 'R2', text: 'O segundo pulso desliga e o terceiro liga novamente.', tests: ['F2'], hints: ['Use um relé auxiliar que "lembra" se o pulso era para ligar (KA1) e outro para desligar (KA2).', 'KA1 só pode ligar se K1 estiver desligado; KA2 só se K1 estiver ligado.'] },
+    { id: 'R3', text: 'Manter S1 pressionado não faz a carga alternar repetidamente.', tests: ['F3'], hints: ['KA1 e KA2 precisam de selo enquanto S1 estiver pressionado.', 'Um NF de KA2 no ramo de KA1 (e vice-versa) impede a alternância contínua.'] },
+    { id: 'R4', text: 'H1 acompanha o estado da carga.', tests: ['F4'], hints: ['Use um contato NA de K1.'] },
+  ],
+  testScenarios: [
+    { id: 'F1', title: '1º pulso liga e mantém', timeout: 2.5, steps: [press('S1', .5, .3)], checks: [{ by: 1, cond: ON('K1'), fail: 'O primeiro pulso não ligou a carga K1.' }, { hold: [1, 2.3], cond: ON('K1'), fail: 'A carga não permaneceu ligada após soltar o primeiro pulso.' }] },
+    { id: 'F2', title: '2º desliga, 3º liga', timeout: 6, steps: [press('S1', .5, .3), press('S1', 2, .3), press('S1', 4, .3)], checks: [{ hold: [2.6, 3.8], cond: io => !ON('K1')(io), fail: 'O segundo pulso não desligou a carga.' }, { hold: [4.6, 5.8], cond: ON('K1'), fail: 'O terceiro pulso não religou a carga.' }] },
+    { id: 'F3', title: 'Botão mantido pressionado', timeout: 5.5, steps: [press('S1', .5, 3)], checks: [{ hold: [1, 3.4], cond: ON('K1'), fail: 'A carga alternou enquanto S1 continuava pressionado.' }, { hold: [3.9, 5.3], cond: ON('K1'), fail: 'Ao soltar S1 depois de segurar, a carga mudou de estado.' }] },
+    { id: 'F4', title: 'H1 acompanha K1', timeout: 5, needs: ['S1', 'K1', 'H1'], steps: [press('S1', .5, .3), press('S1', 2.5, .3)], checks: [{ never: io => !!io.out.H1 !== !!io.out.K1, from: .2, fail: 'H1 não acompanhou o estado da carga K1.' }] },
+  ],
+  criteria: ['Liga no 1º pulso', 'Alternância a cada pulso', 'Sem oscilação com o botão pressionado', 'Sinalização'],
+});
+
+// ===================== 5. Semáforo =====================
+ApplicationRegistry.register({
+  applicationId: 'semaforo', family: 'Semáforos', title: 'Semáforo de três tempos', category: 'Temporização', difficulty: 'Intermediário', sceneTemplate: 'traffic',
+  description: 'Semáforo veicular habilitado por S1: verde 4 s, amarelo 2 s, vermelho 4 s, repetindo automaticamente.',
+  objective: 'Encadear temporizadores em ciclo e garantir que nunca haja duas cores acesas juntas.',
+  expected: 'Com S1 ligada: H3 (verde) por 4 s, H2 (amarelo) por 2 s, H1 (vermelho) por 4 s e reinício. S1 desligada apaga tudo.',
+  testInstructions: 'Ligue S1 e confira a sequência e os tempos nas barras dos temporizadores.',
+  electricalConfig: NET_STD, sheets: ['Comando'],
+  devices: [{ id: 'S1', tag: 'S1', kind: 'selector', name: 'Habilitação' }, { id: 'KT1', tag: 'KT1', kind: 'timer', name: 'Tempo de verde (4 s)' }, { id: 'KT2', tag: 'KT2', kind: 'timer', name: 'Tempo de amarelo (2 s)' }, { id: 'KT3', tag: 'KT3', kind: 'timer', name: 'Tempo de vermelho (4 s)' },
+    { id: 'H1', tag: 'H1', kind: 'lamp', name: 'Vermelho', color: LAMP.vermelho }, { id: 'H2', tag: 'H2', kind: 'lamp', name: 'Amarelo', color: LAMP.amarelo }, { id: 'H3', tag: 'H3', kind: 'lamp', name: 'Verde', color: LAMP.verde }],
+  needs: ['S1', 'H1', 'H2', 'H3'], physicalParameters: { green: 4, yellow: 2, red: 4 }, initialConditions: {}, controls: [],
+  demonstrationSequence: { len: 26, script: [{ at: 1, do: 'toggle', dev: 'S1', value: true, say: 'S1 habilita: verde por 4 s.' }, { at: 5.1, say: 'Amarelo por 2 s.' }, { at: 7.1, say: 'Vermelho por 4 s.' }, { at: 11.1, say: 'O ciclo se repete automaticamente.' }, { at: 22, do: 'toggle', dev: 'S1', value: false, say: 'S1 desabilita: todas apagam.' }] },
+  reference(inp, sens, mem, dt) {
+    const en = !!inp.tog.S1, k3d = mem.KT3 ? mem.KT3.done : false;
+    const kt1 = refTimer(mem, 'KT1', en && !k3d, 4, dt), kt2 = refTimer(mem, 'KT2', kt1.done, 2, dt), kt3 = refTimer(mem, 'KT3', kt2.done, 4, dt);
+    return { S1: en, KT1: kt1, KT2: kt2, KT3: kt3, H3: en && !kt1.done && !kt2.done, H2: kt1.done && !kt2.done, H1: kt2.done };
+  },
+  exampleProjectReference() { const B = appBuilder('Semáforo de três tempos', ['Comando']);
+    B.ladder([[['seletora', 'S1'], { name: 'E' }, ['temp_nf', 'KT3'], ['temporizador', 'KT1', { preset: 4 }]], [['temp_na', 'KT1'], ['temporizador', 'KT2', { preset: 2 }]], [['temp_na', 'KT2'], ['temporizador', 'KT3', { preset: 4 }]],
+      { from: 'E', items: [['temp_nf', 'KT1'], ['temp_nf', 'KT2'], ['sinaleiro', 'H3', { color: 'verde' }]] }, [['temp_na', 'KT1'], ['temp_nf', 'KT2'], ['sinaleiro', 'H2', { color: 'amarelo' }]], [['temp_na', 'KT2'], ['sinaleiro', 'H1', { color: 'vermelho' }]]], { dx: 100 });
+    return finishExample(this, B.d); },
+  exerciseRequirements: [
+    { id: 'R1', text: 'A sequência é verde → amarelo → vermelho → verde.', tests: ['TR1'], hints: ['Cada temporizador mede o tempo de uma cor e energiza o próximo.'] },
+    { id: 'R2', text: 'Tempos: verde 4 s, amarelo 2 s, vermelho 4 s (±0,5 s).', tests: ['TR2'], hints: ['Ajuste os tempos no painel de propriedades de cada temporizador.'] },
+    { id: 'R3', text: 'O ciclo se repete automaticamente enquanto S1 estiver ligada.', tests: ['TR3'], hints: ['O fim do vermelho deve desenergizar o primeiro temporizador (contato NF do último).'] },
+    { id: 'R4', text: 'Nunca há duas cores acesas ao mesmo tempo.', tests: ['TR4'], hints: ['Na troca de ciclo os contatos mudam em sequência; use NF dos temporizadores seguintes para bloquear a cor anterior.'] },
+    { id: 'R5', text: 'S1 desligada apaga o semáforo.', tests: ['TR5'], hints: ['S1 deve alimentar o primeiro temporizador e a cor verde.'] },
+  ],
+  testScenarios: (() => {
+    const color = io => io.out.H3 ? 'G' : io.out.H2 ? 'Y' : io.out.H1 ? 'R' : '-';
+    const runs = hist => segs(hist.filter(h => h.t > .55), color).filter(s => s.v !== '-' && s.t1 - s.t0 > .15);
+    const base = { timeout: 23, steps: [tog('S1', .5, true)] };
+    return [
+      { id: 'TR1', title: 'Sequência das cores', ...base, checks: [{ post: hist => { const r = runs(hist).map(s => s.v).join(''); if (r.length < 4) return 'O semáforo não percorreu as cores com S1 ligada.'; return /^(GYR)+G?Y?R?$/.test(r) ? true : `A sequência foi ${r.split('').map(c => ({ G: 'verde', Y: 'amarelo', R: 'vermelho' })[c]).join(' → ')}; o esperado é verde → amarelo → vermelho.`; } }] },
+      { id: 'TR2', title: 'Tempos das cores', ...base, checks: [{ post: hist => { const r = runs(hist), want = { G: 4, Y: 2, R: 4 }; const full = r.slice(0, -1); if (full.length < 3) return 'Não houve um ciclo completo para medir os tempos.'; const bad = full.find(s => Math.abs(s.t1 - s.t0 + .05 - want[s.v]) > .5); return bad ? `${({ G: 'Verde', Y: 'Amarelo', R: 'Vermelho' })[bad.v]} durou ${(bad.t1 - bad.t0 + .05).toFixed(1)} s; o esperado é ${want[bad.v]} s.` : true; } }] },
+      { id: 'TR3', title: 'Repetição automática', ...base, checks: [{ post: hist => runs(hist).filter(s => s.v === 'G').length >= 2 ? true : 'O ciclo não se repetiu: o verde não voltou depois do vermelho.' }] },
+      { id: 'TR4', title: 'Sem estados conflitantes', ...base, checks: [{ never: io => ['H1', 'H2', 'H3'].filter(k => io.out[k]).length > 1, fail: 'Duas cores ficaram acesas ao mesmo tempo.' }] },
+      { id: 'TR5', title: 'Desabilitação', timeout: 8.5, steps: [tog('S1', .5, true), tog('S1', 6, false)], checks: [{ hold: [6.3, 8.3], cond: io => !['H1', 'H2', 'H3'].some(k => io.out[k]), fail: 'As lâmpadas continuaram acesas com S1 desligada.' }] },
+    ];
+  })(),
+  criteria: ['Sequência correta', 'Tempos de permanência', 'Repetição automática', 'Ausência de estados conflitantes'],
+});
+
+// ===================== 6. Caixa d'água automática =====================
+ApplicationRegistry.register({
+  applicationId: 'caixa_dagua', family: 'Caixa d’água automática', title: 'Caixa d’água automática', category: 'Controle de nível', difficulty: 'Intermediário', sceneTemplate: 'water',
+  description: 'Bomba M1 recalca água do reservatório inferior para o superior. B1 indica nível baixo e B2 nível alto; S1/S0 permitem comando manual.',
+  objective: 'Controlar o nível por histerese entre duas boias, com parada manual, proteção térmica e sinalização.',
+  expected: 'Nível baixo (B1) liga a bomba; ela continua até o nível alto (B2) e só religa quando o nível volta a B1. S1 liga manualmente, S0 desliga, FT1 protege e acende H2. H1 acompanha a bomba.',
+  testInstructions: 'Ajuste o consumo, observe as boias e teste S1, S0 e a sobrecarga.',
+  electricalConfig: NET_STD, sheets: ['Força', 'Comando'],
+  devices: [{ id: 'M1', tag: 'M1', kind: 'motor', name: 'Motor da bomba' }, { id: 'K1', tag: 'K1', kind: 'contactor', name: 'Contator da bomba' }, { id: 'FT1', tag: 'FT1', kind: 'overload', name: 'Relé térmico' },
+    { id: 'B1', tag: 'B1', kind: 'level', name: 'Boia de nível baixo (atua abaixo de 20%)' }, { id: 'B2', tag: 'B2', kind: 'level', name: 'Boia de nível alto (atua acima de 85%)' },
+    { id: 'S0', tag: 'S0', kind: 'push', name: 'Parada' }, { id: 'S1', tag: 'S1', kind: 'push', name: 'Partida manual' }, { id: 'H1', tag: 'H1', kind: 'lamp', name: 'Bomba ligada', color: LAMP.verde }, { id: 'H2', tag: 'H2', kind: 'lamp', name: 'Falha (sobrecarga)', color: LAMP.vermelho }],
+  needs: ['M1', 'K1', 'B1', 'B2', 'S1'], physicalParameters: { fill: 8, cons: 2, low: 20, high: 85 }, initialConditions: { lvl: 45 },
+  controls: [{ id: 'cons', kind: 'param', param: 'cons', label: 'Consumo de água', min: 0, max: 6, step: .5, unit: '%/s' }, { id: 'src', kind: 'flag', param: 'src', label: 'Água no reservatório inferior', invertLabel: 'Falta de água na origem' },
+    { id: 'pf', kind: 'flag', param: 'pumpFail', label: 'Falha mecânica da bomba' }, { id: 'ovl', kind: 'overload', dev: 'M1', label: 'Sobrecarga no motor' }],
+  demonstrationSequence: { len: 34, script: [{ at: 0, do: 'set', param: 'lvl', value: 32 }, { at: 0, do: 'set', param: 'cons', value: 4 }, { at: .3, say: 'O consumo reduz o nível do reservatório superior.' }, { at: 3.2, say: 'B1 atua no nível baixo: a bomba M1 liga.' }, { at: 9, say: 'A bomba enche o reservatório (vazão maior que o consumo).' }, { at: 19, say: 'B2 atua no nível alto: a bomba desliga.' }, { at: 22, say: 'O consumo continua; a bomba só religa quando o nível voltar a B1.' }] },
+  reference(inp, sens, mem) { mem.k = !inp.press.S0 && (inp.press.S1 || sens.B1 || !!mem.k) && !sens.B2; return { M1: { run: mem.k, dir: 'horário' }, K1: mem.k, FT1: false, S0: !!inp.press.S0, S1: !!inp.press.S1, H1: mem.k, H2: false }; },
+  exampleProjectReference() {
+    const B = appBuilder('Caixa d’água automática', ['Força', 'Comando']); const { m, ft, f } = B.forceDirect(); const { W } = B;
+    W(ft, 't1', m, 'u', BLACK); W(ft, 't2', m, 'v', BLACK); W(ft, 't3', m, 'w', BLACK); W(f, 'pe', m, 'pe', GREEN, [[380, 180]]); B.S(2);
+    B.ladder([[['ft_nf', 'FT1'], ['botao_nf', 'S0'], { par: [[['botao_na', 'S1']], [['boia_na', 'B1']], [['contato_na', 'K1']]] }, ['boia_nf', 'B2'], ['bobina', 'K1']],
+      [['contato_na', 'K1'], ['sinaleiro', 'H1', { color: 'verde' }]], [['ft_na', 'FT1'], ['sinaleiro', 'H2', { color: 'vermelho' }]]], { gap: 140 });
+    return finishExample(this, B.d);
+  },
+  exerciseRequirements: [
+    { id: 'R1', text: 'Com nível baixo (B1 atuada) a bomba liga automaticamente.', tests: ['W1'], hints: ['B1 é uma boia: use um contato que feche quando o nível está baixo.', 'Coloque B1 em paralelo com o comando de partida.'] },
+    { id: 'R2', text: 'Ao atingir o nível alto (B2) a bomba desliga.', tests: ['W2'], hints: ['B2 deve abrir o circuito de K1 quando atuada: contato NF.'] },
+    { id: 'R3', text: 'A bomba só volta a ligar quando o nível baixar até B1 (histerese).', tests: ['W3'], hints: ['Entre B1 e B2 a bomba mantém o estado anterior: isso pede um selo de K1.'] },
+    { id: 'R4', text: 'S1 liga manualmente e S0 desliga a bomba.', tests: ['W2', 'W4'], hints: ['S0 é NF em série; S1 é NA em paralelo com o selo.'] },
+    { id: 'R5', text: 'A sobrecarga (FT1) desliga a bomba e acende H2.', tests: ['W5'], hints: ['FT1 95-96 em série no comando e 97-98 para H2.'] },
+    { id: 'R6', text: 'H1 reflete o estado real da bomba.', tests: ['W6'], hints: ['Use um contato NA de K1 para H1.'] },
+  ],
+  testScenarios: [
+    { id: 'W1', title: 'Nível baixo liga a bomba', timeout: 2, init: { lvl: 12, cons: 0 }, steps: [], checks: [{ by: 1, cond: RUN('M1'), fail: 'Com nível baixo (B1 atuada) a bomba não ligou.' }] },
+    { id: 'W2', title: 'Nível alto desliga a bomba', timeout: 9, init: { lvl: 60, cons: 0 }, steps: [press('S1', .5)], checks: [{ by: 1.2, from: .5, cond: RUN('M1'), fail: 'S1 não ligou a bomba com o nível intermediário.' }, { when: io => io.sens.B2, from: 1, limit: 8.5, then: io => !RUN('M1')(io), within: .5, noTrig: 'fail', noTrigMsg: 'O nível alto não foi atingido: a bomba não continuou ligada após soltar S1.', fail: 'O circuito conseguiu ligar a bomba, mas não desligou após atingir o nível máximo.' }, { never: io => io.faults.includes('overflow'), fail: 'O reservatório transbordou.' }] },
+    { id: 'W3', title: 'Histerese entre B1 e B2', timeout: 14, init: { lvl: 90, cons: 6 }, steps: [], checks: [{ post: hist => { const tl = hist.find(h => h.io.sens.B1); if (!tl) return 'O nível não chegou a B1 durante o teste.'; if (hist.some(h => h.t < tl.t && RUN('M1')(h.io))) return 'A bomba ligou antes de o nível baixar até B1.'; return hist.some(h => h.t >= tl.t && h.t <= tl.t + .6 && RUN('M1')(h.io)) ? true : 'O nível chegou a B1 e a bomba não ligou.'; } }] },
+    { id: 'W4', title: 'Parada por S0', timeout: 4.5, init: { lvl: 50, cons: 0 }, steps: [press('S1', .5), press('S0', 2)], checks: [{ by: 1.2, from: .5, cond: RUN('M1'), fail: 'Não foi possível ligar a bomba com S1 antes de testar S0.' }, { hold: [2.4, 4.3], cond: io => !RUN('M1')(io), fail: 'S0 não interrompeu a bomba.' }] },
+    { id: 'W5', title: 'Sobrecarga', timeout: 4, needs: ['M1', 'K1', 'B1', 'B2', 'S1', 'FT1', 'H2'], init: { lvl: 12, cons: 0 }, steps: [{ do: 'trip', dev: 'FT1', at: 1.5 }], checks: [{ by: 1.2, cond: RUN('M1'), fail: 'A bomba não estava ligada para o teste de sobrecarga.' }, { by: 2, from: 1.5, cond: io => !RUN('M1')(io) && ON('H2')(io), fail: 'A sobrecarga não interrompeu a bomba ou H2 não sinalizou a falha.' }] },
+    { id: 'W6', title: 'H1 reflete a bomba', timeout: 10, needs: ['M1', 'K1', 'B1', 'B2', 'H1'], init: { lvl: 15, cons: 0 }, steps: [], checks: [{ never: io => !!io.out.H1 !== RUN('M1')(io), from: .2, fail: 'H1 não refletiu o estado real da bomba.' }] },
+  ],
+  criteria: ['Partida por nível baixo', 'Parada por nível alto', 'Histerese', 'Comando manual', 'Proteção térmica', 'Sinalização'],
+});
+
+// ===================== 7. Portão elétrico =====================
+ApplicationRegistry.register({
+  applicationId: 'portao', family: 'Portões elétricos', title: 'Portão deslizante', category: 'Acionamento reversível', difficulty: 'Avançado', sceneTemplate: 'gate',
+  description: 'Portão deslizante com motor M1 reversível (K1 abre, K2 fecha), fins de curso FC1/FC2, fotocélula B1 e botoeiras S1, S2, S0.',
+  objective: 'Comandar um movimento reversível com selo, fins de curso, intertravamento e bloqueio pela fotocélula.',
+  expected: 'S1 abre até FC1; S2 fecha até FC2; S0 para. K1 e K2 nunca juntos. A fotocélula obstruída impede o fechamento.',
+  testInstructions: 'Abra e feche o portão, pare no meio com S0 e coloque um obstáculo durante o fechamento.',
+  electricalConfig: NET_STD, sheets: ['Força', 'Comando'],
+  devices: [{ id: 'M1', tag: 'M1', kind: 'motor', name: 'Motor do portão' }, { id: 'K1', tag: 'K1', kind: 'contactor', name: 'Contator de abertura' }, { id: 'K2', tag: 'K2', kind: 'contactor', name: 'Contator de fechamento' },
+    { id: 'FC1', tag: 'FC1', kind: 'limit', name: 'Fim de curso aberto' }, { id: 'FC2', tag: 'FC2', kind: 'limit', name: 'Fim de curso fechado' }, { id: 'B1', tag: 'B1', kind: 'photo', name: 'Fotocélula (atua com obstáculo)' },
+    { id: 'S1', tag: 'S1', kind: 'push', name: 'Abrir' }, { id: 'S2', tag: 'S2', kind: 'push', name: 'Fechar' }, { id: 'S0', tag: 'S0', kind: 'push', name: 'Parar' }, { id: 'H1', tag: 'H1', kind: 'lamp', name: 'Sinalizador de movimento', color: LAMP.amarelo }],
+  needs: ['M1', 'K1', 'K2', 'FC1', 'FC2', 'S1', 'S2'], physicalParameters: { speed: 20, obstAt: 45 }, initialConditions: { pos: 0 },
+  controls: [{ id: 'obst', kind: 'flag', param: 'obst', label: 'Obstáculo na fotocélula' }],
+  demonstrationSequence: { len: 22, script: [{ at: .3, say: 'Portão fechado: FC2 atuado.' }, { at: 1, do: 'press', dev: 'S1', say: 'S1 abre: K1 liga o motor no sentido de abrir.' }, { at: 6.2, say: 'FC1 atuado: a abertura para sozinha.' }, { at: 8, do: 'press', dev: 'S2', say: 'S2 fecha.' }, { at: 9.5, do: 'set', param: 'obst', value: true, say: 'Obstáculo na fotocélula: o fechamento para.' }, { at: 12.5, do: 'set', param: 'obst', value: false, say: 'Obstáculo removido.' }, { at: 13.5, do: 'press', dev: 'S2', say: 'Novo comando S2: o portão termina de fechar em FC2.' }] },
+  reference(inp, sens, mem) { const S0 = !!inp.press.S0; mem.k1 = !S0 && (inp.press.S1 || !!mem.k1) && !sens.FC1 && !mem.k2; mem.k2 = !S0 && (inp.press.S2 || !!mem.k2) && !sens.FC2 && !sens.B1 && !mem.k1; return { M1: { run: mem.k1 || mem.k2, dir: mem.k1 ? 'horário' : 'anti-horário' }, K1: mem.k1, K2: mem.k2, S0, S1: !!inp.press.S1, S2: !!inp.press.S2, H1: mem.k1 || mem.k2 }; },
+  exampleProjectReference() {
+    const B = appBuilder('Portão deslizante', ['Força', 'Comando']), { C, W } = B;
+    const f = C('fonte_3f', 100, 140, 'X1'), q = C('disjuntor_motor', 340, 260, 'Q1'), k1 = C('contator_forca', 240, 440, 'K1'), k2 = C('contator_forca', 480, 440, 'K2'), m = C('motor_3f', 340, 680, 'M1');
+    W(f, 'l1', q, 'l1', BLACK, [[300, 100]]); W(f, 'l2', q, 'l2', BLACK, [[340, 120]]); W(f, 'l3', q, 'l3', BLACK, [[380, 140]]);
+    for (const [a, b] of [['t1', 'l1'], ['t2', 'l2'], ['t3', 'l3']]) { W(q, a, k1, b, BLACK); W(q, a, k2, b, BLACK); }
+    W(k1, 't1', m, 'u', BLACK); W(k1, 't2', m, 'v', BLACK); W(k1, 't3', m, 'w', BLACK); W(k2, 't1', m, 'w', BLACK); W(k2, 't2', m, 'v', BLACK); W(k2, 't3', m, 'u', BLACK); W(f, 'pe', m, 'pe', GREEN, [[420, 180]]);
+    B.S(2);
+    B.ladder([[['botao_nf', 'S0'], { name: 'A' }, { par: [[['botao_na', 'S1']], [['contato_na', 'K1']]] }, ['fim_curso_nf', 'FC1'], ['contato_nf', 'K2'], ['bobina', 'K1']],
+      { from: 'A', items: [{ par: [[['botao_na', 'S2']], [['contato_na', 'K2']]] }, ['fim_curso_nf', 'FC2'], ['fotocelula_nf', 'B1'], ['contato_nf', 'K1'], ['bobina', 'K2']] },
+      [{ par: [[['contato_na', 'K1']], [['contato_na', 'K2']]] }, ['sinaleiro', 'H1', { color: 'amarelo' }]]]);
+    return finishExample(this, B.d);
+  },
+  exerciseRequirements: [
+    { id: 'R1', text: 'S1 abre o portão (K1) com selo até o fim de curso FC1.', tests: ['G1'], hints: ['K1 com selo, interrompido por um contato NF de FC1.'] },
+    { id: 'R2', text: 'S2 fecha o portão (K2) com selo até o fim de curso FC2.', tests: ['G2'], hints: ['No circuito de força, K2 troca duas fases para inverter o motor.'] },
+    { id: 'R3', text: 'S0 para o movimento a qualquer momento.', tests: ['G3'], hints: ['S0 NF em série antes dos dois ramos.'] },
+    { id: 'R4', text: 'Com obstáculo na fotocélula B1 o portão não fecha.', tests: ['G4'], hints: ['A fotocélula atua quando há obstáculo: use o contato NF dela no ramo de fechamento.'] },
+    { id: 'R5', text: 'Abertura e fechamento nunca são comandados juntos (intertravamento).', tests: ['G5'], hints: ['NF de K2 no ramo de K1 e NF de K1 no ramo de K2.'] },
+  ],
+  testScenarios: [
+    { id: 'G1', title: 'Abrir até FC1', timeout: 8, steps: [press('S1', .5)], checks: [{ by: 1, from: .5, cond: io => RUN('M1')(io) && io.out.M1.dir === 'horário', fail: 'S1 não iniciou a abertura (M1 girando no sentido de abrir com K1).' }, { when: io => io.sens.FC1, from: 1, limit: 7.5, then: io => !RUN('M1')(io), within: .4, noTrig: 'fail', noTrigMsg: 'O portão não chegou ao fim de curso FC1 (o motor não continuou ligado após soltar S1).', fail: 'O portão continuou recebendo comando de abertura após atingir o fim de curso.' }] },
+    { id: 'G2', title: 'Fechar até FC2', timeout: 8, init: { pos: 100 }, steps: [press('S2', .5)], checks: [{ by: 1, from: .5, cond: io => RUN('M1')(io) && io.out.M1.dir === 'anti-horário', fail: 'S2 não iniciou o fechamento (M1 girando no sentido de fechar com K2).' }, { when: io => io.sens.FC2, from: 1, limit: 7.5, then: io => !RUN('M1')(io), within: .4, noTrig: 'fail', noTrigMsg: 'O portão não chegou ao fim de curso FC2.', fail: 'O portão continuou recebendo comando de fechamento após atingir o fim de curso.' }] },
+    { id: 'G3', title: 'Parada por S0', timeout: 5, steps: [press('S1', .5), press('S0', 2.5)], checks: [{ by: 1, from: .5, cond: RUN('M1'), fail: 'Não foi possível abrir o portão antes de testar S0.' }, { hold: [2.9, 4.8], cond: io => !RUN('M1')(io), fail: 'S0 não parou o portão.' }] },
+    { id: 'G4', title: 'Fotocélula bloqueia o fechamento', timeout: 5, needs: ['M1', 'K1', 'K2', 'FC1', 'FC2', 'S1', 'S2', 'B1'], init: { pos: 100 }, steps: [press('S2', .5), { do: 'set', param: 'obst', value: true, at: 2 }], checks: [{ by: 1.2, from: .5, cond: RUN('M1'), fail: 'O portão não começou a fechar.' }, { hold: [2.4, 4.8], cond: io => !(RUN('M1')(io) && io.out.M1.dir === 'anti-horário'), fail: 'O portão continuou fechando com obstáculo na fotocélula.' }] },
+    { id: 'G5', title: 'Intertravamento', timeout: 3.5, steps: [press('S1', .5), press('S2', 1.5)], onShort: 'K1 e K2 ligaram juntos: no circuito de força isso é um curto entre fases.', checks: [{ never: io => ON('K1')(io) && ON('K2')(io), fail: 'Abertura (K1) e fechamento (K2) foram acionados ao mesmo tempo.' }, { hold: [1.5, 3.3], cond: io => !ON('K2')(io), fail: 'S2 acionou o fechamento durante a abertura; o intertravamento deveria impedir.' }] },
+  ],
+  criteria: ['Abertura com selo e fim de curso', 'Fechamento com selo e fim de curso', 'Parada', 'Fotocélula', 'Intertravamento'],
+});
+
+// register the solved examples in the existing Holographic Project Lab library
+for (const app of ExampleLibraryRegistry.list()) EXAMPLES.push({ title: app.title, app: app.applicationId, text: app.description, test: app.testInstructions, goal: app.objective, expected: app.expected, category: app.category, difficulty: app.difficulty, family: app.family, build: () => app.exampleProjectReference() });
 
 // =====================================================================
 // HOLOGRAPHIC LAYER — Canvas 3D engine (no external dependencies, works offline)
@@ -3780,6 +4935,24 @@ const HOLO_OBJECTS = {
     ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
   },
   // Exemplos — real diagrams on golden glass panels that fan out when selected
+  // Exercícios — a golden glass engineering clipboard whose requirement checklist ticks itself
+  exercise(ctx, proj, c, o) {
+    const t = HOLO.t, w = .42, h = .56, A = o.alpha, prog = o.sel ? (o.phase * .55) % 1.6 : .7;
+    const P = (x, y, z = 0) => { const p = rotXYZ([x, y, z], -.22 + Math.sin(t * .7) * .04, o.spin * .85 - .2, .05); return proj(c[0] + p[0], c[1] + p[1], c[2] + p[2]); };
+    for (let k = 2; k >= 0; k--) glassPlane(ctx, [[-w, -h], [w, -h], [w, h], [-w, h]].map(([x, y]) => P(x + k * .03, y + k * .03, -k * .06)), { a: A * (k ? .45 : 1), fill: k ? .07 : .15, edgeW: k ? 1 : 1.8 });
+    glassPlane(ctx, [[-.16, -h - .07], [.16, -h - .07], [.16, -h + .07], [-.16, -h + .07]].map(([x, y]) => P(x, y, .04)), { a: A, fill: .35, edge: '#FFF0B0', edgeW: 2 });
+    ctx.globalCompositeOperation = 'lighter';
+    const rows = 5;
+    for (let k = 0; k < rows; k++) {
+      const y = -h + .22 + k * .19, done = prog * rows > k + .6, box = new Path2D(), ln = new Path2D();
+      const b = [[-.32, y - .05], [-.22, y - .05], [-.22, y + .05], [-.32, y + .05]].map(([x, yy]) => P(x, yy, .02)); box.moveTo(b[0][0], b[0][1]); for (const q of b.slice(1)) box.lineTo(q[0], q[1]); box.closePath();
+      glowStroke(ctx, box, '#FFD45A', 1.2, A * .9);
+      const l0 = P(-.16, y, .02), l1 = P(.3 - (k % 2) * .1, y, .02); ln.moveTo(l0[0], l0[1]); ln.lineTo(l1[0], l1[1]); glowStroke(ctx, ln, '#65E4FF', 1.1, A * .55);
+      if (done) { const tk = new Path2D(), a = P(-.31, y, .03), m = P(-.275, y + .035, .03), e = P(-.2, y - .07, .03); tk.moveTo(a[0], a[1]); tk.lineTo(m[0], m[1]); tk.lineTo(e[0], e[1]); glowStroke(ctx, tk, '#FFF4C0', 2.4, A); }
+    }
+    if (o.sel) for (let k = 0; k < 10; k++) { const f = (t * .5 + k / 10) % 1, q = P(Math.cos(k * 2.1) * w * (1 - f), Math.sin(k * 1.3) * h * (1 - f), .4 * (1 - f)); ctx.globalAlpha = f * A; ctx.drawImage(glowSprite('#65E4FF'), q[0] - 5, q[1] - 5, 10, 10); }
+    ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
+  },
   library(ctx, proj, c, o) {
     o.geos = o.geos || EXAMPLES.map(e => miniGeo(e.build()));
     const n = o.geos.length, fan = o.fan || 0, A = o.alpha, hot = o.sel ? Math.floor(HOLO.t * .7) % n : -1;
@@ -3808,8 +4981,9 @@ function drawBokeh(ctx, w, h) {
 const HOME_OPS = [
   { id: 'novo', title: 'Novo projeto', desc: 'Prancheta em branco com folhas de Força e Comando, pronta para montar um circuito.', object: 'board', run: () => sheetDialog('new') },
   { id: 'continuar', title: 'Continuar projeto', desc: () => `Retoma "${doc.project}" exatamente de onde você parou: ${doc.sheets.length} folha(s), ${doc.comps.length} componentes.`, object: 'circuit', run: () => { ui.view = 'diagram'; render(); requestAnimationFrame(fit); } },
-  { id: 'abrir', title: 'Abrir arquivo', desc: 'Importa um projeto .voltacademy ou .json salvo no computador, substituindo ou somando folhas.', object: 'file', run: () => { const i = $('#homeFile'); i.value = ''; i.click(); } },
+  { id: 'abrir', title: 'Abrir projeto', desc: 'Importa um projeto .voltacademy ou .json salvo no computador, substituindo ou somando folhas.', object: 'file', run: () => { const i = $('#homeFile'); i.value = ''; i.click(); } },
   { id: 'exemplos', title: 'Exemplos de projeto', desc: () => `${EXAMPLES.length} circuitos prontos da biblioteca VoltAcademy, para estudar no Holographic Project Lab.`, object: 'library', run: () => { ui.view = 'lab'; render(); } },
+  { id: 'exercicios', title: 'Exercícios', desc: () => `${ExerciseLibraryRegistry.list().length} exercícios práticos com ambiente virtual animado: você recebe a aplicação, as TAGs e os requisitos e desenvolve o circuito.`, object: 'exercise', run: () => { ui.view = 'exlab'; render(); } },
 ];
 const Home = { sel: 0, rot: 0, objs: [], drag: null, hits: [], booted: false, core: null, parts: null, confirming: false };
 function homeSelect(i, { fromDrag = false } = {}) {
@@ -3834,7 +5008,7 @@ function renderHomeHUD() {
   const op = HOME_OPS[Home.sel], txt = v => typeof v === 'function' ? v() : v;
   $('#opIndex').textContent = `${String(Home.sel + 1).padStart(2, '0')} / ${String(HOME_OPS.length).padStart(2, '0')}`;
   $('#opTitle').textContent = op.title; $('#opDesc').textContent = txt(op.desc);
-  $('#opGo').textContent = op.id === 'exemplos' ? 'Abrir biblioteca' : op.id === 'abrir' ? 'Escolher arquivo' : op.id === 'novo' ? 'Criar projeto' : 'Continuar';
+  $('#opGo').textContent = op.id === 'exercicios' ? 'Abrir exercícios' : op.id === 'exemplos' ? 'Abrir biblioteca' : op.id === 'abrir' ? 'Escolher arquivo' : op.id === 'novo' ? 'Criar projeto' : 'Continuar';
   $('#opDots').innerHTML = HOME_OPS.map((o, i) => `<button class="hdot${i === Home.sel ? ' act' : ''}" data-op="${i}" aria-label="${esc(o.title)}"></button>`).join('');
   $('#coreState').textContent = Home.core ? Home.core.state : 'IDLE';
   $('#homeProj').textContent = doc.project;
@@ -3966,6 +5140,7 @@ function renderLabUI() {
   // ProjectDetails
   $('#labInfo').innerHTML = has ? `<p class="lab-k">Projeto ${String(Lab.sel + 1).padStart(2, '0')}</p><h2>${esc(e.title)}</h2><p class="lab-desc">${esc(e.text)}</p>
     <div class="lab-stats"><div><b>${d.sheets.length}</b><span>folha${d.sheets.length > 1 ? 's' : ''}</span></div><div><b>${d.comps.length}</b><span>componentes</span></div><div><b>${d.wires.length}</b><span>fios</span></div></div>
+    ${e.app ? labAppHTML(e) : ''}
     <p class="lab-k">Objetivo didático</p><p>${esc(e.goal || e.text)}</p>
     <p class="lab-k">Instruções de teste</p><p>${esc(e.test)}</p>
     <p class="lab-k">Funcionamento esperado</p><p>${esc(e.expected || '—')}</p>
@@ -4104,6 +5279,6 @@ if (matchMedia('(max-width: 1100px)').matches) ui.inspOpen = false;
 render();
 requestAnimationFrame(fit);
 window.addEventListener('resize', () => fit());
-window.__va = { focus, setNavigation, toggleNavigation, FOCUS, serialize, sheetDialog, blankProject, ElectricalNetwork, ProjectElectricalConfig, TransformerModel, PotentialDifferenceCalculator, ElectricalDomainManager, ElectricalDiagnostics, addComp, Home, Lab, HOME_OPS, homeSelect, homeConfirm, labSelect, labOpen, exportPDF, projectFile, mergeProject, doc: () => doc, sim, ui, points: id => fullPointsAny(doc.wires.find(w => w.id === id)), audio, solve: resolve, rawSolve: solve, clearFaults, updateElectrical, startSim, stopSim, load, EXAMPLES, TYPES, interact, render, setView: v => { ui.view = v; render(); } };
+window.__va = { Proc, DemoRunner, ApplicationRegistry, ExerciseLibraryRegistry, ExampleLibraryRegistry, TagBindingManager, HMIBindingEngine, VirtualActuatorEngine, VirtualProcessEngine, ExerciseTestRunner, ExerciseValidationEngine, ExerciseProgressManager, ExerciseSession, EX, simStep, focus, setNavigation, toggleNavigation, FOCUS, serialize, sheetDialog, blankProject, ElectricalNetwork, ProjectElectricalConfig, TransformerModel, PotentialDifferenceCalculator, ElectricalDomainManager, ElectricalDiagnostics, addComp, Home, Lab, HOME_OPS, homeSelect, homeConfirm, labSelect, labOpen, exportPDF, projectFile, mergeProject, doc: () => doc, sim, ui, points: id => fullPointsAny(doc.wires.find(w => w.id === id)), audio, solve: resolve, rawSolve: solve, clearFaults, updateElectrical, startSim, stopSim, load, EXAMPLES, TYPES, interact, render, setView: v => { ui.view = v; render(); } };
 })();
 </script>

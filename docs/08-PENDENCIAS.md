@@ -14,6 +14,9 @@
 - [ ] Corrente e potência calculadas por impedância (hoje: corrente estimada pela potência informada)
 - [ ] Validação elétrica antes de simular (hoje as atenções de tensão aparecem durante a simulação; neutro/fase indisponível aparecem na edição)
 - [ ] Desenho 2D dos transformadores (no modo 2D eles usam o símbolo)
+- [x] Exemplos e exercícios práticos com IHM animada e validação funcional (7 famílias, 11 aplicações)
+- [ ] Semáforo com cruzamento e pedestres; relé de segurança com canais redundantes na emergência
+- [ ] Mais aplicações (esteiras com sensores, compressor, partida compensadora) usando o mesmo registro
 - [ ] Aulas guiadas com verificação automática do circuito montado
 
 ## Plataforma

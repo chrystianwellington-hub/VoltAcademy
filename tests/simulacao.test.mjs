@@ -164,7 +164,7 @@ const results = await p.evaluate(async () => {
   { const d = va.doc(), no = tg => d.wires.find(w => [w.a.c, w.b.c].includes(d.comps.find(c => c.type === tg[0] && c.tag === tg[1]).id)).no;
     check('Números de fio: segmento de cabo leva o mesmo número para a outra folha', no(['cabo_out', 'W1']) === no(['cabo_in', 'W1']) && no(['cabo_out', 'W2']) === no(['cabo_in', 'W2'])); }
 
-  check('Biblioteca com 50 componentes (inclui buzzer, buzina, sirene e transformadores)', Object.keys(va.TYPES).length === 50);
+  check('Biblioteca com 57 componentes (inclui transformadores, boias, fins de curso, fotocélulas e TOF)', Object.keys(va.TYPES).length === 57);
   return out;
 });
 
@@ -206,12 +206,12 @@ await p.mouse.move(ob.x + ob.width / 2, ob.y + ob.height / 2); await p.mouse.dow
 results.push(['Operação: botão do painel aciona K1 com selo', await p.evaluate(() => !!window.__va.sim.coils.K1)]);
 await nav(p, 'home');
 results.push(['Início: abre na tela holográfica do VOLT CORE', startsHome]);
-results.push(['Início: carrossel com 4 operações a 90°', await p.evaluate(() => window.__va.HOME_OPS.length === 4 && document.querySelectorAll('#opDots .hdot').length === 4)]);
+results.push(['Início: carrossel com 5 operações a 72°', await p.evaluate(() => window.__va.HOME_OPS.length === 5 && document.querySelectorAll('#opDots .hdot').length === 5 && window.__va.HOME_OPS[4].id === 'exercicios')]);
 await p.keyboard.press('ArrowRight'); await p.waitForTimeout(950);
-results.push(['Início: seta gira o carrossel e o núcleo reage', await p.evaluate(() => { const H = window.__va.Home; return H.sel === 1 && Math.abs(H.rot - Math.PI / 2) < 0.05 && /Continuar/.test(document.getElementById('opTitle').textContent); })]);
+results.push(['Início: seta gira o carrossel e o núcleo reage', await p.evaluate(() => { const H = window.__va.Home; return H.sel === 1 && Math.abs(H.rot - 2 * Math.PI / 5) < 0.05 && /Continuar/.test(document.getElementById('opTitle').textContent); })]);
 await p.evaluate(() => window.__va.homeSelect(3)); await p.waitForTimeout(950);
 await p.click('#opGo'); await p.waitForTimeout(700);
-results.push(['Início: confirmar Exemplos abre o Project Lab com a biblioteca real', await p.evaluate(() => window.__va.ui.view === 'lab' && document.querySelectorAll('#labList .lab-item').length === 4)]);
+results.push(['Início: confirmar Exemplos abre o Project Lab com a biblioteca real', await p.evaluate(() => window.__va.ui.view === 'lab' && document.querySelectorAll('#labList .lab-item').length === window.__va.EXAMPLES.length && window.__va.EXAMPLES.length === 15)]);
 await p.click('#labList [data-lab="1"]'); await p.waitForTimeout(2900);
 results.push(['Lab: projeto se materializa a partir dos dados reais', await p.evaluate(() => { const L = window.__va.Lab; return L.sel === 1 && L.build > 0.99 && L.geo.segs.filter(s => s.kind === 'wire').length >= 15 && L.geo.labels.some(l => l.text === 'M1') && L.core.state === 'PREVIEW'; })]);
 results.push(['Lab: só o projeto ativo acende', await p.evaluate(() => document.querySelectorAll('#labList .energy-active').length === 1)]);
@@ -312,7 +312,7 @@ await fresh.goto(page); await fresh.waitForTimeout(500); await fresh.evaluate(()
 results.push(['Biblioteca: começa fechada e sem categoria ativa', await fresh.evaluate(() => window.__va.ui.activeCategory === null && !document.getElementById('drawer').classList.contains('open') && !document.querySelector('.railb.act'))]);
 const geo0 = await fresh.evaluate(() => ({ w: document.getElementById('cv').getBoundingClientRect().width, z: window.__va.ui.zoom, px: window.__va.ui.px }));
 await fresh.click('[data-folder="Comando"]'); await fresh.waitForTimeout(350);
-results.push(['Biblioteca: clicar abre só os componentes da categoria', await fresh.evaluate(() => { const parts = [...document.querySelectorAll('#folders [data-part]')].map(b => window.__va.TYPES[b.dataset.part].cat); return document.getElementById('drawer').classList.contains('open') && parts.length === 12 && parts.every(c => c === 'Comando') && !document.querySelector('details.folder'); })]);
+results.push(['Biblioteca: clicar abre só os componentes da categoria', await fresh.evaluate(() => { const parts = [...document.querySelectorAll('#folders [data-part]')].map(b => window.__va.TYPES[b.dataset.part].cat); return document.getElementById('drawer').classList.contains('open') && parts.length === 18 && parts.every(c => c === 'Comando') && !document.querySelector('details.folder'); })]);
 results.push(['Biblioteca: abrir não muda tamanho, zoom nem posição do desenho', await fresh.evaluate(g => { const r = document.getElementById('cv').getBoundingClientRect(); return r.width === g.w && window.__va.ui.zoom === g.z && window.__va.ui.px === g.px; }, geo0)]);
 results.push(['Energia: só a categoria ativa acende', await fresh.evaluate(() => { const on = document.querySelectorAll('#rail .energy-active'); return on.length === 1 && on[0].dataset.folder === 'Comando' && on[0].classList.contains('energy-indicator'); })]);
 await fresh.click('[data-folder="Proteção"]'); await fresh.waitForTimeout(350);
@@ -532,6 +532,98 @@ results.push(['Painel: botão X fecha', await pm.evaluate(() => !window.__va.ui.
 await pm.evaluate(() => window.__va.stopSim());
 results.push(['Painel e modo foco independentes: status visível, navegação recolhe', await pm.evaluate(() => !window.__va.focus.navigationExpanded && document.getElementById('status').getBoundingClientRect().height > 20)]);
 await pm.close();
+
+// ---- Interactive HMI & Practical Exercise Engine ----
+const hx = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+hx.on('pageerror', e => errors.push(e.message + ' @ ' + (e.stack || '').split('\n').slice(1, 4).join(' | ')));
+await hx.goto(page); await hx.waitForTimeout(400);
+await hx.evaluate(() => { try { Object.keys(localStorage).filter(k => k.startsWith('voltacademy.ex')).forEach(k => localStorage.removeItem(k)); } catch (e) {} });
+results.push(...await hx.evaluate(() => {
+  const va = window.__va, out = [], chk = (n, c) => out.push([n, !!c]), get = id => va.ApplicationRegistry.get(id), apps = va.ApplicationRegistry.list;
+  chk('Aplicações: 11 cadastradas nas 7 famílias iniciais', apps.length === 11 && new Set(apps.map(a => a.family)).size === 7);
+  chk('Aplicações: configuração centralizada completa (dispositivos, exemplo, requisitos, testes, demonstração, rede)', apps.every(a => a.applicationId && a.sceneTemplate && a.devices.length && a.exampleProjectReference && a.exerciseRequirements.length && a.testScenarios.length && a.demonstrationSequence.script.length && a.electricalConfig && a.criteria.length));
+  for (const app of apps) { va.load(app.exampleProjectReference()); const r = va.ExerciseValidationEngine.runAllSync(app); chk(`Exemplo resolvido aprovado em todos os testes: ${app.title}`, Object.values(r).every(x => x.status === 'ok')); }
+  chk('Exercícios em branco: nenhum teste aprovado', apps.every(app => { va.load(va.ExerciseSession.create(app)); return Object.values(va.ExerciseValidationEngine.runAllSync(app)).every(x => x.status !== 'ok'); }));
+  const mut = (id, f) => { const app = get(id), d = app.exampleProjectReference(); f(d); va.load(d); return va.ExerciseValidationEngine.runAllSync(app); };
+  const bridge = (d, pred) => { for (const c of d.comps.filter(pred)) { c.type = 'contato_nf'; c.tag = 'KX'; delete c.dev; } };
+  const spare = (d, type, tag) => d.comps.push({ id: 'cx' + tag, type, x: 1300, y: 300, rot: 0, tag, sheet: d.sheets[d.sheets.length - 1].id });
+  let r = mut('caixa_dagua', d => { bridge(d, c => c.tag === 'B2'); spare(d, 'boia_nf', 'B2'); });
+  chk('Feedback: caixa d’água sem B2 → "não desligou após atingir o nível máximo"', r.W2.status === 'fail' && /não desligou após atingir o nível máximo/.test(r.W2.msg) && r.W1.status === 'ok');
+  r = mut('estrela_triangulo', d => { const k2 = d.comps.find(c => c.type === 'bobina' && c.tag === 'K2'); const k3 = d.comps.find(c => c.type === 'bobina' && c.tag === 'K3'); bridge(d, c => (c.x === k2.x && (c.type === 'temp_nf' || (c.type === 'contato_nf' && c.tag === 'K3'))) || (c.x === k3.x && c.type === 'contato_nf' && c.tag === 'K2')); });
+  chk('Feedback: estrela-triângulo sem intertravamento → conflito estrela/triângulo', r.SD3.status === 'fail' && /estrela permaneceu energizado/.test(r.SD3.msg));
+  r = mut('portao', d => { bridge(d, c => c.tag === 'FC1'); spare(d, 'fim_curso_nf', 'FC1'); });
+  chk('Feedback: portão sem FC1 → comando de abertura após o fim de curso', r.G1.status === 'fail' && /após atingir o fim de curso/.test(r.G1.msg));
+  r = mut('emergencia', d => bridge(d, c => c.type === 'contato_na' && c.tag === 'KA1'));
+  chk('Feedback: emergência que não bloqueia K1 → reprovado na interrupção', r.E2.status === 'fail' && /continuou funcionando com a emergência/.test(r.E2.msg));
+  r = mut('flip_flop', d => { const ka1 = d.comps.find(c => c.type === 'bobina' && c.tag === 'KA1'); bridge(d, c => c.type === 'contato_nf' && c.tag === 'KA2' && c.x <= ka1.x + 120 && c.x >= ka1.x); });
+  chk('Feedback: flip-flop sem bloqueio → segundo pulso não desliga', r.F2.status === 'fail');
+  // demonstration never touches the project nor the simulation
+  const wa = get('caixa_dagua'); va.load(wa.exampleProjectReference()); const before = va.serialize(); va.DemoRunner.start(wa);
+  let ran = false; const l0 = va.DemoRunner.s.st.lvl; for (let i = 0; i < 400; i++) { va.DemoRunner.step(.05); ran = ran || va.DemoRunner.s.out.M1.run; }
+  chk('Demonstração: usa a sequência de referência sem alterar o projeto nem a simulação', ran && va.DemoRunner.s.st.lvl !== l0 && !va.sim.running && va.serialize() === before && !Object.keys(va.sim.coils).length);
+  // live: actuators -> process -> sensors -> electrical engine
+  va.startSim(); va.Proc.st.cons = 0; va.Proc.st.lvl = 15; for (let i = 0; i < 10; i++) va.simStep(.05);
+  const b1 = va.doc().comps.find(c => c.tag === 'B1'), b2 = va.doc().comps.find(c => c.tag === 'B2');
+  const pumpOn = va.VirtualActuatorEngine.read(wa).out.M1.run && va.sim.toggled.has(b1.id);
+  let l1 = va.Proc.st.lvl; for (let i = 0; i < 20; i++) va.simStep(.05);
+  const rising = va.Proc.st.lvl > l1;
+  va.Proc.st.lvl = 84.9; for (let i = 0; i < 6; i++) va.simStep(.05);
+  chk('Ao vivo: B1 do processo aciona o circuito, a bomba real enche o reservatório', pumpOn && rising);
+  chk('Ao vivo: B2 enviado ao motor elétrico e o circuito do aluno desliga a bomba', va.sim.toggled.has(b2.id) && !va.VirtualActuatorEngine.read(wa).out.M1.run && !va.sim.coils.K1);
+  va.stopSim();
+  va.load((() => { const d = wa.exampleProjectReference(); bridge(d, c => c.tag === 'B2'); return d; })()); va.startSim(); va.Proc.st.cons = 0; va.Proc.st.lvl = 15;
+  for (let i = 0; i < 300; i++) va.simStep(.05);
+  chk('Ao vivo: circuito errado mostra a consequência (transbordamento), sem correção automática', va.Proc.faults.some(f => f.code === 'overflow') && va.VirtualActuatorEngine.read(wa).out.M1.run);
+  va.stopSim();
+  // tag binding
+  va.load(va.ExerciseSession.create(wa)); const m = va.addComp('motor_3f', 300, 300); m.tag = 'M7';
+  const okBind = va.TagBindingManager.bind(m, 'M1') !== false && m.tag === 'M1' && m.dev === 'M1';
+  const bt = va.addComp('botao_na', 500, 300); const bad = va.TagBindingManager.bind(bt, 'M1') === false; bt.tag = 'M1';
+  chk('TAGs: vínculo por identificador estável e validação de tipo (M1 não aceita botoeira)', okBind && bad && va.TagBindingManager.issues().some(s => /M1/.test(s)) && va.TagBindingManager.devOf(m).id === 'M1');
+  const s1a = va.addComp('botao_na', 300, 500), s1b = va.addComp('botao_na', 400, 500); va.TagBindingManager.bind(s1a, 'S1'); va.TagBindingManager.bind(s1b, 'S1');
+  chk('TAGs: vários componentes associados ao mesmo dispositivo', va.TagBindingManager.comps(va.TagBindingManager.device(wa, 'S1')).length === 2);
+  va.doc().app.results = { W1: { status: 'ok', msg: 'x' } }; const js = va.serialize(); va.load(js);
+  chk('Persistência: sessão do exercício, resultados e rede salvos no arquivo', va.doc().app.mode === 'exercise' && va.doc().app.results.W1.status === 'ok' && va.doc().elec.v === 380 && JSON.parse(js).app.id === 'caixa_dagua');
+  va.load(va.EXAMPLES[0].build());
+  chk('Projetos livres e exemplos antigos continuam sem aplicação associada', !va.doc().app);
+  return out;
+}));
+// UI flow: VOLT CORE → Exercícios → Practical Exercise Lab → Iniciar exercício → validar
+await hx.evaluate(() => { window.__va.setView('home'); window.__va.homeSelect(4); }); await hx.waitForTimeout(900);
+await hx.evaluate(() => window.__va.homeConfirm()); await hx.waitForTimeout(900);
+const lab1 = await hx.evaluate(() => document.getElementById('exScene').innerHTML);
+await hx.waitForTimeout(700);
+results.push(['Exercise Lab: 5ª opção do carrossel abre a lista com demonstração animada', await hx.evaluate(s0 => { const va = window.__va; return va.ui.view === 'exlab' && document.querySelectorAll('#exList .ex-item').length === 11 && /DEMONSTRATION MODE/.test(document.getElementById('exMode').textContent) && /MODO DEMONSTRAÇÃO/.test(document.getElementById('exScene').textContent) && va.DemoRunner.s.t > .8 && !!document.querySelector('#exScene svg'); }, lab1)]);
+results.push(['Exercise Lab: requisitos, TAGs e critérios sem diagrama resolvido', await hx.evaluate(() => { const t = document.getElementById('exInfo'); return /Requisitos de funcionamento/i.test(t.textContent) && t.querySelectorAll('.ex-tags tr').length > 3 && !document.querySelector('#vExLab .thumb, #vExLab #world'); })]);
+await hx.click('#exList [data-ex="9"]'); await hx.waitForTimeout(200);
+await hx.click('#exStart'); await hx.waitForTimeout(700);
+results.push(['Iniciar exercício: nova instância com folhas em branco, rede e TAGs', await hx.evaluate(() => { const va = window.__va, d = va.doc(); return va.ui.view === 'diagram' && d.app.mode === 'exercise' && d.app.id === 'caixa_dagua' && d.comps.length === 0 && d.wires.length === 0 && d.sheets.map(s => s.name).join() === 'Força,Comando' && d.elec.v === 380 && !document.getElementById('pmTabApp').hidden && va.ui.pmTab === 'app'; })]);
+await hx.click('#exValidate'); await hx.waitForTimeout(1500);
+results.push(['Validar exercício: resultados por teste e progresso salvo (sem aprovação fictícia)', await hx.evaluate(() => { const va = window.__va, res = va.doc().app.results, idx = JSON.parse(localStorage.getItem('voltacademy.ex.index') || '{}'); return Object.keys(res).length === 6 && Object.values(res).every(r => r.status === 'inc' || r.status === 'fail') && idx.caixa_dagua && idx.caixa_dagua.pct === 0 && /Inconclusivo/.test(document.getElementById('pmApp').textContent); })]);
+await hx.click('#pmApp [data-hint]'); await hx.waitForTimeout(150);
+results.push(['Feedback: dicas progressivas por requisito', await hx.evaluate(() => /Dica 1:/.test(document.getElementById('pmApp').textContent) && window.__va.doc().app.hints.R1 === 1)]);
+await hx.evaluate(() => { const va = window.__va; va.setView('home'); va.setView('exlab'); va.EX.sel = 9; va.render(); }); await hx.waitForTimeout(300);
+results.push(['Continuar exercício: progresso disponível na biblioteca', await hx.evaluate(() => !!document.getElementById('exResume') && !!document.querySelector('#exList .ex-item.act .ex-prog'))]);
+await hx.click('#exResume'); await hx.waitForTimeout(500);
+results.push(['Continuar exercício: retoma a mesma sessão', await hx.evaluate(() => { const d = window.__va.doc(); return d.app.mode === 'exercise' && d.app.hints.R1 === 1 && Object.keys(d.app.results).length === 6; })]);
+// Operation / HMI with a solved example
+await hx.evaluate(() => { const va = window.__va; va.load(va.ApplicationRegistry.get('caixa_dagua').exampleProjectReference()); va.setView('operate'); });
+await hx.waitForTimeout(200);
+results.push(['Operação / HMI: aplicação carregada automaticamente e modo identificado', await hx.evaluate(() => /Operação \/ HMI/.test(document.querySelector('[data-nav="operate"]').textContent) && !!document.querySelector('#hmiStage svg') && /SIMULAÇÃO PARADA/.test(document.getElementById('hmiStage').textContent) && document.querySelectorAll('#vOperate [data-hdev]').length === 2)]);
+await hx.click('#opRun'); await hx.waitForTimeout(300);
+await hx.evaluate(() => { const va = window.__va; va.Proc.st.lvl = 50; va.Proc.st.cons = 0; });
+const s1 = await hx.locator('#vOperate [data-hdev="S1"]').boundingBox();
+await hx.mouse.move(s1.x + s1.width / 2, s1.y + s1.height / 2); await hx.mouse.down(); await hx.waitForTimeout(250); await hx.mouse.up(); await hx.waitForTimeout(600);
+results.push(['Operação / HMI: botoeira S1 da IHM opera o circuito e a bomba gira ao vivo', await hx.evaluate(() => { const va = window.__va; return /SIMULAÇÃO AO VIVO/.test(document.getElementById('hmiStage').textContent) && va.VirtualActuatorEngine.read(va.ApplicationRegistry.get('caixa_dagua')).out.M1.run && /girando/.test(document.getElementById('hmiTags').textContent); })]);
+await hx.evaluate(() => window.__va.stopSim());
+await hx.evaluate(() => { const va = window.__va; va.load(va.EXAMPLES[0].build()); va.setView('operate'); }); await hx.waitForTimeout(150);
+results.push(['Operação / HMI: sem aplicação preserva o painel genérico', await hx.evaluate(() => !!document.querySelector('#vOperate .opgrid') && !document.getElementById('hmiStage'))]);
+await hx.evaluate(() => { const va = window.__va; va.ExerciseSession.start(va.ApplicationRegistry.get('portao')); const c = va.addComp('motor_3f', 400, 400); va.ui.sel = { kind: 'comp', id: c.id }; va.ui.inspOpen = true; va.render(); });
+await hx.waitForTimeout(200);
+results.push(['Inspetor: associar componente a um dispositivo do exercício', await hx.evaluate(() => { const s = document.getElementById('fDev'); return !!s && [...s.options].some(o => o.value === 'M1') && ![...s.options].some(o => o.value === 'S1'); })]);
+await hx.evaluate(() => { const va = window.__va; va.setView('lab'); va.labSelect(va.EXAMPLES.findIndex(e => e.app === 'semaforo')); }); await hx.waitForTimeout(300);
+results.push(['Project Lab: exemplos novos com categoria, nível, template de IHM e TAGs', await hx.evaluate(() => /Template de IHM/.test(document.getElementById('labInfo').textContent) && /Intermediário/.test(document.getElementById('labInfo').textContent) && /KT1/.test(document.getElementById('labInfo').textContent))]);
+await hx.close();
 
 const m = await browser.newPage({ viewport: { width: 390, height: 844 } });
 await m.goto(page); await m.waitForTimeout(500);

@@ -37,7 +37,7 @@ Ao abrir, o circuito "Partida direta com selo" já vem carregado. Aperte **SIMUL
   status abre e fecha a navegação; abrir manualmente cancela o recolhimento automático. A barra de status (modo, avisos,
   atenções, tensão, corrente, frequência e estado) fica sempre visível.
 - **Ferramentas (direita):** selecionar, fio, mover tela, cor do fio, girar, excluir, zoom e enquadrar.
-- **Navegação (inferior):** Diagrama · Operação (painel com botões grandes para operar o circuito) · Início (projetos e exemplos) ·
+- **Navegação (inferior):** Diagrama · Operação / HMI (ambiente animado da aplicação ou painel com botões grandes) · Início (projetos e exemplos) ·
   Tags (lista de componentes com folha, bornes e estado) · Monitoramento (estados ao vivo e registro de eventos).
 - Durante a simulação, os fios por onde passa corrente ficam animados.
 - **Aparência Símbolos ou 2D:** no modo 2D cada componente vira um desenho de equipamento real (disjuntor com alavanca,
@@ -103,8 +103,38 @@ Ao abrir, o circuito "Partida direta com selo" já vem carregado. Aperte **SIMUL
 - Motor 3D próprio em Canvas (sem bibliotecas externas, funciona offline), qualidade adaptativa pelo tempo de quadro,
   pausa quando a tela não está visível e suporte a "reduzir movimento".
 
+## Laboratório prático: exemplos, exercícios e IHM
+- **Carrossel com 5 operações (72°):** Novo projeto, Continuar projeto, Abrir projeto, Exemplos de projeto e
+  **Exercícios** (prancheta holográfica com checklist).
+- **7 famílias, 11 aplicações:** emergência e rearme; temporizadores (TON, TOF, pulso, cíclico, alarme temporizado);
+  partida estrela-triângulo; flip-flop; semáforo; caixa d’água automática; portão deslizante. Cada aplicação tem uma
+  configuração única (`ApplicationRegistry`): dispositivos e TAGs, template de IHM, condições iniciais, parâmetros
+  físicos, demonstração, exemplo resolvido, requisitos, cenários de teste, nível e rede elétrica.
+- **Exemplos resolvidos** entram no Holographic Project Lab (agora com 15 projetos) com categoria, nível, template de IHM e
+  TAGs. Abrir carrega o diagrama completo e a aplicação animada em Operação / HMI.
+- **Practical Exercise Lab:** lista de exercícios com nível e progresso, demonstração animada do comportamento esperado
+  (**DEMONSTRATION MODE**, sequência de referência que não executa nem altera o circuito do aluno), objetivo, requisitos,
+  TAGs, dispositivos e critérios. **Iniciar exercício** cria uma sessão nova com a rede prevista e as folhas em branco;
+  **Continuar** retoma a sessão salva.
+- **Operação / HMI:** com aplicação associada, mostra o ambiente animado (**SIMULAÇÃO AO VIVO**, saídas reais do circuito),
+  comandos da IHM, condições do processo (consumo, falta de água, falha da bomba, sobrecarga, obstáculo), TAGs com estado,
+  informações elétricas, diagnósticos e requisitos. Sem aplicação, continua o painel genérico.
+- **Motor de processo virtual:** o motor elétrico aciona os atuadores; o processo calcula a física (nível, posição do portão,
+  velocidade) e devolve os sensores (boias, fins de curso, fotocélula) ao motor elétrico, no mesmo passo de tempo dos
+  temporizadores. Nada é corrigido na animação: circuito errado mostra a consequência (transbordamento, comando após o fim
+  de curso, conflito estrela/triângulo) e gera diagnóstico.
+- **Validação funcional:** cada exercício tem cenários com condição inicial, eventos, estado esperado e tempo limite,
+  executados no circuito real do aluno sem alterá-lo. Resultados: não testado, em execução, aprovado, reprovado, não
+  aplicável ou inconclusivo, com mensagem por requisito e dicas progressivas. Qualquer solução elétrica que cumpra os
+  requisitos é aceita. Progresso salvo no arquivo do projeto e no navegador.
+- **TAGs:** cada componente pode ser associado a um dispositivo da aplicação (identificador estável, compatibilidade de tipo,
+  vários contatos por dispositivo). Novos componentes IEC: chave de nível (boia) NA/NF, fim de curso NA/NF, fotocélula NA/NF
+  e bobina temporizada com retardo na desenergização.
+- Modelos educacionais: portão e emergência não são sistemas de segurança certificados; velocidade e corrente do
+  estrela-triângulo são estimadas.
+
 ## O que o simulador faz
-- **Biblioteca IEC 60617 com 50 componentes**, desenhados na posição de repouso:
+- **Biblioteca IEC 60617 com 57 componentes**, desenhados na posição de repouso:
   - Alimentação: fase (L1/L2/L3), neutro, fonte trifásica + N + PE, fonte CA/CC configurável (12/24/48 VCC), transformadores monofásico, de comando e trifásico, autotransformador de tensão,
     autotransformador de partida, setas de continuação, segmentos de cabo IN/OUT, ponto de conexão.
   - Comando: botões NA/NF, pulsador NA+NF, pulsador comutador, emergência NA/NF (cogumelo com

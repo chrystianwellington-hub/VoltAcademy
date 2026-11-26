@@ -43,3 +43,18 @@
   - `ElectricalDiagnostics` / `ElectricalDomainManager`: atenções exibidas no painel, na barra de status
     e no monitoramento, com a origem e o nível de cada domínio.
 - **Temporizadores:** acumulam o tempo enquanto energizados e reiniciam ao desenergizar (TON).
+
+## Laboratório prático (Interactive HMI & Practical Exercise Engine)
+- `ApplicationRegistry` / `ExampleLibraryRegistry` / `ExerciseLibraryRegistry`: uma configuração por aplicação
+  (applicationId, title, description, sceneTemplate, devices, bindings, initialConditions, physicalParameters,
+  demonstrationSequence, exampleProjectReference, exerciseRequirements, testScenarios, difficulty, electricalConfig).
+  Nova aplicação = novo registro; carrossel, bibliotecas e motor elétrico não mudam.
+- `TagBindingManager`: componente → dispositivo por `c.dev` (estável) ou pela TAG compatível; valida o tipo.
+- `VirtualActuatorEngine` lê as saídas reais (motores, bobinas, temporizadores, sinalizadores); `HMIBindingEngine` envia
+  comandos da IHM; `VirtualProcessEngine` (`PROCESS[template]`) calcula a física; `VirtualSensorEngine` devolve os
+  sensores ao motor elétrico. Tudo roda em `simStep(dt)`, o mesmo passo dos temporizadores.
+- `HMISceneRenderer` (`SCENES`): cenas SVG por template (water, gate, traffic, flipflop, stardelta, emergency, timers),
+  compartilhadas pela demonstração, pela IHM e pelo Exercise Lab.
+- `DemoRunner`: sequência de referência isolada (não usa o projeto nem a simulação).
+- `ExerciseSession`, `ExerciseTestRunner` (cenários sem interface, circuito real + processo, estado restaurado),
+  `ExerciseValidationEngine`, `ExerciseProgressManager` (progresso no projeto e no navegador).
