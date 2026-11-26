@@ -97,9 +97,17 @@ Ao abrir, o circuito "Partida direta com selo" já vem carregado. Aperte **SIMUL
 - **Tela inicial JARVIS ORBITAL:** núcleo central em WebGL2 (adaptado do modelo de reator enviado: esfera de partículas
   dourada, filamentos, três anéis graduados amarelo/azul/dourado, pulsação luminosa, bloom e fundo azul-marinho), sem voz
   nem som. Ao redor, cinco módulos em órbita com perspectiva: **Abrir projeto, Continuar projeto, Novo projeto, Exemplos e
-  Exercícios**, em cartões sólidos azuis com ícones 2D dourados (pasta aberta, pasta com relógio, pasta com +, livro, capelo).
+  Exercícios**, usando os ícones originais enviados (pasta aberta, pasta com relógio, pasta com +, livro, capelo), sem cartões
+  nem molduras — apenas o objeto, uma luz de pedestal e o rótulo.
   A frente fica maior e com luz amarela; laterais médios; fundo menores e mais escuros. Navegação por clique, setas, arraste,
   roda do mouse e teclado; clicar no módulo da frente executa a função. Abaixo: nome, descrição, contagem e botão principal.
+  **Animações cinematográficas por módulo** (controlador `JarvisFX`: iniciar, pausar, encerrar e reiniciar): ao chegar à
+  frente, cada ícone executa a sua sequência exclusiva em SVG + CSS 3D — Abrir (folha sai da pasta, gira, anel azul com
+  pontos), Continuar (ponteiros aceleram, anel de linha do tempo, estabiliza na hora atual), Novo (o “+” pulsa, a folha vira
+  prancha com linhas técnicas e símbolos e o botão CRIAR PROJETO é destacado, sem criar nada), Exemplos (livro abre, páginas
+  viram e um circuito se monta com corrente animada) e Exercícios (borla balança, fórmulas e cálculo são escritos, símbolos
+  de contator, motor, relé e sensor formam um circuito prático). Só uma sequência por vez, troca com fade suave, órbita e
+  interação nunca bloqueadas; as funções dos botões continuam as mesmas.
   Qualidade automática pelo tempo de quadro, pausa fora da tela, respeito a "reduzir movimento" e alternativa em Canvas 2D
   quando o navegador não tem WebGL2.
 - **Holographic Project Lab:** lista lateral dos exemplos (mesma fonte `EXAMPLES`), projeção 3D construída a partir dos
