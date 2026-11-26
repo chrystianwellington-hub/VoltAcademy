@@ -70,3 +70,11 @@
   contínuos viram loops com rampa de subida e descida).
 - Histórico de eventos: `resolve()` compara com o último estado registrado (`sim.lastSnap`), então entradas da IHM,
   sensores, bobinas, lâmpadas e motores aparecem com o tempo de simulação.
+
+## Tela inicial JARVIS ORBITAL
+- `JarvisCore`: núcleo WebGL2 adaptado do `ReactorCore` do modelo "James Bill Reator" (partículas, filamentos, anéis, bloom
+  HDR, composição). Removidos do modelo: voz, analisador de áudio, jogo da velha, moeda, Node-RED e rede neural de fundo.
+  API: `frame(dt)`, `setAnchor(el)`, `pulse(v)`, `flash(v)`. Desenha no mesmo laço da tela inicial (`holoFrame`).
+- `Orbit`/`buildOrbit`/`layoutOrbit`: módulos em DOM posicionados em elipse com escala e brilho pela profundidade; os ícones
+  não giram no próprio eixo. A lógica continua em `HOME_OPS`, `homeSelect`, `homeConfirm` e `HOME_COUNT`.
+- Sem WebGL2: o núcleo é desenhado pelo VOLT CORE em Canvas 2D (`drawHome`), com a mesma órbita de módulos.

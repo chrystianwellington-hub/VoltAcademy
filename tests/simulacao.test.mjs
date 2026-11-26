@@ -208,7 +208,7 @@ await nav(p, 'home');
 results.push(['Início: abre na tela holográfica do VOLT CORE', startsHome]);
 results.push(['Início: carrossel com 5 operações a 72°', await p.evaluate(() => window.__va.HOME_OPS.length === 5 && document.querySelectorAll('#opDots .hdot').length === 5 && window.__va.HOME_OPS[4].id === 'exercicios')]);
 await p.keyboard.press('ArrowRight'); await p.waitForTimeout(950);
-results.push(['Início: seta gira o carrossel e o núcleo reage', await p.evaluate(() => { const H = window.__va.Home; return H.sel === 1 && Math.abs(H.rot - 2 * Math.PI / 5) < 0.05 && /Continuar/.test(document.getElementById('opTitle').textContent); })]);
+results.push(['Início: seta gira o carrossel e o núcleo reage', await p.evaluate(() => { const H = window.__va.Home; return H.sel === 3 && Math.abs(H.rot - 3 * 2 * Math.PI / 5) < 0.05 && /Exemplos/.test(document.getElementById('opTitle').textContent); })]);
 await p.evaluate(() => window.__va.homeSelect(3)); await p.waitForTimeout(950);
 await p.click('#opGo'); await p.waitForTimeout(700);
 results.push(['Início: confirmar Exemplos abre o Project Lab com a biblioteca real', await p.evaluate(() => window.__va.ui.view === 'lab' && document.querySelectorAll('#labList .lab-item').length === window.__va.EXAMPLES.length && window.__va.EXAMPLES.length === 15)]);
@@ -429,7 +429,7 @@ const elecResults = await ev.evaluate(() => {
 results.push(...elecResults);
 
 // ---- Configurar novo projeto (VOLT CORE → Criar projeto) ----
-await ev.evaluate(() => { const va = window.__va; va.load(va.EXAMPLES[2].build()); va.setView('home'); va.homeSelect(0); });
+await ev.evaluate(() => { const va = window.__va; va.load(va.EXAMPLES[2].build()); va.setView('home'); va.homeSelect(2); });
 const projBefore = await ev.evaluate(() => window.__va.serialize());
 await ev.evaluate(() => window.__va.homeConfirm()); await ev.waitForTimeout(800);
 results.push(['Novo projeto: Criar projeto abre "Configurar novo projeto" sobre a tela inicial', await ev.evaluate(() => !document.getElementById('modal').hidden && /Configurar novo projeto/.test(document.getElementById('sheet').textContent) && window.__va.ui.view === 'home')]);
@@ -440,7 +440,7 @@ results.push(['Novo projeto: Fechar cancela e não sobrescreve o projeto atual',
 await ev.evaluate(() => window.__va.homeConfirm()); await ev.waitForTimeout(800);
 await ev.click('#dSkip'); await ev.waitForTimeout(500);
 results.push(['Tensão 18: Pular configuração usa os padrões do software', await ev.evaluate(() => { const va = window.__va, d = va.doc(); return va.ui.view === 'diagram' && !d.elec && d.sheets.map(s => s.name).join() === 'Força,Comando' && d.comps.length === 0 && d.sheets[0].size === 'A3' && va.ElectricalNetwork.label() === '220/380 V · 3F + N · 60 Hz'; })]);
-await ev.evaluate(() => { window.__va.setView('home'); window.__va.homeSelect(0); window.__va.homeConfirm(); }); await ev.waitForTimeout(800);
+await ev.evaluate(() => { window.__va.setView('home'); window.__va.homeSelect(2); window.__va.homeConfirm(); }); await ev.waitForTimeout(800);
 await ev.click('[data-ev="440"]'); await ev.click('[data-enet="3f_n"]'); await ev.click('[data-ehz="50"]');
 const prev440 = await ev.evaluate(() => document.getElementById('ePrev').textContent);
 await ev.fill('#dProj', 'Prensa 440'); await ev.fill('#dAuth', 'Aluno'); await ev.selectOption('#dSize', 'A4');
@@ -787,6 +787,36 @@ results.push(...await io.evaluate(() => {
   return out;
 }));
 await io.close();
+
+// ---- Tela inicial JARVIS ORBITAL ----
+const jh = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+jh.on('pageerror', e => errors.push(e.message + ' @ ' + (e.stack || '').split('\n').slice(1, 4).join(' | ')));
+await jh.goto(page); await jh.waitForTimeout(1200);
+results.push(['Jarvis: núcleo central renderizado (WebGL2 ou alternativa 2D)', await jh.evaluate(() => { const va = window.__va; return va.JarvisCore.ok ? document.getElementById('vHome').classList.contains('webgl') && document.getElementById('jarvisGL').width > 10 : getComputedStyle(document.getElementById('holoHome')).display !== 'none'; })]);
+results.push(['Jarvis: cinco módulos em órbita na ordem da referência', await jh.evaluate(() => { const va = window.__va, mods = [...document.querySelectorAll('#jOrbit .jmod')]; return va.HOME_OPS.map(o => o.id).join() === 'abrir,continuar,novo,exemplos,exercicios' && mods.length === 5 && mods.map(m => m.querySelector('.jlabel').textContent).join('|') === 'ABRIR PROJETO|CONTINUAR PROJETO|NOVO PROJETO|EXEMPLOS|EXERCÍCIOS'; })]);
+results.push(['Jarvis: ícones sólidos com gradiente metálico (não contorno)', await jh.evaluate(() => [...document.querySelectorAll('#jOrbit .jicon')].every(s => s.querySelectorAll('linearGradient').length >= 3 && [...s.querySelectorAll('path')].filter(p => /^url\(/.test(p.getAttribute('fill') || '')).length >= 2))]);
+results.push(['Jarvis: módulo da frente maior, laterais intermediários, fundo menores e mais escuros', await jh.evaluate(() => { const w = i => document.querySelector(`#jOrbit [data-op="${i}"]`).getBoundingClientRect().width, f = document.querySelector('#jOrbit [data-op="2"]'); return f.classList.contains('sel') && f.classList.contains('front') && w(2) > w(1) && w(1) > w(0) && document.querySelector('#jOrbit [data-op="0"]').classList.contains('back') && +getComputedStyle(document.querySelector('#jOrbit [data-op="0"]')).getPropertyValue('--dim') < .8; })]);
+results.push(['Jarvis: seleção ativa amarela, demais em azul', await jh.evaluate(() => { const c = el => getComputedStyle(el).borderTopColor; return c(document.querySelector('#jOrbit .jmod.sel')) === 'rgb(255, 214, 0)' && [...document.querySelectorAll('#jOrbit .jmod:not(.sel)')].every(m => c(m) !== 'rgb(255, 214, 0)'); })]);
+const box = async i => { const b = await jh.locator(`#jOrbit [data-op="${i}"]`).boundingBox(); return [b.x + b.width / 2, b.y + b.height / 2]; };
+let [x, y] = await box(3); await jh.mouse.click(x, y); await jh.waitForTimeout(1000);
+results.push(['Jarvis: clicar num módulo leva-o à frente e atualiza as informações', await jh.evaluate(() => { const va = window.__va; return va.Home.sel === 3 && document.querySelector('#jOrbit [data-op="3"]').classList.contains('front') && document.getElementById('opTitle').textContent === 'Exemplos' && /15 circuitos/.test(document.getElementById('opCount').textContent) && /Abrir exemplos/i.test(document.getElementById('opGo').textContent); })]);
+await jh.click('#opNext'); await jh.waitForTimeout(950);
+results.push(['Jarvis: seta lateral gira para Exercícios com contagem', await jh.evaluate(() => window.__va.Home.sel === 4 && /11 exercícios/.test(document.getElementById('opCount').textContent) && /11 exercícios práticos/.test(document.getElementById('opDesc').textContent))]);
+const st = await jh.locator('#jStage').boundingBox();
+await jh.mouse.move(st.x + st.width * .7, st.y + st.height * .2); await jh.mouse.down(); await jh.mouse.move(st.x + st.width * .7 - 230, st.y + st.height * .2, { steps: 8 }); await jh.mouse.up(); await jh.waitForTimeout(1000);
+results.push(['Jarvis: arrastar a órbita troca o módulo da frente', await jh.evaluate(() => { const H = window.__va.Home; return H.sel !== 4 && document.querySelector(`#jOrbit [data-op="${H.sel}"]`).classList.contains('front'); })]);
+await jh.evaluate(() => window.__va.homeSelect(1)); await jh.waitForTimeout(950);
+[x, y] = await box(1); await jh.mouse.click(x, y); await jh.waitForTimeout(800);
+results.push(['Jarvis: clicar no módulo ativo executa a função original (Continuar → Diagrama)', await jh.evaluate(() => window.__va.ui.view === 'diagram')]);
+await jh.evaluate(() => { window.__va.setView('home'); window.__va.homeSelect(0); }); await jh.waitForTimeout(950);
+const [fc] = await Promise.all([jh.waitForEvent('filechooser', { timeout: 5000 }).catch(() => null), jh.click('#opGo')]);
+results.push(['Jarvis: Abrir projeto abre o seletor de arquivos', !!fc]);
+results.push(['Jarvis: barra superior com Projeto, Ajuda, Som e Tema com ícones sólidos; Início em destaque', await jh.evaluate(() => { const vis = ['#bFile', '#bHelp', '#bSound', '#bTheme'].every(s => !document.querySelector(s).hidden && document.querySelector(s + ' .solid')) && ['#bRun', '#bUndo', '#bInsp'].every(s => document.querySelector(s).hidden); const n = document.querySelector('.nav.home'); return vis && n.classList.contains('act') && n.classList.contains('energy-active'); })]);
+await jh.close();
+const jr = await browser.newPage({ viewport: { width: 1280, height: 800 }, reducedMotion: 'reduce' });
+await jr.goto(page); await jr.waitForTimeout(1200);
+results.push(['Jarvis: respeita redução de movimento', await jr.evaluate(() => window.__va.Orbit.sway === 0 && matchMedia('(prefers-reduced-motion: reduce)').matches)]);
+await jr.close();
 
 const m = await browser.newPage({ viewport: { width: 390, height: 844 } });
 await m.goto(page); await m.waitForTimeout(500);
