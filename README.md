@@ -13,7 +13,14 @@ Ao abrir, o circuito "Partida direta com selo" já vem carregado. Aperte **SIMUL
 **S1** para ligar o contator K1 e segure **S0** para desligar.
 
 ## Interface
-- **Barra superior:** Simular/Parar com cronômetro, Desfazer, Refazer, Projeto (salvar/abrir), Ajuda, Tema claro/escuro e Painel de propriedades.
+- **Barra superior em três regiões:** à esquerda o logo e o nome do projeto; no centro (centralizado na largura da tela)
+  Simular, cronômetro, Desfazer, Refazer, Projeto, Ajuda, Som e Tema; à direita só o botão **Painel**.
+- **Painel do projeto (Project Manager):** abre pela direita (340 px) e fecha no mesmo botão, no X ou com Esc; fechado não
+  ocupa espaço e a folha volta a crescer sem mudar zoom, posição, componentes ou fios. Aba **Projeto**: 01 Visualização
+  (Símbolos/2D), 02 Folhas do projeto (tabela com nº, nome, componentes, formato e folha ativa acesa), 03 + Nova folha (pede o
+  nome e seleciona a folha criada), 04 Gerenciar folha (Configurar, Renomear, Apagar com confirmação e lista das ligações com
+  outras folhas) e 05 Dados elétricos do projeto. Aba **Propriedades**: componente ou fio selecionado, avisos e atenções.
+  No canto da folha um indicador discreto mostra a folha ativa ("Folha 02 — Comando") e abre o painel.
 - **Biblioteca retrátil (esquerda):** só as categorias ficam fixas (Alimentação, Comando, Contatores e relés, Proteção,
   Cargas). Clicar abre um painel deslizante com os componentes daquela categoria em lista de uma coluna (ícone + nome) e busca; clicar de novo fecha. O painel
   flutua sobre a folha, então o desenho não muda de tamanho, zoom nem posição. Componentes entram por clique ou arrastando
@@ -22,7 +29,7 @@ Ao abrir, o circuito "Partida direta com selo" já vem carregado. Aperte **SIMUL
   ganha luz amarela viva (#FFD600) com brilho que respira, reflexo de energia e LED indicador, sem trocar as cores
   originais. Classes reutilizáveis `.energy-active`, `.energy-hover`, `.energy-indicator`, `.energy-flow`, `.energy-pulse`;
   respeita "reduzir movimento" do sistema.
-- **Folhas:** abas no topo do desenho com Configurar, Renomear, Apagar e Nova folha. A simulação roda em todas as folhas juntas.
+- **Folhas:** gerenciadas no Painel do projeto. A simulação roda em todas as folhas juntas.
   Segmentos de cabo OUT/IN e setas com a mesma tag ligam folhas diferentes e mostram o destino ("→ 2.3" = folha 2, coluna 3).
   Abaixo de cada bobina aparece onde estão seus contatos (espelho de contatos).
 - **Modo foco no Diagrama:** ao entrar no Diagrama, a navegação inferior aparece e se recolhe sozinha após 3 s,

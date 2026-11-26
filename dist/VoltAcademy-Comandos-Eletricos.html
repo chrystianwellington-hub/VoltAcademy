@@ -49,14 +49,16 @@ button[disabled] { cursor: default; opacity: .38; }
 .app { height: 100%; display: grid; grid-template-rows: auto 1fr auto; }
 
 /* ---- Top command bar ---- */
-.top { background: var(--surface); border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 14px; min-width: 0;
+.top { background: var(--surface); border-bottom: 1px solid var(--line); display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 14px; min-width: 0;
   padding-block: 6px; padding-left: max(14px, env(safe-area-inset-left, 0px)); padding-right: max(14px, env(safe-area-inset-right, 0px)); }
-.brand { display: flex; align-items: center; gap: 10px; flex: none; }
+.brand { display: flex; align-items: center; gap: 10px; min-width: 0; justify-self: start; }
+.brand > div { min-width: 0; }
+.topr { justify-self: end; display: flex; }
 .logo { width: 38px; height: 38px; border-radius: 10px; background: var(--brand); display: grid; place-items: center; }
 .brand b { display: block; font-family: var(--font-display); font-weight: 800; letter-spacing: .05em; font-size: 16px; line-height: 1.1; }
 .brand small { display: block; color: var(--muted); font-size: 12px; max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .grow { flex: 1; min-width: 0; }
-.acts { display: flex; align-items: stretch; gap: 2px; }
+.acts { display: flex; align-items: stretch; gap: 4px; justify-self: center; }
 .tbtn { display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 64px; padding: 6px 8px; border-radius: 10px; color: var(--fg); font-size: 12px; }
 .tbtn svg { width: 24px; height: 24px; }
 .tbtn:hover:not([disabled]) { background: var(--surface-2); }
@@ -100,7 +102,7 @@ button[disabled] { cursor: default; opacity: .38; }
 .part svg { width: 40px; height: 40px; flex: none; background: var(--paper); border-radius: 8px; box-shadow: 0 0 0 1px var(--line); }
 
 /* stage */
-.stagewrap { display: grid; grid-template-rows: auto 1fr auto; min-width: 0; min-height: 0; }
+.stagewrap { display: grid; grid-template-rows: 1fr auto; min-width: 0; min-height: 0; }
 .sheetbar { display: flex; align-items: center; gap: 8px; background: var(--surface); border-bottom: 1px solid var(--line); padding: 6px 10px; min-width: 0; }
 .tabs { display: flex; gap: 4px; overflow-x: auto; min-width: 0; flex: 1; scrollbar-width: thin; }
 .tab { white-space: nowrap; padding: 7px 12px; border-radius: 8px; border: 1px solid transparent; color: var(--muted); font-weight: 500; display: inline-flex; gap: 6px; align-items: center; }
@@ -142,9 +144,44 @@ button[disabled] { cursor: default; opacity: .38; }
 .swatches { display: flex; gap: 6px; flex-wrap: wrap; }
 
 /* inspector */
-.insp { width: 0; overflow: hidden; background: var(--surface); border-left: 1px solid var(--line); }
-.insp.open { width: 280px; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 12px; }
-.insp:not(.open) > * { display: none; }
+.pm { --pm-w: 340px; width: 0; opacity: 0; overflow: hidden; background: var(--surface); border-left: 0 solid var(--line); min-height: 0;
+  transition: width 300ms cubic-bezier(0.22, 1, 0.36, 1), opacity 300ms cubic-bezier(0.22, 1, 0.36, 1); }
+.pm.open { width: var(--pm-w); opacity: 1; border-left-width: 1px; transition-duration: 350ms; }
+.pm:not(.open) .pmin { visibility: hidden; transition: visibility 0s 300ms; }
+.pmin { width: var(--pm-w); height: 100%; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+.pmh { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.pmh b { font-family: var(--font-display); font-size: 17px; }
+.pmh .x, .insph .x { font-size: 22px; line-height: 1; width: 32px; height: 32px; border-radius: 8px; color: var(--muted); }
+.pmh .x:hover { background: var(--surface-2); color: var(--fg); }
+.pmtabs, .seg.wide { display: flex; } .pmtabs button, .seg.wide button { flex: 1; }
+.pmbody { display: flex; flex-direction: column; gap: 12px; }
+.pmbody[hidden] { display: none; }
+.pmsec { margin: 0; border: 1px solid var(--line); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 10px; background: var(--surface); }
+.pmt { margin: 0; display: flex; align-items: center; gap: 8px; font-size: 11.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.pmt span { font-family: var(--font-mono); color: var(--accent-ink); }
+.pmt i { margin-left: auto; font-style: normal; font-weight: 500; letter-spacing: 0; text-transform: none; font-size: 12px; }
+summary.pmt { cursor: pointer; list-style: none; } summary.pmt::-webkit-details-marker { display: none; }
+summary.pmt::after { content: '▾'; margin-left: auto; transition: transform .25s; } details:not([open]) > summary.pmt::after { transform: rotate(-90deg); }
+.sheettab { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.sheettab #tabs { max-height: 300px; overflow-y: auto; display: flex; flex-direction: column; }
+.srow { display: grid; grid-template-columns: 30px minmax(0, 1fr) 46px 56px 14px; align-items: center; gap: 6px; padding: 8px 10px; text-align: left; width: 100%;
+  border-top: 1px solid var(--line); color: var(--fg); font-size: 13px; transition: background .2s, box-shadow .2s; }
+.srow.head { border-top: 0; background: var(--surface-2); color: var(--muted); font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; padding-block: 6px; }
+.srow .sn, .srow .sc, .srow .sf { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+.srow .snm { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
+.srow .snm small { display: block; color: var(--muted); font-size: 11px; font-weight: 400; overflow: hidden; text-overflow: ellipsis; }
+.srow .sled { width: 9px; height: 9px; border-radius: 50%; background: var(--line); }
+.srow:not(.head):hover { background: var(--surface-2); }
+.srow.act { background: rgba(255,214,0,.10); box-shadow: inset 3px 0 0 #FFD600; }
+.srow.act .sn { color: var(--accent-ink); } .srow.act .sled { background: #FFD600; box-shadow: 0 0 8px #FFD600, 0 0 2px #FFD600; }
+.newsheet { display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 700; padding: 10px; border: 1px solid rgba(255,214,0,.7); background: rgba(255,214,0,.12); color: var(--fg); }
+.newsheet svg { width: 18px; height: 18px; color: #E0B400; } .newsheet:hover { box-shadow: 0 0 14px rgba(255,214,0,.35); }
+.pmacts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.pmacts .sbtn { justify-content: center; min-width: 0; padding: 7px 4px; gap: 5px; font-size: 12.5px; white-space: nowrap; overflow: hidden; } .pmacts .sbtn span { display: inline !important; }
+.sheetbadge { position: absolute; left: 12px; top: 10px; z-index: 4; font-size: 12px; font-family: var(--font-mono); padding: 5px 10px; border-radius: 8px;
+  background: color-mix(in srgb, var(--surface) 88%, transparent); border: 1px solid var(--line); color: var(--muted); box-shadow: var(--shadow); backdrop-filter: blur(4px); }
+.sheetbadge b { color: var(--fg); font-weight: 600; } .sheetbadge:hover { border-color: rgba(255,214,0,.7); color: var(--fg); }
+@media (prefers-reduced-motion: reduce) { .pm { transition: none; } }
 .insph { display: flex; justify-content: space-between; align-items: center; }
 .insph .h { margin: 0; }
 .x { width: 28px; height: 28px; border-radius: 8px; font-size: 20px; line-height: 1; color: var(--muted); }
@@ -579,7 +616,7 @@ canvas.holo { position: absolute; inset: 0; width: 100%; height: 100%; display: 
 @keyframes spin { to { transform: rotate(360deg); } }
 @media (max-width: 1440px) { .sbtn span { display: none; } .sbtn { padding: 7px 9px; } }
 @media (max-width: 1100px) {
-  .insp.open { position: absolute; right: 60px; top: 0; bottom: 0; z-index: 20; box-shadow: var(--shadow); }
+  .pm.open { position: absolute; right: 60px; top: 0; bottom: 0; z-index: 20; box-shadow: var(--shadow); }
   #vDiagram { grid-template-columns: 76px 1fr 60px; }
   .tbtn { min-width: 52px; }
   .readouts .ro.hz, .readouts .ro.v3 { display: none; }
@@ -593,7 +630,7 @@ canvas.holo { position: absolute; inset: 0; width: 100%; height: 100%; display: 
   .brand small { display: none; }
 }
 @media (max-width: 640px) {
-  .top { gap: 6px; }
+  .top { gap: 6px; grid-template-columns: auto minmax(0, 1fr) auto; } .acts { justify-self: center; gap: 0; }
   .brand > div { display: none; }
   .tbtn { min-width: 44px; padding: 6px 4px; font-size: 10.5px; }
   .clock { padding: 5px 6px; font-size: 12px; }
@@ -602,7 +639,7 @@ canvas.holo { position: absolute; inset: 0; width: 100%; height: 100%; display: 
   .railb .rl { display: none; }
   .tool { width: 38px; height: 38px; }
   .nav { font-size: 11px; } .nav svg { width: 22px; height: 22px; } .nav.home .wm { display: none; } .nav.home .mi { display: block; }
-  .insp.open { right: 48px; width: calc(100% - 48px); }
+  .pm.open { right: 48px; --pm-w: calc(100vw - 48px); }
   .lamp.wide { grid-column: span 1; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
@@ -614,8 +651,7 @@ canvas.holo { position: absolute; inset: 0; width: 100%; height: 100%; display: 
       <div class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#E2B656" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 5 13h6l-1 9 8-12h-6z"/></svg></div>
       <div><b>VOLTACADEMY</b><small id="projName"></small></div>
     </div>
-    <div class="grow"></div>
-    <div class="acts">
+    <div class="acts" id="topActs">
       <button class="tbtn runb" id="bRun"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"></svg><span class="lbl">Simular</span></button>
       <span class="clock" id="clock">00:00.0</span>
       <span class="sep hide-s"></span>
@@ -625,8 +661,10 @@ canvas.holo { position: absolute; inset: 0; width: 100%; height: 100%; display: 
       <button class="tbtn hide-s" id="bHelp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14M12 17.5v.01"/></svg>Ajuda</button>
       <button class="tbtn hide-s" id="bSound" title="Ligar ou desligar o som dos alarmes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9z"/><path class="snd-on" d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/><path class="snd-off" d="M16 9l5 6M21 9l-5 6"/></svg><span id="bSoundL">Som</span></button>
       <button class="tbtn hide-s" id="bTheme"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>Tema</button>
-      <button class="tbtn" id="bInsp" title="Painel de propriedades"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg>Painel</button>
       <button class="only-m" id="bPal" hidden></button>
+    </div>
+    <div class="topr">
+      <button class="tbtn" id="bInsp" title="Painel do projeto" aria-controls="pm" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg>Painel</button>
     </div>
   </header>
 
@@ -639,17 +677,8 @@ canvas.holo { position: absolute; inset: 0; width: 100%; height: 100%; display: 
         <div id="folders"></div>
       </aside>
       <div class="stagewrap">
-        <div class="sheetbar">
-          <div class="tabs" id="tabs" role="tablist" aria-label="Folhas"></div>
-          <div class="seg" role="group" aria-label="Aparência"><button data-look="sym" class="act">Símbolos</button><button data-look="2d">2D</button></div>
-          <div class="sheetacts">
-            <button class="sbtn" id="sCfg" title="Configurar folha e projeto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9 7 7M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/></svg><span>Configurar</span></button>
-            <button class="sbtn" id="sRen" title="Renomear folha"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg><span>Renomear</span></button>
-            <button class="sbtn del" id="sDel" title="Apagar folha"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg><span>Apagar</span></button>
-            <button class="sbtn pri" id="sNew" title="Nova folha"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg><span>Nova folha</span></button>
-          </div>
-        </div>
         <div class="stage" id="stage">
+          <button class="sheetbadge" id="sheetBadge" type="button" title="Folhas do projeto (Painel)"></button>
           <svg id="cv" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <pattern id="gridp" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="0" cy="0" r="1.1" fill="#D9D4C6"/></pattern>
@@ -662,7 +691,18 @@ canvas.holo { position: absolute; inset: 0; width: 100%; height: 100%; display: 
         </div>
         <footer class="status" id="status"><div class="status-in" id="statusIn"></div><button class="navtog" id="navToggle" type="button" aria-expanded="true" aria-controls="bnav" title="Recolher navegação"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button></footer>
       </div>
-      <aside class="insp" id="insp" aria-label="Propriedades"></aside>
+      <aside class="pm" id="pm" aria-label="Painel do projeto"><div class="pmin">
+        <div class="pmh"><div><p class="eyebrow" style="margin:0">Project Manager</p><b>Painel do projeto</b></div><button class="x" id="pmClose" aria-label="Fechar painel">×</button></div>
+        <div class="seg pmtabs" role="tablist" aria-label="Seções do painel"><button data-pmtab="proj" class="act" role="tab">Projeto</button><button data-pmtab="props" role="tab">Propriedades</button></div>
+        <div class="pmbody" id="pmProj">
+          <section class="pmsec"><p class="pmt"><span>01</span>Visualização</p><div class="seg wide" role="group" aria-label="Aparência"><button data-look="sym" class="act">Símbolos</button><button data-look="2d">2D</button></div></section>
+          <section class="pmsec"><p class="pmt"><span>02</span>Folhas do projeto<i id="pmCount"></i></p><div class="sheettab"><div class="srow head" aria-hidden="true"><span>Nº</span><span>Folha</span><span>Comp.</span><span>Formato</span><span></span></div><div id="tabs" role="listbox" aria-label="Folhas"></div></div></section>
+          <section class="pmsec"><p class="pmt"><span>03</span>Nova folha</p><button class="btn newsheet" id="sNew" title="Nova folha"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>Nova folha</button></section>
+          <section class="pmsec"><p class="pmt"><span>04</span>Gerenciar folha<i id="pmCur"></i></p><div class="pmacts"><button class="sbtn" id="sCfg" title="Configurar folha e projeto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9 7 7M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/></svg><span>Configurar</span></button><button class="sbtn" id="sRen" title="Renomear folha"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg><span>Renomear</span></button><button class="sbtn del" id="sDel" title="Apagar folha"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg><span>Apagar</span></button></div></section>
+          <details class="pmsec" id="pmElec" open><summary class="pmt"><span>05</span>Dados elétricos do projeto</summary><div id="pmElecBody"></div></details>
+        </div>
+        <div class="pmbody" id="insp" hidden></div>
+      </div></aside>
       <nav class="tools" aria-label="Ferramentas">
         <button class="tool act" data-mode="select" title="Selecionar e mover (V)" aria-label="Selecionar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="m5 3 14 8-6 2-2 6z"/></svg></button>
         <button class="tool" data-mode="wire" title="Fio (W)" aria-label="Fio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><circle cx="5" cy="19" r="2"/><circle cx="19" cy="5" r="2"/><path d="M6.5 17.5 12 12V7h5.5"/></svg></button>
@@ -1031,7 +1071,7 @@ TYPES.fonte_3f.tdir = [1, 0]; TYPES.seta_3f.tdir = [-1, 0];
 let doc = null;
 let nextId = 1;
 const ui = { view: 'home', sheet: null, mode: 'select', placing: null, wireColor: WIRE_COLORS[0][0], sel: null, zoom: 1, px: 0, py: 0,
-  wireStart: null, wirePts: [], cursor: null, folder: null, search: '', inspOpen: true, look: 'sym', activeCategory: null };
+  wireStart: null, wirePts: [], cursor: null, folder: null, search: '', inspOpen: false, pmTab: 'proj', pmLastSel: '', look: 'sym', activeCategory: null };
 const hist = { stack: [], idx: -1 };
 const blankSim = () => ({ running: false, t: 0, pressed: new Set(), toggled: new Set(), tripped: new Set(), coils: {}, timerOn: {}, timerAcc: {}, timerDone: {}, lamps: {},
   injShort: new Set(), overload: new Set(), faults: {}, heat: {}, motorStart: {}, angle: {}, series: [], marks: [], meas: {}, lastSample: -1, spike: null,
@@ -2078,11 +2118,26 @@ function renderDiagram() {
   renderSheetTabs(); renderInspector(); renderStatus(); updateHint(); updateTools();
 }
 function renderSheetTabs() {
+  const pad = n => String(n).padStart(2, '0'), cur = doc.sheets.findIndex(x => x.id === ui.sheet);
   const h = doc.sheets.map((s, i) => {
-    const n = doc.comps.filter(c => c.sheet === s.id).length;
-    return `<button class="tab${s.id === ui.sheet ? ' act' : ''}" data-sheet="${s.id}" title="${esc(s.desc || s.name)}"><span class="tabn">${i + 1}.</span> ${esc(s.name)}<span class="tabc">${n}</span></button>`;
+    const n = doc.comps.filter(c => c.sheet === s.id).length, act = s.id === ui.sheet;
+    return `<button class="srow${act ? ' act' : ''}" data-sheet="${s.id}" role="option" aria-selected="${act}" title="${esc(s.desc || s.name)}"><span class="sn">${pad(i + 1)}</span><span class="snm">${esc(s.name)}${s.desc ? `<small>${esc(s.desc)}</small>` : ''}</span><span class="sc">${n}</span><span class="sf">${esc(s.size || 'A3')}${s.orient === 'retrato' ? ' R' : ''}</span><span class="sled"></span></button>`;
   }).join('');
   const el = $('#tabs'); if (el._h !== h) { el.innerHTML = h; el._h = h; }
+  const sh = doc.sheets[cur] || doc.sheets[0];
+  $('#pmCount').textContent = `${doc.sheets.length} folha${doc.sheets.length > 1 ? 's' : ''}`;
+  $('#pmCur').textContent = sh ? `${pad(cur + 1)} — ${sh.name}` : '';
+  const bh = sh ? `Folha ${pad(cur + 1)} — <b>${esc(sh.name)}</b>` : ''; const b = $('#sheetBadge'); if (b._h !== bh) { b.innerHTML = bh; b._h = bh; }
+  const E = ElectricalNetwork.describe(), eh = `<ul class="list">
+    <li><span class="muted">Rede</span><span class="mono">${esc(ElectricalNetwork.label().split(' · ')[0])}</span></li>
+    <li><span class="muted">Tensão nominal</span><span class="mono">${E.v} VCA (${E.ref === 'line' ? 'fase-fase' : 'fase-neutro'})</span></li>
+    <li><span class="muted">Alimentação</span><span class="mono">${esc(E.type.short)}</span></li>
+    <li><span class="muted">Tensão fase-fase</span><span class="mono">${E.vLine ? fmtV(E.vLine, 'CA') : 'indisponível'}</span></li>
+    <li><span class="muted">Tensão fase-neutro</span><span class="mono">${E.vPhase ? fmtV(E.vPhase, 'CA') : 'indisponível'}</span></li>
+    <li><span class="muted">Frequência</span><span class="mono">${E.hz} Hz</span></li>
+    <li><span class="muted">Neutro</span><span class="mono">${E.type.n ? 'disponível' : 'indisponível'}</span></li></ul>
+    ${doc.elec ? '' : '<p class="muted small" style="margin:0">Padrão do simulador (projeto sem configuração elétrica própria).</p>'}<button class="btn" id="pmNet">Configurar rede</button>`;
+  const eb = $('#pmElecBody'); if (eb._h !== eh) { eb.innerHTML = eh; eb._h = eh; $('#pmNet').addEventListener('click', () => sheetDialog('config')); }
 }
 function renderStatus() {
   const coilTags = [...new Set(doc.comps.filter(c => c.type === 'bobina').map(c => c.tag))];
@@ -2098,7 +2153,7 @@ function renderStatus() {
   if (warns.length) h += `<button class="chip warn" id="warnChip" title="${esc(warns.join(' · '))}">${warns.length} aviso${warns.length > 1 ? 's' : ''}</button>`;
   h += readoutsHTML();
   const si = $('#statusIn'); if (si._h !== h) { si.innerHTML = h; si._h = h; }
-  for (const id of ['#warnChip', '#attChip']) { const wc = $(id); if (wc && !wc._b) { wc._b = 1; wc.addEventListener('click', () => { ui.sel = null; ui.inspOpen = true; render(); }); } }
+  for (const id of ['#warnChip', '#attChip']) { const wc = $(id); if (wc && !wc._b) { wc._b = 1; wc.addEventListener('click', () => { ui.sel = null; ui.inspOpen = true; ui.pmTab = 'props'; render(); }); } }
 }
 const fmtN = (v, d = 1) => (v || 0).toLocaleString('pt-BR', { minimumFractionDigits: d, maximumFractionDigits: d });
 function totalCurrent() { const m = sim.meas || {}; if (m.iShort) return m.iShort; return Object.values(m.motors || {}).reduce((a, b) => a + b, 0) + (m.iCtrl || 0); }
@@ -2139,8 +2194,14 @@ function problems() {
 // ---------- Inspector ----------
 function renderInspector() {
   const el = $('#insp');
-  el.classList.toggle('open', ui.inspOpen);
-  let h = `<div class="insph"><p class="h">${ui.sel ? (ui.sel.kind === 'wire' ? 'Fio' : 'Componente') : 'Projeto'}</p><button class="x" id="inspClose" aria-label="Fechar painel">×</button></div>`;
+  const selKey = ui.sel ? ui.sel.kind + ':' + ui.sel.id : '';
+  if (selKey && selKey !== ui.pmLastSel) ui.pmTab = 'props';
+  ui.pmLastSel = selKey;
+  $('#pm').classList.toggle('open', !!ui.inspOpen);
+  $('#bInsp').setAttribute('aria-expanded', String(!!ui.inspOpen));
+  $('#pmProj').hidden = ui.pmTab !== 'proj'; el.hidden = ui.pmTab === 'proj';
+  $$('[data-pmtab]').forEach(b => { b.classList.toggle('act', b.dataset.pmtab === ui.pmTab); b.setAttribute('aria-selected', String(b.dataset.pmtab === ui.pmTab)); });
+  let h = `<div class="insph"><p class="h">${ui.sel ? (ui.sel.kind === 'wire' ? 'Fio' : 'Componente') : 'Projeto'}</p></div>`;
   if (ui.sel && ui.sel.kind === 'comp') {
     const c = compById(ui.sel.id); if (!c) { ui.sel = null; return renderInspector(); }
     const T0 = TYPES[c.type], dis = sim.running ? 'disabled' : '';
@@ -2621,7 +2682,10 @@ $('#tRot').addEventListener('click', rotateSel); $('#tDel').addEventListener('cl
 $('#tColor').addEventListener('click', () => { const p = $('#colorPop'); p.hidden = !p.hidden; });
 $('#colorPop').innerHTML = WIRE_COLORS.map(([c, n]) => `<button class="sw" data-color="${c}" title="Fio ${n}" aria-label="Fio ${n}" style="background:${c}"></button>`).join('');
 $('#colorPop').addEventListener('click', ev => { const b = ev.target.closest('[data-color]'); if (!b) return; ui.wireColor = b.dataset.color; ui.mode = 'wire'; $('#colorPop').hidden = true; render(); });
-$('#bInsp').addEventListener('click', () => { ui.inspOpen = !ui.inspOpen; render(); });
+$('#bInsp').addEventListener('click', () => { ui.inspOpen = !ui.inspOpen; if (ui.view !== 'diagram' && ui.inspOpen) ui.view = 'diagram'; render(); });
+$('#pmClose').addEventListener('click', () => { ui.inspOpen = false; render(); });
+$$('[data-pmtab]').forEach(b => b.addEventListener('click', () => { ui.pmTab = b.dataset.pmtab; if (ui.pmTab === 'proj') ui.pmLastSel = ui.sel ? ui.sel.kind + ':' + ui.sel.id : ''; render(); }));
+$('#sheetBadge').addEventListener('click', () => { ui.inspOpen = true; ui.pmTab = 'proj'; render(); });
 $$('[data-mode]').forEach(b => b.addEventListener('click', () => { if (sim.running) return flash('Pare a simulação para editar o circuito.'); ui.mode = b.dataset.mode; ui.placing = null; ui.wireStart = null; render(); }));
 $$('[data-nav]').forEach(b => b.addEventListener('click', () => { ui.view = b.dataset.nav; closeDrawers(); render(); if (ui.view === 'diagram') requestAnimationFrame(fit); }));
 $('#rail').addEventListener('click', ev => {
@@ -2672,15 +2736,29 @@ $$('[data-look]').forEach(b => b.addEventListener('click', () => { ui.look = b.d
 $('#tabs').addEventListener('click', ev => { const b = ev.target.closest('[data-sheet]'); if (!b) return; ui.sheet = b.dataset.sheet; ui.sel = null; ui.wireStart = null; saveLocal(); render(); });
 $('#sNew').addEventListener('click', () => {
   if (sim.running) return flash('Pare a simulação para editar as folhas.');
-  const cur = doc.sheets.find(x => x.id === ui.sheet) || {}; const s = { id: uid('s'), name: `Folha ${doc.sheets.length + 1}`, desc: '', size: cur.size || 'A3', orient: cur.orient || 'paisagem', cols: cur.cols || 12, rows: cur.rows || 6 }; doc.sheets.push(s); ui.sheet = s.id; ui.sel = null; commit(); render();
+  const cur = doc.sheets.find(x => x.id === ui.sheet) || {}; const s = { id: uid('s'), name: `Folha ${doc.sheets.length + 1}`, desc: '', size: cur.size || 'A3', orient: cur.orient || 'paisagem', cols: cur.cols || 12, rows: cur.rows || 6 }; doc.sheets.push(s); ui.sheet = s.id; ui.sel = null; commit(); render(); requestAnimationFrame(fit);
+  sheetDialog('rename'); const nm = $('#dName'); if (nm) nm.select();
 });
 $('#sRen').addEventListener('click', () => sheetDialog('rename'));
 $('#sCfg').addEventListener('click', () => sheetDialog('config'));
+// cross-sheet links that would be left without a counterpart if this sheet were deleted
+function sheetDependencies(sid) {
+  const here = doc.comps.filter(c => c.sheet === sid), away = doc.comps.filter(c => c.sheet !== sid), out = [];
+  for (const c of here) {
+    const T0 = TYPES[c.type]; let o = [];
+    if (T0.linkGroup && c.tag) o = away.filter(x => TYPES[x.type].linkGroup === T0.linkGroup && x.tag === c.tag).map(x => `${c.tag}: ${T0.name.toLowerCase()} ligado a ${TYPES[x.type].name.toLowerCase()} na folha ${refOf(doc, x)}`);
+    else if (c.type === 'bobina' || c.type === 'temporizador') o = away.filter(x => TYPES[x.type].ref === (c.type === 'bobina' ? 'coil' : 'timer') && x.tag === c.tag).map(x => `${c.tag}: a bobina comanda ${TYPES[x.type].name.toLowerCase()} na folha ${refOf(doc, x)}`);
+    else if (T0.ref) o = away.filter(x => x.type === (T0.ref === 'coil' ? 'bobina' : 'temporizador') && x.tag === c.tag).map(x => `${c.tag}: contato comandado pela bobina da folha ${refOf(doc, x)}`);
+    out.push(...o);
+  }
+  return [...new Set(out)];
+}
 $('#sDel').addEventListener('click', () => {
   if (sim.running) return flash('Pare a simulação para editar as folhas.');
   if (doc.sheets.length === 1) return flash('O projeto precisa de pelo menos uma folha.');
-  const s = doc.sheets.find(x => x.id === ui.sheet), n = doc.comps.filter(c => c.sheet === s.id).length;
+  const s = doc.sheets.find(x => x.id === ui.sheet), n = doc.comps.filter(c => c.sheet === s.id).length, deps = sheetDependencies(s.id);
   openModal(`<p class="title-lg">Apagar a folha "${esc(s.name)}"?</p><p class="muted" style="margin:0">${n ? `Os ${n} componentes desta folha e os fios deles também serão apagados.` : 'A folha está vazia.'} Você pode desfazer com Ctrl+Z.</p>
+    ${deps.length ? `<div class="card warnc"><p class="h">Referências em outras folhas</p><ul class="list">${deps.map(d => `<li>${esc(d)}</li>`).join('')}</ul><p class="muted small" style="margin:6px 0 0">Essas ligações ficarão sem par e passarão a aparecer como avisos do projeto.</p></div>` : ''}
     <div class="row" style="justify-content:flex-end"><button class="btn" data-close>Cancelar</button><button class="btn dangerfill" id="dConfirm">Apagar folha</button></div>`);
   $('#dConfirm').addEventListener('click', () => {
     const gone = new Set(doc.comps.filter(c => c.sheet === s.id).map(c => c.id));
@@ -2765,7 +2843,7 @@ function sheetDialog(mode) {
 document.addEventListener('keydown', ev => {
   if (ev.target.closest('input,textarea,select')) return;
   if ($('#modal').hidden && !(ev.ctrlKey || ev.metaKey) && holoKey(ev)) return;
-  if (ev.key === 'Escape') { const busy = ui.placing || ui.wireStart || !$('#modal').hidden; ui.placing = null; ui.wireStart = null; ui.wirePts = []; closeModal(); $('#colorPop').hidden = true; if (!busy && ui.activeCategory) setActiveCategory(null); else buildFolders(); render(); return; }
+  if (ev.key === 'Escape') { const busy = ui.placing || ui.wireStart || !$('#modal').hidden; ui.placing = null; ui.wireStart = null; ui.wirePts = []; closeModal(); $('#colorPop').hidden = true; if (!busy && ui.activeCategory) setActiveCategory(null); else { if (!busy && ui.inspOpen && ui.view === 'diagram') ui.inspOpen = false; buildFolders(); } render(); return; }
   if (ui.view !== 'diagram' && ev.key !== ' ') return;
   if ((ev.key === 'Delete' || ev.key === 'Backspace') && ui.sel) { ev.preventDefault(); deleteSel(); }
   else if (ev.key === 'r' || ev.key === 'R') rotateSel();
@@ -4005,7 +4083,7 @@ function holoKey(ev) {
 // =====================================================================
 // Active Energy UI — attach energy classes to the active member of each group
 // =====================================================================
-const ENERGY_ACTIVE = '.lab-item.act, .lab-mode.act, .railb.act, .tab.act, .tool.act, .nav.act, .seg button.act, .part.act, .opbtn.act, .sw.act, #bRun.act, #bInsp.act, #clock.act';
+const ENERGY_ACTIVE = '.srow.act, #bInsp[aria-expanded="true"], .lab-item.act, .lab-mode.act, .railb.act, .tab.act, .tool.act, .nav.act, .seg button.act, .part.act, .opbtn.act, .sw.act, #bRun.act, #bInsp.act, #clock.act';
 const ENERGY_LED = '.lab-item.act, .lab-mode.act, .railb.act, .tab.act, .tool.act, .nav.act, .seg button.act, #bRun.act, #bInsp.act';
 const ENERGY_NOFLOW = '.sw.act, #clock.act';
 function syncEnergy() {

@@ -10,7 +10,8 @@ const browser = await chromium.launch();
 const p = await browser.newPage({ viewport: { width: 1440, height: 900 }, acceptDownloads: true });
 const errors = [];
 // The bottom navigation auto-collapses in the diagram (Auto Focus Mode); expand it before clicking.
-const nav = async (pg, v) => { await pg.evaluate(() => { const va = window.__va; if (!va.focus.navigationExpanded) va.toggleNavigation(); }); await pg.waitForTimeout(380); await pg.click(`[data-nav="${v}"]`); };
+const openPanel = async pg => { await pg.evaluate(() => { const va = window.__va; va.ui.inspOpen = true; va.ui.pmTab = 'proj'; va.render(); }); await pg.waitForTimeout(400); };
+const nav = async (pg, v) => { await pg.evaluate(() => { const va = window.__va; if (va.focus.navigationExpanded) va.toggleNavigation(); va.toggleNavigation(); }); await pg.waitForTimeout(380); await pg.click(`[data-nav="${v}"]`); };
 p.on('pageerror', e => errors.push(e.message + ' @ ' + (e.stack || '').split('\n').slice(1, 4).join(' | ')));
 await p.goto(page);
 await p.waitForTimeout(600);
@@ -181,7 +182,7 @@ results.push(['Mouse: soltar S1 mantém K1 (selo)', await p.evaluate(() => !!win
 // Folhas, navegação e painel de operação
 await p.click('#bRun'); await p.evaluate(() => window.__va.setView('diagram'));
 const sheetsBefore = await p.evaluate(() => window.__va.doc().sheets.length);
-await p.click('#sNew');
+await openPanel(p); await p.click('#sNew'); await p.click('#dSave');
 results.push(['Folhas: Nova folha cria uma folha', await p.evaluate(n => window.__va.doc().sheets.length === n + 1, sheetsBefore)]);
 await p.click('#sDel'); await p.click('#dConfirm');
 results.push(['Folhas: Apagar remove a folha', await p.evaluate(n => window.__va.doc().sheets.length === n, sheetsBefore)]);
@@ -222,7 +223,7 @@ await p.click('#labOpenBtn'); await p.waitForTimeout(1300);
 results.push(['Lab: ABRIR PROJETO carrega o exemplo no simulador', await p.evaluate(() => window.__va.ui.view === 'diagram' && window.__va.doc().project === 'Partida direta: força e comando' && window.__va.doc().sheets.length === 2)]);
 
 await p.evaluate(() => { const va = window.__va; if (va.sim.running) va.stopSim(); va.load(va.EXAMPLES[1].build()); va.setView('diagram'); });
-await p.click('[data-look="2d"]');
+await openPanel(p); await p.click('[data-look="2d"]');
 await p.click('[data-folder="Proteção"]');
 results.push(['Modo 2D: componentes desenhados como equipamentos', await p.evaluate(() => document.querySelectorAll('#cv .d2').length >= 5 && document.querySelectorAll('.part .d2').length >= 8)]);
 await p.click('[data-folder="Proteção"]');
@@ -233,7 +234,7 @@ await nav(p, 'monitor'); await p.waitForTimeout(300);
 results.push(['Monitoramento: gráficos com dados e leituras de V, A e Hz', await p.evaluate(() => window.__va.sim.series.length > 5 && /220/.test(document.getElementById('moTiles').textContent) && /60 Hz/.test(document.getElementById('moTiles').textContent))]);
 const fbtn = p.locator('[data-fault^="short:"]').first(); await fbtn.click(); await p.waitForTimeout(400);
 results.push(['Monitoramento: botão de falha provoca curto e a proteção atua', await p.evaluate(() => window.__va.sim.running && Object.keys(window.__va.sim.faults).length > 0)]);
-await nav(p, 'diagram'); await p.click('[data-look="sym"]');
+await nav(p, 'diagram'); await openPanel(p); await p.click('[data-look="sym"]');
 
 // ---- Fios: arrastar para ligar, rota automática, alças, editor, relatório, som ----
 await p.evaluate(() => { const va = window.__va; if (va.sim.running) va.stopSim(); va.ui.look = 'sym'; va.load({ project: 'Fios', sheets: [{ id: 's1', name: 'Comando' }],
@@ -275,7 +276,7 @@ await p.evaluate(id => { window.__va.ui.sel = { kind: 'wire', id }; window.__va.
 await p.fill('#wNo', '50'); await p.click('#wSave');
 results.push(['Números de fio: número de outro ponto é recusado', /outro ponto/.test(await p.locator('#wMsg').textContent())]);
 await p.click('[data-close]');
-await p.click('#sCfg');
+await openPanel(p); await p.click('#sCfg');
 await p.selectOption('#dSize', 'A4'); await p.selectOption('#dOrient', 'retrato'); await p.fill('#dCols', '8'); await p.fill('#dRows', '10');
 const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAFklEQVR42mP8z8Dwn4EIwDiqkL4KAQBLMQf/2mcV5gAAAABJRU5ErkJggg==', 'base64');
 await p.setInputFiles('#dLogo', { name: 'logo.png', mimeType: 'image/png', buffer: png }); await p.waitForTimeout(300);
@@ -322,7 +323,7 @@ await fresh.mouse.move(src[0], src[1]); await fresh.mouse.down(); await fresh.mo
 results.push(['Biblioteca: arrastar e soltar na folha insere o componente', await fresh.evaluate(n => { const d = window.__va.doc(); return d.comps.length === n + 1 && d.comps[d.comps.length - 1].type === 'fusivel'; }, before)]);
 await fresh.click('[data-folder="Proteção"]'); await fresh.waitForTimeout(350);
 results.push(['Biblioteca: clicar de novo fecha e apaga a luz', await fresh.evaluate(() => window.__va.ui.activeCategory === null && !document.getElementById('drawer').classList.contains('open') && !document.querySelector('#rail .energy-active'))]);
-results.push(['Energia: ferramenta, aba da folha e navegação ativas acesas', await fresh.evaluate(() => ['.tool.act', '.tab.act', '.nav.act'].every(q => { const e = document.querySelector(q); return e && e.classList.contains('energy-active'); }) && document.querySelectorAll('.tools .energy-active').length === 1)]);
+results.push(['Energia: ferramenta, aba da folha e navegação ativas acesas', await fresh.evaluate(() => ['.tool.act', '.srow.act', '.nav.act'].every(q => { const e = document.querySelector(q); return e && e.classList.contains('energy-active'); }) && document.querySelectorAll('.tools .energy-active').length === 1)]);
 await fresh.close();
 
 // ---- Electrical Voltage Engine (testes 01–24) ----
@@ -476,6 +477,61 @@ results.push(['Foco: voltar ao Diagrama reinicia com um único temporizador', aw
 await ev.waitForTimeout(3600);
 results.push(['Foco: recolhe de novo após retornar ao Diagrama', await ev.evaluate(() => !window.__va.focus.navigationExpanded)]);
 await ev.close();
+
+// ---- Project Manager & Workspace ----
+const pm = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+pm.on('pageerror', e => errors.push(e.message + ' @ ' + (e.stack || '').split('\n').slice(1, 4).join(' | ')));
+await pm.goto(page); await pm.waitForTimeout(400);
+await pm.evaluate(() => { const va = window.__va; va.load(va.EXAMPLES[1].build()); va.setView('diagram'); });
+await pm.waitForTimeout(450);
+const geo = () => pm.evaluate(() => { const va = window.__va, r = document.getElementById('cv').getBoundingClientRect(), d = va.doc();
+  return { w: r.width, z: va.ui.zoom, px: va.ui.px, py: va.ui.py, data: JSON.stringify([d.comps, d.wires, d.sheets.map(s => s.id)]), pmW: document.getElementById('pm').getBoundingClientRect().width, open: va.ui.inspOpen }; });
+results.push(['Painel: segunda barra removida e folhas dentro do Painel do projeto', await pm.evaluate(() => !document.querySelector('.sheetbar') && !!document.querySelector('#pm #tabs') && !!document.querySelector('#pm [data-look="2d"]') && ['sNew', 'sCfg', 'sRen', 'sDel'].every(id => document.getElementById(id).closest('#pm')))]);
+results.push(['Cabeçalho: ferramentas centralizadas na largura da tela e Painel à direita', await pm.evaluate(() => { const a = document.getElementById('topActs').getBoundingClientRect(), b = document.getElementById('bInsp').getBoundingClientRect(); return Math.abs((a.left + a.right) / 2 - innerWidth / 2) < 3 && b.right > innerWidth - 40 && a.right < b.left; })]);
+const c0 = await geo();
+results.push(['Painel: começa fechado, sem espaço reservado', !c0.open && c0.pmW < 1]);
+await pm.click('#bInsp'); await pm.waitForTimeout(500);
+const c1 = await geo();
+results.push(['Painel: primeiro clique abre pela direita (300–360 px)', c1.open && c1.pmW >= 300 && c1.pmW <= 362 && await pm.evaluate(() => document.getElementById('bInsp').classList.contains('energy-active'))]);
+results.push(['Painel: abrir preserva zoom, posição, componentes e fios', c1.z === c0.z && c1.px === c0.px && c1.py === c0.py && c1.data === c0.data && c1.w < c0.w - 250]);
+results.push(['Painel: tabela com todas as folhas a partir do projeto real', await pm.evaluate(() => { const d = window.__va.doc(), rows = [...document.querySelectorAll('#tabs .srow')];
+  return rows.length === d.sheets.length && rows.every((r, i) => r.querySelector('.sn').textContent === String(i + 1).padStart(2, '0') && r.querySelector('.snm').textContent.startsWith(d.sheets[i].name) && +r.querySelector('.sc').textContent === d.comps.filter(c => c.sheet === d.sheets[i].id).length && r.querySelector('.sf').textContent.startsWith(d.sheets[i].size)) &&
+    document.querySelector('#tabs .srow.act').dataset.sheet === window.__va.ui.sheet && document.querySelector('#tabs .srow.act').classList.contains('energy-active'); })]);
+await pm.click('#tabs .srow:nth-child(2)'); await pm.waitForTimeout(200);
+results.push(['Painel: clicar na folha troca a folha ativa, o canvas e o indicador', await pm.evaluate(() => { const va = window.__va, s = va.doc().sheets[1]; return va.ui.sheet === s.id && document.querySelector('#tabs .srow.act').dataset.sheet === s.id && /Folha 02 — Comando/.test(document.getElementById('sheetBadge').textContent) && document.querySelectorAll('#world [data-comp]').length === va.doc().comps.filter(c => c.sheet === s.id).length; })]);
+await pm.click('#sNew'); await pm.waitForTimeout(150); await pm.fill('#dName', 'Sinalização'); await pm.click('#dSave'); await pm.waitForTimeout(200);
+results.push(['Painel: + Nova folha pede o nome, atualiza a tabela e seleciona a folha', await pm.evaluate(() => { const va = window.__va, d = va.doc(), s = d.sheets[d.sheets.length - 1]; return d.sheets.length === 3 && s.name === 'Sinalização' && va.ui.sheet === s.id && document.querySelectorAll('#tabs .srow').length === 3 && document.querySelector('#tabs .srow.act .snm').textContent === 'Sinalização' && /03 — Sinalização/.test(document.getElementById('sheetBadge').textContent); })]);
+await pm.click('#sRen'); await pm.fill('#dName', 'Segurança'); await pm.click('#dSave'); await pm.waitForTimeout(150);
+results.push(['Painel: Renomear altera a folha selecionada e a tabela', await pm.evaluate(() => document.querySelector('#tabs .srow.act .snm').textContent === 'Segurança' && window.__va.doc().sheets[2].name === 'Segurança')]);
+await pm.click('#sDel'); await pm.waitForTimeout(100); await pm.click('#dConfirm'); await pm.waitForTimeout(150);
+results.push(['Painel: Apagar pede confirmação e atualiza a tabela', await pm.evaluate(() => window.__va.doc().sheets.length === 2 && document.querySelectorAll('#tabs .srow').length === 2)]);
+await pm.click('#tabs .srow:nth-child(1)'); await pm.click('#sDel'); await pm.waitForTimeout(100);
+results.push(['Painel: Apagar mostra as referências em outras folhas antes de excluir', await pm.evaluate(() => /Referências em outras folhas/.test(document.getElementById('sheet').textContent) && /W1/.test(document.getElementById('sheet').textContent))]);
+await pm.click('#sheet [data-close]'); await pm.waitForTimeout(100);
+results.push(['Painel: cancelar a exclusão mantém a folha', await pm.evaluate(() => window.__va.doc().sheets.length === 2)]);
+await pm.click('#sCfg'); await pm.waitForTimeout(100);
+results.push(['Painel: Configurar abre a configuração da folha existente', await pm.evaluate(() => /Configurar folha/.test(document.getElementById('sheet').textContent) && !!document.getElementById('dSize'))]);
+await pm.click('#sheet [data-close]'); await pm.waitForTimeout(100);
+await pm.click('#pm [data-look="2d"]'); await pm.waitForTimeout(150);
+results.push(['Painel: Visualização 2D usa o modo existente', await pm.evaluate(() => window.__va.ui.look === '2d' && document.querySelectorAll('#cv .d2').length > 3 && document.querySelector('#pm [data-look="2d"]').classList.contains('act'))]);
+await pm.click('#pm [data-look="sym"]');
+results.push(['Painel: Dados elétricos do projeto vêm da configuração', await pm.evaluate(() => { const t = document.getElementById('pmElecBody').textContent; return /220\/380 V/.test(t) && /3F \+ N/.test(t) && /60 Hz/.test(t) && /disponível/.test(t); })]);
+const place = await pm.evaluate(() => { const va = window.__va, r = document.getElementById('cv').getBoundingClientRect(); va.ui.placing = 'sinaleiro'; va.render(); return { x: r.left + va.ui.px + 300 * va.ui.zoom, y: r.top + va.ui.py + 300 * va.ui.zoom, n: va.doc().comps.length }; });
+await pm.mouse.move(place.x, place.y); await pm.mouse.click(place.x, place.y); await pm.waitForTimeout(150);
+results.push(['Painel aberto: coordenadas do mouse continuam precisas', await pm.evaluate(n => { const va = window.__va, c = va.doc().comps[va.doc().comps.length - 1]; va.ui.placing = null; return va.doc().comps.length === n + 1 && Math.abs(c.x - 300) <= 10 && Math.abs(c.y - 300) <= 10; }, place.n)]);
+await pm.evaluate(() => { const va = window.__va; va.load(va.EXAMPLES[0].build()); va.setView('diagram'); va.startSim(); const s1 = va.doc().comps.find(c => c.tag === 'S1'); va.sim.pressed.add(s1.id); va.solve(); va.sim.pressed.clear(); va.solve(); });
+const g2 = await geo();
+await pm.click('#bInsp'); await pm.waitForTimeout(450);
+const g3 = await geo();
+results.push(['Painel: segundo clique fecha e a área de trabalho volta a crescer', !g3.open && g3.pmW < 1 && g3.w > g2.w + 250 && g3.z === g2.z && g3.px === g2.px]);
+results.push(['Painel: abrir e fechar não interrompe a simulação', await pm.evaluate(() => window.__va.sim.running && window.__va.sim.coils.K1)]);
+await pm.click('#bInsp'); await pm.waitForTimeout(400); await pm.keyboard.press('Escape'); await pm.waitForTimeout(400);
+results.push(['Painel: Escape fecha', await pm.evaluate(() => !window.__va.ui.inspOpen && document.getElementById('pm').getBoundingClientRect().width < 1)]);
+await pm.click('#bInsp'); await pm.waitForTimeout(400); await pm.click('#pmClose'); await pm.waitForTimeout(400);
+results.push(['Painel: botão X fecha', await pm.evaluate(() => !window.__va.ui.inspOpen)]);
+await pm.evaluate(() => window.__va.stopSim());
+results.push(['Painel e modo foco independentes: status visível, navegação recolhe', await pm.evaluate(() => !window.__va.focus.navigationExpanded && document.getElementById('status').getBoundingClientRect().height > 20)]);
+await pm.close();
 
 const m = await browser.newPage({ viewport: { width: 390, height: 844 } });
 await m.goto(page); await m.waitForTimeout(500);
