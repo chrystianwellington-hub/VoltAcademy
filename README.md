@@ -25,6 +25,10 @@ Ao abrir, o circuito "Partida direta com selo" já vem carregado. Aperte **SIMUL
 - **Folhas:** abas no topo do desenho com Configurar, Renomear, Apagar e Nova folha. A simulação roda em todas as folhas juntas.
   Segmentos de cabo OUT/IN e setas com a mesma tag ligam folhas diferentes e mostram o destino ("→ 2.3" = folha 2, coluna 3).
   Abaixo de cada bobina aparece onde estão seus contatos (espelho de contatos).
+- **Modo foco no Diagrama:** ao entrar no Diagrama, a navegação inferior aparece e se recolhe sozinha após 3 s,
+  liberando a altura para a folha (zoom, posição, componentes e fios não mudam). A seta amarela centralizada na barra de
+  status abre e fecha a navegação; abrir manualmente cancela o recolhimento automático. A barra de status (modo, avisos,
+  atenções, tensão, corrente, frequência e estado) fica sempre visível.
 - **Ferramentas (direita):** selecionar, fio, mover tela, cor do fio, girar, excluir, zoom e enquadrar.
 - **Navegação (inferior):** Diagrama · Operação (painel com botões grandes para operar o circuito) · Início (projetos e exemplos) ·
   Tags (lista de componentes com folha, bornes e estado) · Monitoramento (estados ao vivo e registro de eventos).
@@ -48,7 +52,25 @@ Ao abrir, o circuito "Partida direta com selo" já vem carregado. Aperte **SIMUL
 - **Aba Listas:** resumo de cabos por bitola e cor, lista de fios (de/para), lista de componentes, renumeração e cópia em CSV.
 - **Sinalização sonora:** buzzer, buzina e sirene com som real na simulação (contínuo, intermitente, pulsado, bitonal e
   varredura), botão para ouvir no painel de propriedades e botão Som/Mudo na barra superior.
-- **Grandezas elétricas** (modelo didático: 220 V F-N, 380 V F-F, 60 Hz): barra inferior com tensão, corrente total, frequência e estado.
+- **Configurar novo projeto:** em Início › Novo projeto › Criar projeto abre a mesma janela de Configurar folha (logo,
+  tamanho, orientação, grade, título, descrição, autor, projeto, data) com a **Configuração elétrica do projeto**:
+  127, 220, 380 ou 440 VCA, rede monofásica, entre duas fases, trifásica sem neutro ou com neutro, 50/60 Hz e se a tensão
+  informada é fase-fase ou fase-neutro, com prévia das tensões. Pular configuração usa os padrões; Fechar cancela sem mexer
+  no projeto atual. A rede também pode ser alterada depois em Configurar folha.
+- **Motor de tensão (Electrical Voltage Engine):** tensões por fasores. Em 220/380 V, L1–N ≈ 220 V e L1–L2 = 380 V; em
+  254/440 V, L1–N ≈ 254 V (nunca 220 V sem transformador); em 127/220 V, L1–L2 = 220 V. Rede sem neutro não cria N e
+  rede monofásica não cria L2/L3. Bobinas, temporizadores, relés e sinalizadores têm tensão nominal, tipo CA/CC,
+  frequência e faixa de operação: sobretensão, subtensão, CA/CC incompatível, frequência diferente, neutro ou fase
+  indisponível, PE como retorno, primário incompatível e curto entre fontes geram atenções explicativas. Projetos antigos,
+  sem tensão nominal nos componentes, mantêm o comportamento original.
+- **Transformadores:** monofásico, de comando, trifásico (Yy0, Yd11, Dyn11, Dd0, com ou sem neutro no secundário) e
+  autotransformador de tensão, com presets 220/127, 220/24, 380/220, 380/127, 380/24, 440/380, 440/220, 440/127, 440/24 ou
+  valores livres. O secundário depende da tensão aplicada ao primário (440/220 V alimentado com 380 V entrega 190 V e avisa).
+  Transformador isolado cria um novo domínio elétrico; autotransformador não isola.
+- **Fonte CA/CC configurável:** 12, 24 ou 48 VCC, corrente nominal e faixa de entrada.
+- **Grandezas elétricas:** barra inferior com a rede nominal do projeto, a tensão efetiva no componente selecionado,
+  tensão, corrente total, frequência e estado. O monitoramento lista os domínios de alimentação (rede, secundários e
+  fontes) com origem, nível, isolamento e estado.
 - **Monitoramento com gráficos** de corrente dos motores (pico de partida, regime, sobrecarga) e tensão da rede (afundamento no curto),
   com cruz de leitura ao passar o mouse e marcação das falhas.
 - **Simulação de falhas:** curto entre fases no motor, curto na bobina ou no sinaleiro, sobrecarga do motor e abertura de fusível.
@@ -75,8 +97,8 @@ Ao abrir, o circuito "Partida direta com selo" já vem carregado. Aperte **SIMUL
   pausa quando a tela não está visível e suporte a "reduzir movimento".
 
 ## O que o simulador faz
-- **Biblioteca IEC 60617 com 46 componentes**, desenhados na posição de repouso:
-  - Alimentação: fase (L1/L2/L3), neutro, fonte trifásica + N + PE, fonte AC/DC 24 Vcc,
+- **Biblioteca IEC 60617 com 50 componentes**, desenhados na posição de repouso:
+  - Alimentação: fase (L1/L2/L3), neutro, fonte trifásica + N + PE, fonte CA/CC configurável (12/24/48 VCC), transformadores monofásico, de comando e trifásico, autotransformador de tensão,
     autotransformador de partida, setas de continuação, segmentos de cabo IN/OUT, ponto de conexão.
   - Comando: botões NA/NF, pulsador NA+NF, pulsador comutador, emergência NA/NF (cogumelo com
     trava), chaves seletoras NA/NF, sensores indutivos (Fe) e capacitivos NA/NF.

@@ -18,8 +18,28 @@
 - **Modelo:** `comps[]` (tipo, posição, rotação, tag, propriedades) e `wires[]` (borne A →
   borne B, cor, pontos de dobra).
 - **Motor:** a cada evento, une bornes ligados por fios e por contatos fechados (union-find).
-  Uma carga (bobina, temporizador, sinaleiro) fica energizada quando um borne está no mesmo nó
-  da fase e o outro no do neutro. O cálculo se repete até as bobinas estabilizarem (selo e
-  intertravamento); se não estabilizar em 40 passos, o circuito é marcado como oscilante. Fase
-  e neutro no mesmo nó indicam curto-circuito.
+  O cálculo se repete até bobinas, fontes e transformadores estabilizarem (selo e intertravamento);
+  se não estabilizar em 40 passos, o circuito é marcado como oscilante.
+- **Electrical Voltage Engine** (mesmo arquivo, módulos separados):
+  - `ProjectElectricalConfig`: rede do projeto (`doc.elec` = tipo, tensão, referência fase-fase ou
+    fase-neutro, frequência). Projetos sem `elec` usam o padrão original 220/380 V, 60 Hz.
+  - `ElectricalNetwork` / `PhaseResolver`: condutores disponíveis (L1, L2, L3, N, PE) e fasores
+    (L1 0°, L2 −120°, L3 +120°). Rede sem neutro não cria N; monofásica não cria L2/L3.
+  - `PotentialDifferenceCalculator`: tensão entre dois nós = módulo da diferença vetorial (CA) e da
+    parte contínua (CC). Nunca subtrai módulos RMS.
+  - Domínios e referências: cada fonte (rede, secundário de transformador, saída de fonte CA/CC) é um
+    domínio. Domínios que se tocam por um condutor passam a ter a mesma referência (union-find com
+    deslocamento fasorial); potenciais diferentes no mesmo nó são curto-circuito, inclusive entre fontes.
+    Domínios sem ligação entre si não têm diferença de potencial (circuito aberto).
+  - `TransformerModel`: monofásico, de comando, trifásico (Yy0, Yd11, Dyn11, Dd0) e autotransformador.
+    Saída = tensão realmente aplicada × relação nominal, com aviso de primário incompatível. Isolado cria
+    um domínio novo; autotransformador fica no domínio da entrada. Sem primário, não há secundário; CC
+    no primário não induz tensão.
+  - `PowerSupplyModel`: fonte CA/CC 12/24/48 VCC com faixa de entrada; fora da faixa entra em proteção.
+  - `ComponentVoltageValidator`: bobinas, temporizadores, relés e sinalizadores com tensão nominal,
+    tipo CA/CC/CA-CC, frequência e faixa (padrão 85–110 % para bobinas, 90–110 % para sinalizadores).
+    Sobretensão aciona com alerta, subtensão não aciona, CA/CC incompatível não aciona, PE como retorno
+    não aciona. Componentes sem tensão nominal (projetos antigos) seguem o modelo simplificado original.
+  - `ElectricalDiagnostics` / `ElectricalDomainManager`: atenções exibidas no painel, na barra de status
+    e no monitoramento, com a origem e o nível de cada domínio.
 - **Temporizadores:** acumulam o tempo enquanto energizados e reiniciam ao desenergizar (TON).

@@ -9,6 +9,8 @@ const page = pathToFileURL(join(dirname(fileURLToPath(import.meta.url)), '../dis
 const browser = await chromium.launch();
 const p = await browser.newPage({ viewport: { width: 1440, height: 900 }, acceptDownloads: true });
 const errors = [];
+// The bottom navigation auto-collapses in the diagram (Auto Focus Mode); expand it before clicking.
+const nav = async (pg, v) => { await pg.evaluate(() => { const va = window.__va; if (!va.focus.navigationExpanded) va.toggleNavigation(); }); await pg.waitForTimeout(380); await pg.click(`[data-nav="${v}"]`); };
 p.on('pageerror', e => errors.push(e.message + ' @ ' + (e.stack || '').split('\n').slice(1, 4).join(' | ')));
 await p.goto(page);
 await p.waitForTimeout(600);
@@ -161,7 +163,7 @@ const results = await p.evaluate(async () => {
   { const d = va.doc(), no = tg => d.wires.find(w => [w.a.c, w.b.c].includes(d.comps.find(c => c.type === tg[0] && c.tag === tg[1]).id)).no;
     check('Números de fio: segmento de cabo leva o mesmo número para a outra folha', no(['cabo_out', 'W1']) === no(['cabo_in', 'W1']) && no(['cabo_out', 'W2']) === no(['cabo_in', 'W2'])); }
 
-  check('Biblioteca com 46 componentes (inclui buzzer, buzina e sirene)', Object.keys(va.TYPES).length === 46);
+  check('Biblioteca com 50 componentes (inclui buzzer, buzina, sirene e transformadores)', Object.keys(va.TYPES).length === 50);
   return out;
 });
 
@@ -194,14 +196,14 @@ const cross = await p.evaluate(() => {
 });
 results.push(['Folhas: botão na folha 2 liga o motor da folha 1 via segmentos de cabo', cross.ok]);
 results.push(['Corrente animada nos fios energizados', cross.flow > 0]);
-await p.click('[data-nav="monitor"]');
+await nav(p, 'monitor');
 results.push(['Monitoramento: registro de eventos preenchido', await p.locator('.events li').count() > 1]);
-await p.click('#moRun'); await p.click('[data-nav="operate"]'); await p.click('#opRun');
+await p.click('#moRun'); await nav(p, 'operate'); await p.click('#opRun');
 const op = p.locator('.opbtn.push').filter({ hasText: 'S1' }).first();
 const ob = await op.boundingBox();
 await p.mouse.move(ob.x + ob.width / 2, ob.y + ob.height / 2); await p.mouse.down(); await p.waitForTimeout(80); await p.mouse.up(); await p.waitForTimeout(80);
 results.push(['Operação: botão do painel aciona K1 com selo', await p.evaluate(() => !!window.__va.sim.coils.K1)]);
-await p.click('[data-nav="home"]');
+await nav(p, 'home');
 results.push(['Início: abre na tela holográfica do VOLT CORE', startsHome]);
 results.push(['Início: carrossel com 4 operações a 90°', await p.evaluate(() => window.__va.HOME_OPS.length === 4 && document.querySelectorAll('#opDots .hdot').length === 4)]);
 await p.keyboard.press('ArrowRight'); await p.waitForTimeout(950);
@@ -227,11 +229,11 @@ await p.click('[data-folder="Proteção"]');
 await p.click('#bRun');
 await p.evaluate(() => { const va = window.__va; const s1 = va.doc().comps.find(c => c.tag === 'S1'); va.sim.pressed.add(s1.id); va.solve(); va.sim.pressed.clear(); va.solve(); });
 await p.waitForTimeout(1500);
-await p.click('[data-nav="monitor"]'); await p.waitForTimeout(300);
+await nav(p, 'monitor'); await p.waitForTimeout(300);
 results.push(['Monitoramento: gráficos com dados e leituras de V, A e Hz', await p.evaluate(() => window.__va.sim.series.length > 5 && /220/.test(document.getElementById('moTiles').textContent) && /60 Hz/.test(document.getElementById('moTiles').textContent))]);
 const fbtn = p.locator('[data-fault^="short:"]').first(); await fbtn.click(); await p.waitForTimeout(400);
 results.push(['Monitoramento: botão de falha provoca curto e a proteção atua', await p.evaluate(() => window.__va.sim.running && Object.keys(window.__va.sim.faults).length > 0)]);
-await p.click('[data-nav="diagram"]'); await p.click('[data-look="sym"]');
+await nav(p, 'diagram'); await p.click('[data-look="sym"]');
 
 // ---- Fios: arrastar para ligar, rota automática, alças, editor, relatório, som ----
 await p.evaluate(() => { const va = window.__va; if (va.sim.running) va.stopSim(); va.ui.look = 'sym'; va.load({ project: 'Fios', sheets: [{ id: 's1', name: 'Comando' }],
@@ -254,9 +256,9 @@ await p.evaluate(() => { const el = document.querySelector('.wno'); el.dispatchE
 results.push(['Fio: duplo clique abre o editor com bitola', await p.locator('#wSec').count() === 1]);
 await p.selectOption('#wKind', 'potencia'); await p.selectOption('#wSec', '16'); await p.click('#wSave');
 results.push(['Fio: seção de 16 mm² salva no fio', await p.evaluate(() => { const w = window.__va.doc().wires.find(x => x.no === 1); return w.section === 16 && w.kind === 'potencia'; })]);
-await p.click('[data-nav="tags"]');
+await nav(p, 'tags');
 results.push(['Relatório: lista de fios e resumo por bitola', /16 mm²/.test(await p.locator('#vTags').textContent()) && await p.locator('#vTags tbody tr').count() >= 4]);
-await p.click('[data-nav="diagram"]'); await p.click('#bRun'); await p.waitForTimeout(300);
+await nav(p, 'diagram'); await p.click('#bRun'); await p.waitForTimeout(300);
 results.push(['Som: sirene energizada toca', await p.evaluate(() => { const va = window.__va; return Object.values(va.sim.lamps).some(Boolean) && Object.keys(va.audio.voices).length === 1; })]);
 await p.click('#bSound'); await p.waitForTimeout(150);
 results.push(['Som: botão Mudo silencia os alarmes', await p.evaluate(() => Object.keys(window.__va.audio.voices).length === 0)]);
@@ -322,6 +324,158 @@ await fresh.click('[data-folder="Proteção"]'); await fresh.waitForTimeout(350)
 results.push(['Biblioteca: clicar de novo fecha e apaga a luz', await fresh.evaluate(() => window.__va.ui.activeCategory === null && !document.getElementById('drawer').classList.contains('open') && !document.querySelector('#rail .energy-active'))]);
 results.push(['Energia: ferramenta, aba da folha e navegação ativas acesas', await fresh.evaluate(() => ['.tool.act', '.tab.act', '.nav.act'].every(q => { const e = document.querySelector(q); return e && e.classList.contains('energy-active'); }) && document.querySelectorAll('.tools .energy-active').length === 1)]);
 await fresh.close();
+
+// ---- Electrical Voltage Engine (testes 01–24) ----
+const ev = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+ev.on('pageerror', e => errors.push(e.message + ' @ ' + (e.stack || '').split('\n').slice(1, 4).join(' | ')));
+await ev.goto(page); await ev.waitForTimeout(400);
+const elecResults = await ev.evaluate(() => {
+  const va = window.__va, out = [], sim = va.sim;
+  const check = (name, cond) => out.push([name, !!cond]);
+  let n = 0;
+  const C = (id, type, extra = {}) => ({ id, type, x: 200 + (n++ % 6) * 160, y: 200 + Math.floor(n / 6) * 200, rot: 0, tag: extra.tag || id.toUpperCase(), sheet: extra.sheet || 's1', ...extra });
+  const run = (elec, comps, wires, sheets) => {
+    if (sim.running) va.stopSim();
+    va.load({ project: 't', elec, sheets: sheets || [{ id: 's1', name: 'F1' }], comps, wires: wires.map(([a, at, b, bt], i) => ({ id: 'w' + i, a: { c: a, t: at }, b: { c: b, t: bt }, color: '#000', pts: [] })) });
+    va.startSim(); return sim;
+  };
+  const V = id => sim.applied[id] ? sim.applied[id].v : 0;
+  const near = (a, b, tol = 1) => Math.abs(a - b) <= tol;
+  const has = (code, id) => (sim.diag || []).some(d => d.code === code && (!id || (d.comp && d.comp.id === id)));
+  const net = (v, nt = '3f_n') => ({ net: nt, v, hz: 60 });
+  const coil = (vn, extra = {}) => C('k1', 'bobina', { tag: 'K1', vn, vk: 'CA', ...extra });
+  const src = () => C('f1', 'fonte_3f', { tag: 'X1' });
+  // 01–06: Y networks
+  run(net(127), [src(), coil(127)], [['f1', 'l1', 'k1', 'a'], ['f1', 'n', 'k1', 'b']]);
+  check('Tensão 01: rede 127/220 V, L1 + N = 127 V', near(V('k1'), 127) && sim.coils.K1);
+  run(net(127), [src(), coil(220)], [['f1', 'l1', 'k1', 'a'], ['f1', 'l2', 'k1', 'b']]);
+  check('Tensão 02: rede 127/220 V, L1 + L2 = 220 V (fasorial, não 254 V)', near(V('k1'), 220) && sim.coils.K1);
+  run(net(380), [src(), coil(220)], [['f1', 'l1', 'k1', 'a'], ['f1', 'n', 'k1', 'b']]);
+  check('Tensão 03: rede 220/380 V, L1 + N ≈ 220 V', near(V('k1'), 220, 1.5) && sim.coils.K1);
+  run(net(380), [src(), coil(380)], [['f1', 'l1', 'k1', 'a'], ['f1', 'l2', 'k1', 'b']]);
+  check('Tensão 04: rede 220/380 V, L1 + L2 = 380 V', near(V('k1'), 380));
+  run(net(440), [src(), coil(254)], [['f1', 'l1', 'k1', 'a'], ['f1', 'n', 'k1', 'b']]);
+  check('Tensão 05: rede 254/440 V, L1 + N ≈ 254 V', near(V('k1'), 254, 1.5));
+  run(net(440), [src(), coil(440)], [['f1', 'l1', 'k1', 'a'], ['f1', 'l2', 'k1', 'b']]);
+  check('Tensão 06: rede 440 V, L1 + L2 = 440 V', near(V('k1'), 440));
+  // 07: no neutral
+  run(net(380, '3f'), [C('l', 'fase', { phase: 'L1', tag: '' }), C('nn', 'neutro', { tag: '' }), coil(220)], [['l', 'a', 'k1', 'a'], ['nn', 'a', 'k1', 'b']]);
+  check('Tensão 07: rede sem neutro, usar N gera aviso e não aciona', has('nunavail') && !sim.coils.K1 && va.ElectricalDiagnostics.static().some(d => d.code === 'nunavail'));
+  // 08: same phase on both terminals
+  run(net(380), [src(), coil(220)], [['f1', 'l1', 'k1', 'a'], ['f1', 'l1', 'k1', 'b']]);
+  check('Tensão 08: mesma fase nos dois terminais = 0 V', V('k1') === 0 && !sim.coils.K1 && !sim.short);
+  // 09–11, 14: transformer 440/220
+  const T = (extra = {}) => C('t1', 'trafo_1f', { tag: 'T1', vp: 440, vs: 220, va: 500, tol: 5, ...extra });
+  const txW = [['f1', 'l1', 't1', 'h1'], ['f1', 'l2', 't1', 'h2'], ['t1', 'x1', 'k1', 'a'], ['t1', 'x2', 'k1', 'b']];
+  run(net(440), [src(), T(), coil(220)], txW);
+  check('Tensão 09: transformador 440/220 V com 440 V entrega 220 V', near(V('k1'), 220, .5) && sim.coils.K1 && !has('txprim'));
+  const ftx = va.ElectricalDomainManager.list().find(d => d.id === 't1');
+  check('Tensão 14: transformador isolado não tem continuidade galvânica com o primário',
+    sim.vecOf('f1', 'n') && sim.vecOf('t1', 'x2') && sim.vecOf('f1', 'n').fr !== sim.vecOf('t1', 'x2').fr && sim.uf('f1:n') !== sim.uf('t1:x2') && /isolado/.test(ftx.iso));
+  run(net(380), [src(), T(), coil(220)], txW);
+  check('Tensão 10: 440/220 V alimentado com 380 V → 190 V teóricos e aviso', near(V('k1'), 190, .5) && has('txprim', 't1'));
+  sim.toggled.add('f1'); va.solve();
+  check('Tensão 11: transformador desenergizado não gera tensão no secundário', !sim.tx.t1 && !V('k1') && !sim.coils.K1);
+  // 12–13: coil ratings
+  run(net(440), [src(), coil(220)], [['f1', 'l1', 'k1', 'a'], ['f1', 'l2', 'k1', 'b']]);
+  const ov = (sim.diag || []).find(d => d.code === 'over');
+  check('Tensão 12: bobina 220 VCA em 440 VCA gera diagnóstico de sobretensão', ov && /SOBRETENSÃO/.test(ov.title) && ov.rows.some(r => /440/.test(r[1])));
+  run(net(380), [src(), coil(220)], [['f1', 'l1', 'k1', 'a'], ['f1', 'n', 'k1', 'b']]);
+  check('Tensão 13: bobina 220 VCA entre L1 e N de 220/380 V é compatível', sim.coils.K1 && !(sim.diag || []).length);
+  // 15–16: AC/DC supply
+  const psu = C('g1', 'fonte_24', { tag: 'G1', vout: 24 });
+  const psW = [['f1', 'l1', 'g1', 'i1'], ['f1', 'n', 'g1', 'i2'], ['g1', 'o1', 'k1', 'a'], ['g1', 'o2', 'k1', 'b']];
+  run(net(380), [src(), psu, coil(24, { vk: 'CC' })], psW);
+  check('Tensão 15: fonte CA/CC de 24 V entrega corrente contínua', sim.psu.g1 && sim.applied.k1 && sim.applied.k1.kind === 'CC' && near(V('k1'), 24, .1) && sim.coils.K1);
+  run(net(380), [src(), psu, coil(24, { vk: 'CA' })], psW);
+  check('Tensão 16: bobina só CA não opera em CC de mesmo valor', !sim.coils.K1 && has('acdc', 'k1'));
+  // 17: across sheets
+  const sh2 = [{ id: 's1', name: 'Força' }, { id: 's2', name: 'Comando' }];
+  run(net(440), [src(), T(), C('o1', 'cabo_out', { tag: 'W1' }), C('o2', 'cabo_out', { tag: 'W2' }), C('i1', 'cabo_in', { tag: 'W1', sheet: 's2' }), C('i2', 'cabo_in', { tag: 'W2', sheet: 's2' }), coil(220, { sheet: 's2' })],
+    [['f1', 'l1', 't1', 'h1'], ['f1', 'l2', 't1', 'h2'], ['t1', 'x1', 'o1', 'a'], ['t1', 'x2', 'o2', 'a'], ['i1', 'a', 'k1', 'a'], ['i2', 'a', 'k1', 'b']], sh2);
+  check('Tensão 17: segmentos de cabo entre folhas preservam a origem e o domínio', sim.coils.K1 && near(V('k1'), 220, .5) && sim.potOf('k1', 'a') === 't1|x1' && sim.vecOf('k1', 'a').fr === sim.vecOf('t1', 'x1').fr && va.ElectricalDomainManager.list().length === 2);
+  // 19: persistence
+  run(net(440, '3f'), [src(), T({ va: 750 }), C('t3', 'trafo_3f_iso', { tag: 'T3', vp: 440, vs: 380, conn: 'Dy', nsec: true }), coil(220)], txW);
+  va.stopSim(); const js = va.serialize(); va.load(js); const d2 = va.doc();
+  check('Tensão 19: rede e transformadores preservados ao salvar e reabrir', d2.elec.net === '3f' && d2.elec.v === 440 && d2.comps.find(c => c.id === 't1').va === 750 && d2.comps.find(c => c.id === 't3').conn === 'Dy' && JSON.parse(js).elec.v === 440);
+  // 20–21: open circuits
+  run(net(380), [src(), coil(220)], [['f1', 'l1', 'k1', 'a']]);
+  check('Tensão 20: bobina com circuito aberto não aciona com fase num terminal', !sim.coils.K1 && !V('k1'));
+  run(net(380), [src(), C('s1', 'botao_na', { tag: 'S1' }), coil(220)], [['f1', 'l1', 's1', 'a'], ['s1', 'b', 'k1', 'a'], ['f1', 'n', 'k1', 'b']]);
+  const openOk = !sim.coils.K1 && !V('k1'); sim.pressed.add('s1'); va.solve(); const closedOk = sim.coils.K1; sim.pressed.clear(); va.solve();
+  check('Tensão 21: contato aberto interrompe a propagação', openOk && closedOk && !sim.coils.K1);
+  // 22: single-phase 127 V
+  run(net(127, '1f'), [C('l1', 'fase', { phase: 'L1', tag: '' }), C('l2', 'fase', { phase: 'L2', tag: '' }), coil(220)], [['l1', 'a', 'k1', 'a'], ['l2', 'a', 'k1', 'b']]);
+  check('Tensão 22: rede monofásica 127 V não fornece 220 V', !sim.coils.K1 && !V('k1') && has('funavail'));
+  // 23: phase-to-phase direct connection
+  run(net(380), [C('l1', 'fase', { phase: 'L1', tag: '' }), C('l2', 'fase', { phase: 'L2', tag: '' })], [['l1', 'a', 'l2', 'a']]);
+  check('Tensão 23: fases ligadas diretamente = curto-circuito', !sim.running && /L1 e L2/.test(document.getElementById('banner').textContent));
+  // 24: 440 V Y network does not give 220 V F-N
+  run(net(440), [src(), coil(220)], [['f1', 'l1', 'k1', 'a'], ['f1', 'n', 'k1', 'b']]);
+  check('Tensão 24: rede 440 V com neutro dá 254 V F-N, não 220 V', near(V('k1'), 254, 1.5) && has('over', 'k1'));
+  // extras: 3-phase transformer, autotransformer, motor rotation, legacy default
+  run(net(440), [src(), C('t3', 'trafo_3f_iso', { tag: 'T3', vp: 440, vs: 380, conn: 'Dy', nsec: true }), coil(220), C('m1', 'motor_3f', { tag: 'M1', vn: 380 })],
+    [['f1', 'l1', 't3', 'h1'], ['f1', 'l2', 't3', 'h2'], ['f1', 'l3', 't3', 'h3'], ['t3', 'x1', 'k1', 'a'], ['t3', 'x0', 'k1', 'b'], ['t3', 'x1', 'm1', 'u'], ['t3', 'x2', 'm1', 'v'], ['t3', 'x3', 'm1', 'w']]);
+  check('Transformador trifásico Dyn11 440/380 V: X1–X0 ≈ 220 V e motor gira', near(V('k1'), 220, 1.5) && sim.motors.m1.run && near(V('m1'), 380, 1));
+  run(net(220, '1f'), [C('l', 'fase', { phase: 'L1', tag: '' }), C('nn', 'neutro', { tag: '' }), C('a1', 'autotrafo', { tag: 'T1', vp: 220, vs: 127 }), coil(127)],
+    [['l', 'a', 'a1', 'h1'], ['nn', 'a', 'a1', 'c'], ['a1', 'x1', 'k1', 'a'], ['nn', 'a', 'k1', 'b']]);
+  check('Autotransformador 220/127 V: saída 127 V sem isolamento (mesmo domínio da rede)', near(V('k1'), 127, .5) && sim.vecOf('k1', 'a').fr === sim.vecOf('l', 'a').fr);
+  if (sim.running) va.stopSim();
+  va.load(va.EXAMPLES[0].build());
+  check('Projetos antigos sem rede usam o padrão 220/380 V 60 Hz', !va.doc().elec && va.ElectricalNetwork.label() === '220/380 V · 3F + N · 60 Hz');
+  return out;
+});
+results.push(...elecResults);
+
+// ---- Configurar novo projeto (VOLT CORE → Criar projeto) ----
+await ev.evaluate(() => { const va = window.__va; va.load(va.EXAMPLES[2].build()); va.setView('home'); va.homeSelect(0); });
+const projBefore = await ev.evaluate(() => window.__va.serialize());
+await ev.evaluate(() => window.__va.homeConfirm()); await ev.waitForTimeout(800);
+results.push(['Novo projeto: Criar projeto abre "Configurar novo projeto" sobre a tela inicial', await ev.evaluate(() => !document.getElementById('modal').hidden && /Configurar novo projeto/.test(document.getElementById('sheet').textContent) && window.__va.ui.view === 'home')]);
+results.push(['Novo projeto: campos da folha e as quatro tensões disponíveis', await ev.evaluate(() => ['dLogo', 'dSize', 'dOrient', 'dCols', 'dRows', 'dName', 'dDesc', 'dAuth', 'dProj', 'dDate', 'dAuto', 'dAll'].every(id => document.getElementById(id)) &&
+  [...document.querySelectorAll('[data-ev]')].map(b => +b.dataset.ev).join() === '127,220,380,440' && document.querySelectorAll('[data-enet]').length === 4 && document.querySelectorAll('[data-ehz]').length === 2)]);
+await ev.click('#dCloseCfg'); await ev.waitForTimeout(400);
+results.push(['Novo projeto: Fechar cancela e não sobrescreve o projeto atual', await ev.evaluate(p0 => document.getElementById('modal').hidden && window.__va.ui.view === 'home' && window.__va.serialize() === p0, projBefore)]);
+await ev.evaluate(() => window.__va.homeConfirm()); await ev.waitForTimeout(800);
+await ev.click('#dSkip'); await ev.waitForTimeout(500);
+results.push(['Tensão 18: Pular configuração usa os padrões do software', await ev.evaluate(() => { const va = window.__va, d = va.doc(); return va.ui.view === 'diagram' && !d.elec && d.sheets.map(s => s.name).join() === 'Força,Comando' && d.comps.length === 0 && d.sheets[0].size === 'A3' && va.ElectricalNetwork.label() === '220/380 V · 3F + N · 60 Hz'; })]);
+await ev.evaluate(() => { window.__va.setView('home'); window.__va.homeSelect(0); window.__va.homeConfirm(); }); await ev.waitForTimeout(800);
+await ev.click('[data-ev="440"]'); await ev.click('[data-enet="3f_n"]'); await ev.click('[data-ehz="50"]');
+const prev440 = await ev.evaluate(() => document.getElementById('ePrev').textContent);
+await ev.fill('#dProj', 'Prensa 440'); await ev.fill('#dAuth', 'Aluno'); await ev.selectOption('#dSize', 'A4');
+await ev.click('#dSave'); await ev.waitForTimeout(500);
+results.push(['Novo projeto: prévia mostra 440 V entre fases e ≈ 254 V fase-neutro', /440 VCA/.test(prev440) && /254 VCA/.test(prev440)]);
+results.push(['Novo projeto: Criar projeto aplica tensão, folhas e identificação', await ev.evaluate(() => { const va = window.__va, d = va.doc(); return va.ui.view === 'diagram' && d.elec && d.elec.v === 440 && d.elec.hz === 50 && d.elec.net === '3f_n' && d.project === 'Prensa 440' && d.author === 'Aluno' && d.sheets.every(s => s.size === 'A4') && /Prensa 440/.test(document.querySelector('.brand, header').textContent + document.getElementById('world').textContent); })]);
+results.push(['Novo projeto: nova bobina nasce com a tensão de comando do projeto', await ev.evaluate(() => { const c = window.__va.addComp('bobina', 300, 300); return c.vn === 254 && c.vk === 'CA' && c.hzn === 50; })]);
+
+// ---- Auto Focus Mode ----
+await ev.evaluate(() => { const va = window.__va; va.load(va.EXAMPLES[1].build()); va.setView('home'); });
+await ev.waitForTimeout(450);
+await ev.evaluate(() => window.__va.setView('diagram')); await ev.waitForTimeout(200);
+const g0 = await ev.evaluate(() => { const va = window.__va, r = document.getElementById('cv').getBoundingClientRect(); return { h: r.height, z: va.ui.zoom, px: va.ui.px, py: va.ui.py, comps: JSON.stringify(va.doc().comps), wires: JSON.stringify(va.doc().wires) }; });
+results.push(['Foco: ao entrar no Diagrama a navegação aparece com o temporizador armado', await ev.evaluate(() => { const f = window.__va.focus; return f.navigationExpanded && !!f.autoCollapseTimer && f.activeView === 'diagram' && !document.querySelector('.app').classList.contains('nav-collapsed'); })]);
+await ev.waitForTimeout(3000 + 600);
+const g1 = await ev.evaluate(() => { const va = window.__va, r = document.getElementById('cv').getBoundingClientRect(), nb = document.querySelector('nav.bottom').getBoundingClientRect(), st = document.getElementById('status').getBoundingClientRect();
+  return { h: r.height, z: va.ui.zoom, px: va.ui.px, py: va.ui.py, comps: JSON.stringify(va.doc().comps), wires: JSON.stringify(va.doc().wires), navH: nb.height, stBottom: st.bottom, collapsed: !va.focus.navigationExpanded && va.focus.focusMode, statusVisible: st.height > 20 && !!document.querySelector('#statusIn .readouts'), arrowUp: document.getElementById('navToggle').classList.contains('collapsed') }; });
+results.push(['Foco: navegação recolhe sozinha após 3 s', g1.collapsed && g1.navH < 1 && g1.arrowUp]);
+results.push(['Foco: canvas ocupa todo o espaço liberado', g1.h > g0.h + 40 && Math.abs(g1.stBottom - 900) < 2]);
+results.push(['Foco: zoom, posição, componentes e fios preservados', g1.z === g0.z && g1.px === g0.px && g1.py === g0.py && g1.comps === g0.comps && g1.wires === g0.wires]);
+results.push(['Foco: barra de status continua visível com as leituras', g1.statusVisible]);
+const placed = await ev.evaluate(() => { const va = window.__va, r = document.getElementById('cv').getBoundingClientRect(); va.ui.placing = 'bobina'; va.ui.mode = 'select'; va.render(); return { x: r.left + va.ui.px + 600 * va.ui.zoom, y: r.top + va.ui.py + 400 * va.ui.zoom, n: va.doc().comps.length }; });
+await ev.mouse.move(placed.x, placed.y); await ev.mouse.click(placed.x, placed.y); await ev.waitForTimeout(150);
+results.push(['Foco: coordenadas do mouse continuam precisas após expandir o canvas', await ev.evaluate(n => { const va = window.__va, c = va.doc().comps[va.doc().comps.length - 1]; va.ui.placing = null; return va.doc().comps.length === n + 1 && c.type === 'bobina' && Math.abs(c.x - 600) <= 10 && Math.abs(c.y - 400) <= 10; }, placed.n)]);
+await ev.click('#navToggle'); await ev.waitForTimeout(3000 + 600);
+results.push(['Foco: expandir manualmente cancela o recolhimento automático', await ev.evaluate(() => { const f = window.__va.focus; return f.navigationExpanded && f.manualOverride && !f.autoCollapseTimer && document.querySelector('nav.bottom').getBoundingClientRect().height > 40 && !document.getElementById('navToggle').classList.contains('collapsed'); })]);
+await ev.click('#navToggle'); await ev.waitForTimeout(500);
+results.push(['Foco: seta recolhe manualmente', await ev.evaluate(() => !window.__va.focus.navigationExpanded)]);
+await nav(ev, 'monitor'); await ev.waitForTimeout(200);
+results.push(['Foco: fora do Diagrama a navegação volta ao normal e sem temporizador', await ev.evaluate(() => { const f = window.__va.focus; return f.navigationExpanded && !f.autoCollapseTimer && !f.focusMode && f.activeView === 'monitor'; })]);
+results.push(['Monitoramento: domínios de alimentação listados', await ev.evaluate(() => /Rede do projeto/.test(document.getElementById('moDomains').textContent))]);
+await ev.click('[data-nav="diagram"]'); await ev.evaluate(() => { window.__va.setView('tags'); window.__va.setView('diagram'); });
+results.push(['Foco: voltar ao Diagrama reinicia com um único temporizador', await ev.evaluate(() => !!window.__va.focus.autoCollapseTimer && window.__va.focus.navigationExpanded)]);
+await ev.waitForTimeout(3600);
+results.push(['Foco: recolhe de novo após retornar ao Diagrama', await ev.evaluate(() => !window.__va.focus.navigationExpanded)]);
+await ev.close();
 
 const m = await browser.newPage({ viewport: { width: 390, height: 844 } });
 await m.goto(page); await m.waitForTimeout(500);

@@ -9,6 +9,11 @@
 - [ ] Disparo automático do relé térmico por falta de fase prolongada
 - [ ] Ferramentas de desenho livre (linha, retângulo, texto) e copiar/colar seleção múltipla
 - [ ] Exportar imagem e PDF (a página publicada no Claude não permite downloads; a versão local permitirá)
+- [x] Motor de tensão por fasores, configuração elétrica do projeto, transformadores e fonte CA/CC configuráveis
+- [ ] Transformador trifásico com neutro no primário (H0) e grupos vetoriais além de 0 e 11
+- [ ] Corrente e potência calculadas por impedância (hoje: corrente estimada pela potência informada)
+- [ ] Validação elétrica antes de simular (hoje as atenções de tensão aparecem durante a simulação; neutro/fase indisponível aparecem na edição)
+- [ ] Desenho 2D dos transformadores (no modo 2D eles usam o símbolo)
 - [ ] Aulas guiadas com verificação automática do circuito montado
 
 ## Plataforma

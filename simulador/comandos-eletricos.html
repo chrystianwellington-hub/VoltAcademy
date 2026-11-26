@@ -111,7 +111,7 @@ button[disabled] { cursor: default; opacity: .38; }
 #cv { width: 100%; height: 100%; display: block; user-select: none; -webkit-user-select: none; }
 .hint { position: absolute; left: 12px; bottom: 12px; right: 12px; pointer-events: none; display: flex; }
 .hint span { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; font-size: 12.5px; color: var(--muted); box-shadow: var(--shadow); max-width: 100%; }
-.status { background: var(--surface); border-top: 1px solid var(--line); display: flex; align-items: center; gap: 8px; overflow-x: auto; padding: 6px 12px; font-size: 12.5px; min-width: 0; }
+.status { background: var(--surface); border-top: 1px solid var(--line); font-size: 12.5px; min-width: 0; }
 .pill { font-weight: 600; font-size: 12px; padding: 3px 10px; border-radius: 999px; background: var(--surface-3); color: var(--muted); white-space: nowrap; }
 .pill.run { background: rgba(31,157,85,.14); color: var(--run); }
 .chip { font-family: var(--font-mono); font-size: 12px; border: 1px solid var(--line); border-radius: 999px; padding: 2px 9px; display: inline-flex; gap: 6px; align-items: center; white-space: nowrap; }
@@ -227,6 +227,68 @@ tr:last-child td { border-bottom: 0; }
 .exb h3 { margin: 0; font-size: 16px; }
 .exb p { margin: 0; line-height: 1.45; }
 .exb .btn { margin-top: auto; align-self: flex-start; }
+
+
+/* ---- Auto Focus Mode ---- */
+.app { --focus-ease: cubic-bezier(0.22, 1, 0.36, 1); }
+.bottom { max-height: 160px; transition: max-height 350ms var(--focus-ease), opacity 350ms var(--focus-ease), transform 350ms var(--focus-ease), border-color 350ms; }
+.app.nav-collapsed .bottom { max-height: 0; opacity: 0; transform: translateY(26px); border-top-color: transparent; border-top-width: 0; overflow: hidden; pointer-events: none;
+  transition-duration: 400ms; }
+.status { position: relative; overflow: visible; padding: 0; display: block; }
+.status-in { display: flex; align-items: center; gap: 8px; overflow-x: auto; padding: 6px 12px; min-width: 0; }
+.navtog { position: absolute; left: 50%; top: 0; transform: translate(-50%, -62%); z-index: 6; width: 46px; height: 20px; border-radius: 10px 10px 4px 4px;
+  display: grid; place-items: center; background: #14161B; color: #FFD600; border: 1px solid rgba(255,214,0,.38);
+  box-shadow: 0 0 0 1px rgba(0,0,0,.35), 0 0 10px rgba(255,214,0,.22); transition: box-shadow .25s, border-color .25s, transform .25s var(--focus-ease, ease); }
+.navtog svg { width: 16px; height: 16px; transition: transform 350ms cubic-bezier(0.22, 1, 0.36, 1); filter: drop-shadow(0 0 3px rgba(255,214,0,.7)); }
+.navtog.collapsed svg { transform: rotate(180deg); transition-duration: 400ms; }
+.navtog:hover { border-color: #FFD600; box-shadow: 0 0 0 1px rgba(0,0,0,.35), 0 0 16px rgba(255,214,0,.5); transform: translate(-50%, -70%); }
+.navtog.collapsed { animation: navGlow 2.4s ease-in-out infinite; }
+@keyframes navGlow { 50% { box-shadow: 0 0 0 1px rgba(0,0,0,.35), 0 0 16px rgba(255,214,0,.45); } }
+.navtog:focus-visible { outline: 2px solid #FFD600; outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .bottom, .navtog svg { transition: none; } .navtog.collapsed { animation: none; } }
+
+/* ---- Electrical engine UI ---- */
+.chip.crit { border-color: var(--critical, #D63B3B); color: var(--critical, #D63B3B); cursor: pointer; }
+.ro.net { color: var(--muted); } .ro.selv { color: var(--accent-ink); font-weight: 600; }
+.diag { border-left: 3px solid var(--warn); background: var(--surface-2); border-radius: 8px; padding: 8px 10px; display: flex; flex-direction: column; gap: 2px; font-size: 12.5px; margin-top: 8px; }
+.diag.crit { border-left-color: var(--critical, #D63B3B); }
+.diag b { font-size: 12px; letter-spacing: .04em; color: var(--fg); } .diag i { font-style: normal; color: var(--muted); }
+.diag p { margin: 4px 0 0; line-height: 1.45; } .diag .dh { color: var(--accent-ink); }
+.ecard .btn { margin-top: 8px; align-self: flex-start; }
+.frow { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.frow input, .frow select { width: 100%; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; } .chips .chip { cursor: pointer; } .chips .chip.on { border-color: var(--accent); color: var(--accent-ink); box-shadow: 0 0 8px rgba(255,214,0,.35); }
+.dtab { width: 100%; border-collapse: collapse; font-size: 13px; } .dtab th { text-align: left; color: var(--muted); font-weight: 500; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+.dtab td { padding: 7px 8px; border-bottom: 1px solid var(--line); vertical-align: top; } .dtab .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--line); margin-right: 6px; }
+.dtab tr.on .dot { background: #FFD600; box-shadow: 0 0 8px #FFD600; }
+#moDomains { overflow-x: auto; }
+.esec { border: 1px solid var(--line); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 10px; background: linear-gradient(180deg, rgba(255,214,0,.04), transparent 60%); }
+.esec .seg { flex-wrap: wrap; }
+.vbtns { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.vbtn { border: 1px solid var(--line); border-radius: 10px; padding: 10px 6px; display: flex; flex-direction: column; align-items: center; gap: 2px; background: var(--surface-2); color: var(--fg); transition: border-color .2s, box-shadow .2s, transform .2s; }
+.vbtn svg { width: 18px; height: 18px; color: var(--muted); } .vbtn b { font-family: var(--font-display); font-size: 20px; line-height: 1.1; } .vbtn small { font-size: 11px; color: var(--muted); }
+.vbtn:hover { border-color: rgba(255,214,0,.6); transform: translateY(-1px); }
+.vbtn.act { border-color: #FFD600; box-shadow: 0 0 0 1px #FFD600, 0 0 18px rgba(255,214,0,.35); background: rgba(255,214,0,.08); }
+.vbtn.act svg { color: #FFD600; filter: drop-shadow(0 0 4px rgba(255,214,0,.8)); }
+.eprev { border-radius: 10px; background: var(--surface-2); padding: 10px 12px; font-size: 13px; } .eprev .h { margin: 0 0 6px; }
+.warnt { color: var(--warn); }
+@media (max-width: 560px) { .vbtns { grid-template-columns: repeat(2, 1fr); } .frow { grid-template-columns: 1fr; } }
+/* holographic dialog over VOLT CORE + cinematic transition */
+.msheet.holo { background: linear-gradient(180deg, rgba(20,24,32,.96), rgba(12,14,19,.97)); color: #E9EDF3; border-color: rgba(255,214,0,.35);
+  box-shadow: 0 0 0 1px rgba(255,214,0,.12), 0 0 40px rgba(255,190,40,.18), 0 30px 80px rgba(0,0,0,.55); animation: holoIn .42s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --surface: #161A22; --surface-2: #1C212B; --line: rgba(255,255,255,.12); --fg: #E9EDF3; --muted: #9AA4B2; }
+.msheet.holo .cfg input, .msheet.holo .cfg select { color: #E9EDF3; }
+.msheet.holo .btn.pri { background: #FFD600; color: #14161B; border-color: #FFD600; box-shadow: 0 0 16px rgba(255,214,0,.35); }
+.msheet.holo .btn { color: #E9EDF3; }
+.msheet.holo::before { content: ''; position: absolute; inset: 0; pointer-events: none; border-radius: inherit; background: repeating-linear-gradient(0deg, rgba(255,214,0,.025) 0 1px, transparent 1px 4px); }
+.msheet.holo { position: relative; }
+.modal.closing { animation: fadeOut .22s ease both; } .modal.closing .msheet { animation: holoOut .22s ease both; }
+@keyframes holoIn { from { opacity: 0; transform: translateY(14px) scale(.96); filter: blur(4px) brightness(1.6); } to { opacity: 1; transform: none; filter: none; } }
+@keyframes holoOut { to { opacity: 0; transform: translateY(8px) scale(.97); } }
+@keyframes fadeOut { to { opacity: 0; } }
+body.warp::after { content: ''; position: fixed; inset: 0; z-index: 90; pointer-events: none; background: radial-gradient(circle at 50% 42%, rgba(255,240,170,.95), rgba(255,190,40,.55) 22%, rgba(10,12,16,0) 62%); animation: warp .9s cubic-bezier(0.22, 1, 0.36, 1) both; }
+@keyframes warp { 0% { opacity: 0; transform: scale(.4); } 25% { opacity: 1; } 100% { opacity: 0; transform: scale(2.2); } }
+@media (prefers-reduced-motion: reduce) { .msheet.holo, .modal.closing, .modal.closing .msheet { animation: none; } }
 
 /* modal */
 .modal { position: fixed; inset: 0; background: rgba(12,14,18,.5); display: grid; place-items: center; z-index: 70;
@@ -591,7 +653,7 @@ canvas.holo { position: absolute; inset: 0; width: 100%; height: 100%; display: 
           </svg>
           <div class="hint"><span id="hint"></span></div>
         </div>
-        <footer class="status" id="status"></footer>
+        <footer class="status" id="status"><div class="status-in" id="statusIn"></div><button class="navtog" id="navToggle" type="button" aria-expanded="true" aria-controls="bnav" title="Recolher navegação"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button></footer>
       </div>
       <aside class="insp" id="insp" aria-label="Propriedades"></aside>
       <nav class="tools" aria-label="Ferramentas">
@@ -647,7 +709,7 @@ canvas.holo { position: absolute; inset: 0; width: 100%; height: 100%; display: 
     <section class="view scrollview" data-view="monitor" id="vMonitor" hidden></section>
   </main>
 
-  <nav class="bottom" aria-label="Seções">
+  <nav class="bottom" id="bnav" aria-label="Seções">
     <button class="nav act" data-nav="diagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4M7 9l2 2-2 2M11 13h5"/></svg>Diagrama</button>
     <button class="nav" data-nav="operate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="9" r="2.5"/><circle cx="15.5" cy="9" r="2.5"/><path d="M7 16h10"/></svg>Operação</button>
     <button class="nav home" data-nav="home"><b class="wm">VOLT<span>ACADEMY</span></b><svg class="mi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M13 2 5 13h6l-1 9 8-12h-6z"/></svg>Início</button>
@@ -748,11 +810,11 @@ const TYPES = {
     act: actToggle, src: (c, s) => s.toggled.has(c.id) ? {} : { l1: 'L1', l2: 'L2', l3: 'L3', n: 'N', pe: 'PE' },
     draw: (c, st) => ['L1', 'L2', 'L3', 'N', 'PE'].map((p, i) => L(-6, -40 + i * 20, 40, -40 + i * 20) + T(-10, -36 + i * 20, p, 'it', 'end')).join('') +
       (st.act ? T(14, 58, 'DESLIGADA', 'it sm warn') : '') },
-  fonte_24: { name: 'Fonte AC/DC 24 Vcc', cat: 'Alimentação', pre: 'G', terms: { i1: [-20, -40], i2: [20, -40], o1: [-20, 40], o2: [20, 40] },
+  fonte_24: { name: 'Fonte CA/CC configurável', cat: 'Alimentação', pre: 'G', terms: { i1: [-20, -40], i2: [20, -40], o1: [-20, 40], o2: [20, 40] },
     nums: { i1: 'L', i2: 'N', o1: '+', o2: '−' }, box: [-34, -44, 68, 88], loads: [['i1', 'i2', 'psu']], tagAt: [36, 4],
-    src: (c, s) => s.psu && s.psu[c.id] ? { o1: '+24', o2: '0V' } : {},
+    src: (c, s) => s.psu && s.psu[c.id] ? PowerSupplyModel.outputs(c) : {},
     draw: (c, st) => `<rect x="-30" y="-26" width="60" height="52" fill="${st.on ? 'var(--gold-soft)' : 'none'}"/>${L(-30, 26, 30, -26)}` +
-      `<path d="M-22 -14 q4 -6 8 0 t8 0" fill="none"/>${L(8, 12, 22, 12)}${L(8, 17, 22, 17, dash)}` +
+      `<path d="M-22 -14 q4 -6 8 0 t8 0" fill="none"/>${L(8, 12, 22, 12)}${L(8, 17, 22, 17, dash)}` + T(-36, 4, `${PowerSupplyModel.vout(c)} V`, 'it sm', 'end') +
       L(-20, -40, -20, -26) + L(20, -40, 20, -26) + L(-20, 26, -20, 40) + L(20, 26, 20, 40) },
   trafo_3f: { name: 'Autotransformador de partida 3F', cat: 'Alimentação', pre: 'T', terms: { h1: [-40, -40], h2: [0, -40], h3: [40, -40], x1: [-40, 40], x2: [0, 40], x3: [40, 40] },
     nums: { h1: 'H1', h2: 'H2', h3: 'H3', x1: 'X1', x2: 'X2', x3: 'X3' }, box: [-56, -44, 112, 88], tagAt: [58, 4],
@@ -905,6 +967,38 @@ function motorBody(st) {
 }
 const SOUND_MODES = { continuo: 'Contínuo', intermitente: 'Intermitente (1 Hz)', pulsado: 'Pulsado rápido (4 Hz)', bitonal: 'Bitonal (dois tons)', varredura: 'Varredura (sirene)' };
 const soundWaves = st => st.on ? [0, 1, 2].map(k => { const ph = ((st.t || 0) * 1.6 + k / 3) % 1; return `<path d="M${22 + ph * 12} ${-9 - ph * 5} q${7 + ph * 5} ${9 + ph * 5} 0 ${18 + ph * 10}" fill="none" stroke="var(--ok)" stroke-width="2.2" opacity="${(1 - ph).toFixed(2)}"/>`; }).join('') : '';
+// ---------------- Transformadores configuráveis (Electrical Voltage Engine) ----------------
+const coilH = (x0, y, n, up) => `<path d="M${x0} ${y}${` a5 5 0 0 ${up ? 1 : 0} 10 0`.repeat(n)}" fill="none"/>`;
+const txDraw1 = (c, mark) => L(-20, -60, -20, -12) + L(20, -60, 20, -12) + coilH(-20, -12, 4, false) + L(-24, -3, 24, -3) + L(-24, 3, 24, 3) + coilH(-20, 12, 4, true) +
+  L(-20, 12, -20, 60) + L(20, 12, 20, 60) + T(30, -14, c.vp ? `${c.vp} V` : '', 'it sm', 'start') + T(30, 24, c.vs ? `${c.vs} V` : '', 'it sm', 'start') + (mark ? T(-28, 4, mark, 'it sm', 'end') : '');
+const glyph = (k, cy) => k === 'D' ? `<path d="M-8 ${cy + 5} L8 ${cy + 5} L0 ${cy - 9} Z" fill="none"/>` : `<path d="M0 ${cy} v-9 M0 ${cy} l-7.8 4.5 M0 ${cy} l7.8 4.5" fill="none"/>`;
+Object.assign(TYPES, {
+  trafo_1f: { name: 'Transformador monofásico', cat: 'Alimentação', pre: 'T', terms: { h1: [-20, -60], h2: [20, -60], x1: [-20, 60], x2: [20, 60] },
+    nums: { h1: 'H1', h2: 'H2', x1: 'X1', x2: 'X2' }, box: [-44, -64, 112, 128], tagAt: [30, -40], tx: '1f', txIn: ['h1', 'h2'],
+    src: (c, s) => TransformerModel.outputs(c, s.tx && s.tx[c.id]), draw: c => txDraw1(c) },
+  trafo_cmd: { name: 'Transformador de comando', cat: 'Alimentação', pre: 'TC', terms: { h1: [-20, -60], h2: [20, -60], x1: [-20, 60], x2: [20, 60] },
+    nums: { h1: 'H1', h2: 'H2', x1: 'X1', x2: 'X2' }, box: [-44, -64, 112, 128], tagAt: [30, -40], tx: '1f', txIn: ['h1', 'h2'],
+    src: (c, s) => TransformerModel.outputs(c, s.tx && s.tx[c.id]), draw: c => txDraw1(c, 'CMD') },
+  trafo_3f_iso: { name: 'Transformador trifásico', cat: 'Alimentação', pre: 'T', terms: { h1: [-40, -80], h2: [0, -80], h3: [40, -80], x1: [-40, 80], x2: [0, 80], x3: [40, 80], x0: [80, 80] },
+    nums: { h1: 'H1', h2: 'H2', h3: 'H3', x1: 'X1', x2: 'X2', x3: 'X3', x0: 'X0' }, box: [-60, -84, 156, 168], tagAt: [36, -66], tx: '3f', txIn: ['h1', 'h2', 'h3'],
+    src: (c, s) => TransformerModel.outputs(c, s.tx && s.tx[c.id]),
+    draw: c => { const cn = c.conn || 'Dy', n0 = TransformerModel.secStar(c) && c.nsec;
+      return [-40, 0, 40].map(x => L(x, -80, x, -52) + L(x, 52, x, 80)).join('') + L(-40, -52, -14, -39) + L(0, -52, 0, -42) + L(40, -52, 14, -39) +
+        L(-40, 52, -14, 39) + L(0, 52, 0, 42) + L(40, 52, 14, 39) + `<circle cx="0" cy="-16" r="26" fill="none"/><circle cx="0" cy="16" r="26" fill="none"/>` +
+        glyph(cn[0], -20) + glyph(cn[1], 24) + L(22, 30, 80, 30, n0 ? '' : dash) + L(80, 30, 80, 80, n0 ? '' : dash) +
+        T(34, -10, ({ Yy: 'Yy0', Yd: 'Yd11', Dy: n0 ? 'Dyn11' : 'Dy11', Dd: 'Dd0' })[cn] || cn, 'it sm', 'start') + T(-48, -60, c.vp ? `${c.vp} V` : '', 'it sm', 'end') + T(-48, 66, c.vs ? `${c.vs} V` : '', 'it sm', 'end'); } },
+  autotrafo: { name: 'Autotransformador de tensão', cat: 'Alimentação', pre: 'T', terms: { h1: [0, -60], c: [20, 60], x1: [-20, 60] },
+    nums: { h1: 'H1', c: 'H2', x1: 'X1' }, box: [-40, -64, 96, 128], tagAt: [26, -40], tx: 'auto', txIn: ['h1', 'c'],
+    src: (c, s) => TransformerModel.outputs(c, s.tx && s.tx[c.id]),
+    draw: c => L(0, -60, 0, -30) + `<path d="M0 -30${' a5 5 0 0 1 0 10'.repeat(6)}" fill="none"/>` + L(0, 30, 0, 44) + L(0, 44, 20, 44) + L(20, 44, 20, 60) +
+      L(-2, 0, -20, 0) + L(-20, 0, -20, 60) + `<path d="M-9 -4 L-3 0 L-9 4" fill="none"/>` + T(14, -14, c.vp ? `${c.vp} V` : '', 'it sm', 'start') + T(-26, 30, c.vs ? `${c.vs} V` : '', 'it sm', 'end') },
+});
+const TX_DEFAULTS = {
+  trafo_1f: () => ({ vp: ElectricalNetwork.lineDefault(), vs: 220, va: 500, hzn: ProjectElectricalConfig.of().hz, tol: 5, eff: 96 }),
+  trafo_cmd: () => ({ vp: ElectricalNetwork.lineDefault(), vs: 220, va: 250, hzn: ProjectElectricalConfig.of().hz, tol: 5, eff: 95 }),
+  trafo_3f_iso: () => ({ vp: ElectricalNetwork.lineDefault(), vs: 380, va: 15000, conn: 'Dy', nsec: true, hzn: ProjectElectricalConfig.of().hz, tol: 5, eff: 97 }),
+  autotrafo: () => ({ vp: 220, vs: 127, va: 1000, hzn: ProjectElectricalConfig.of().hz, tol: 5 }),
+};
 TYPES.buzzer = { name: 'Buzzer (campainha)', cat: 'Cargas e sinalização', pre: 'HA', terms: P2, nums: { a: 'X1', b: 'X2' }, loads: [['a', 'b', 'lamp']],
   sound: { mode: 'intermitente', wave: 'square', f1: 1800, f2: 1800 },
   draw: (c, st) => L(0, -40, 0, -14) + `<path d="M-16 6 A16 16 0 0 1 16 6 Z" fill="${st.on ? 'var(--gold)' : 'none'}"/>` + L(0, 6, 0, 40) + soundWaves(st) };
@@ -934,7 +1028,7 @@ const ui = { view: 'home', sheet: null, mode: 'select', placing: null, wireColor
 const hist = { stack: [], idx: -1 };
 const blankSim = () => ({ running: false, t: 0, pressed: new Set(), toggled: new Set(), tripped: new Set(), coils: {}, timerOn: {}, timerAcc: {}, timerDone: {}, lamps: {},
   injShort: new Set(), overload: new Set(), faults: {}, heat: {}, motorStart: {}, angle: {}, series: [], marks: [], meas: {}, lastSample: -1, spike: null,
-  psu: {}, sr: {}, rff: {}, motors: {}, srPowerById: {}, potOf: null, uf: null, rootPot: new Map(), flow: new Set(), short: null, osc: false, events: [] });
+  psu: {}, sr: {}, rff: {}, tx: {}, applied: {}, diag: [], labels: new Map(), rootVec: new Map(), vecOf: null, elecNet: null, motors: {}, srPowerById: {}, potOf: null, uf: null, rootPot: new Map(), flow: new Set(), short: null, osc: false, events: [] });
 const sim = blankSim();
 
 const $ = s => document.querySelector(s);
@@ -1053,7 +1147,7 @@ function normalizeWireNumbers() {
 const netOfWire = w => wireNets().find(n => n.includes(w)) || [w];
 function endLabel(e) { const c = compById(e.c); if (!c) return '?'; const T0 = TYPES[c.type], n = T0.nums[e.t] || (Object.keys(T0.terms).length > 1 ? e.t.toUpperCase() : ''); return `${c.tag || T0.name}${n ? ':' + n : ''}`; }
 // ---------- History & persistence ----------
-function serialize() { return JSON.stringify({ app: PLATFORM, kind: 'comandos-eletricos', version: 4, project: doc.project, author: doc.author, logo: doc.logo || '', dateAuto: doc.dateAuto !== false, date: doc.date || '', dateIso: doc.dateIso || '', sheets: doc.sheets, comps: doc.comps, wires: doc.wires }); }
+function serialize() { return JSON.stringify({ app: PLATFORM, kind: 'comandos-eletricos', version: 5, elec: doc.elec || undefined, project: doc.project, author: doc.author, logo: doc.logo || '', dateAuto: doc.dateAuto !== false, date: doc.date || '', dateIso: doc.dateIso || '', sheets: doc.sheets, comps: doc.comps, wires: doc.wires }); }
 function saveLocal() { try { localStorage.setItem('voltacademy.ce.doc', serialize()); localStorage.setItem('voltacademy.ce.sheet', ui.sheet || ''); } catch (e) {} }
 function commit() {
   normalizeWireNumbers();
@@ -1068,7 +1162,7 @@ function load(json, { keepHistory = false } = {}) {
   for (const c of d.comps) if (!TYPES[c.type]) throw new Error(`Componente desconhecido: ${c.type}`);
   const sheets = (Array.isArray(d.sheets) && d.sheets.length ? d.sheets : [{ id: 's1', name: 'Folha 1' }]).map(s => ({ id: s.id, name: s.name || 'Folha', desc: s.desc || '', size: SIZES[s.size] ? s.size : 'A3', orient: s.orient === 'retrato' ? 'retrato' : 'paisagem', cols: Math.min(40, Math.max(2, +s.cols || 12)), rows: Math.min(26, Math.max(2, +s.rows || 6)) }));
   const ids = new Set(sheets.map(s => s.id));
-  doc = { project: d.project || 'Projeto sem nome', author: d.author || '', logo: typeof d.logo === 'string' && d.logo.startsWith('data:image/') ? d.logo : '', dateAuto: d.dateAuto !== false, date: d.date || '', dateIso: d.dateIso || '', sheets,
+  doc = { elec: ProjectElectricalConfig.sanitize(d.elec), project: d.project || 'Projeto sem nome', author: d.author || '', logo: typeof d.logo === 'string' && d.logo.startsWith('data:image/') ? d.logo : '', dateAuto: d.dateAuto !== false, date: d.date || '', dateIso: d.dateIso || '', sheets,
     comps: d.comps.map(c => ({ ...c, sheet: ids.has(c.sheet) ? c.sheet : sheets[0].id })),
     wires: d.wires.map(w => ({ ...w, pts: w.pts ? w.pts.map(p => [...p]) : [] })) };
   const num = x => +String(x).replace(/\D/g, '') || 0;
@@ -1096,24 +1190,233 @@ function addComp(type, x, y, extra = {}) {
   if (type === 'sinaleiro' && !c.color) c.color = 'verde';
   if (type === 'temporizador' && !c.preset) c.preset = 3;
   if (type === 'fase' && !c.phase) c.phase = 'L1';
+  if (RATED_TYPES.has(type) && c.vn === undefined) Object.assign(c, { vn: ElectricalNetwork.controlDefault(), vk: 'CA', hzn: ProjectElectricalConfig.of().hz });
+  if (type.startsWith('motor') && c.vn === undefined) c.vn = type === 'motor_6p' ? 380 : ElectricalNetwork.lineDefault();
+  if (TX_DEFAULTS[type] && c.vp === undefined) Object.assign(c, TX_DEFAULTS[type]());
+  if (type === 'fonte_24' && c.vout === undefined) Object.assign(c, { vout: 24, iout: 2.5, vinMin: 85, vinMax: 264 });
   doc.comps.push(c); return c;
 }
 
 // =====================================================================
 // Simulation: nodal connectivity (union-find) + potentials, all sheets
 // =====================================================================
-const norm = p => p === 'PE' ? 'N' : p;
-const sys = p => (p === '+24' || p === '0V') ? 'DC' : 'AC';
-const isPhase = p => PHASES.includes(p);
-const voltage = (p, q) => !!(p && q && norm(p) !== norm(q) && sys(p) === sys(q));
+// =====================================================================
+// Electrical Voltage Engine
+//  ProjectElectricalConfig · ElectricalNetwork · PhaseResolver · PotentialDifferenceCalculator ·
+//  TransformerModel · PowerSupplyModel · ComponentVoltageValidator · ElectricalDiagnostics ·
+//  ElectricalDomainManager
+//  Every potential is a phasor (V rms, angle) plus a DC part and belongs to an electrical
+//  domain (project network, a transformer secondary, a power supply output). Domains that touch
+//  through a conductor share one reference frame; a contradiction between frames is a short.
+// =====================================================================
+const SQ3 = Math.sqrt(3);
+const NET_TYPES = {
+  '3f_n': { name: 'Trifásica com neutro (estrela)', short: '3F + N', phases: 3, n: true },
+  '3f': { name: 'Trifásica sem neutro', short: '3F', phases: 3, n: false },
+  '2f': { name: 'Entre duas fases (sem neutro)', short: '2F', phases: 2, n: false },
+  '1f': { name: 'Monofásica (fase + neutro)', short: '1F + N', phases: 1, n: true },
+};
+const NET_VOLTS = [127, 220, 380, 440];
+// The simulator's original model, used by projects that never configured the network.
+const ELEC_DEFAULT = Object.freeze({ net: '3f_n', v: 380, ref: 'line', hz: 60 });
+const STD_V = [12, 24, 48, 110, 127, 190, 220, 254, 380, 440, 660];
+const nomV = v => { if (v == null) return null; const s = STD_V.find(x => Math.abs(v - x) <= x * 0.012); return s || Math.round(v); };
+const fmtV = (v, kind) => v == null ? '—' : `${nomV(v)} V${kind === 'CC' ? 'CC' : kind === 'CA' ? 'CA' : ''}`;
+const ProjectElectricalConfig = {
+  defaultRef(net, v) { return net === '1f' ? 'phase' : net === '2f' ? 'line' : v === 127 ? 'phase' : 'line'; },
+  sanitize(e) {
+    if (!e || typeof e !== 'object') return null;
+    const net = NET_TYPES[e.net] ? e.net : ELEC_DEFAULT.net, v = Math.min(1000, Math.max(12, +e.v || ELEC_DEFAULT.v));
+    let ref = e.ref === 'phase' || e.ref === 'line' ? e.ref : this.defaultRef(net, v);
+    if (net === '1f') ref = 'phase'; if (net === '2f') ref = 'line';
+    return { net, v, ref, hz: +e.hz === 50 ? 50 : 60 };
+  },
+  of(d = doc) { return (d && d.elec) || ELEC_DEFAULT; },
+};
+const ElectricalNetwork = {
+  describe(e = ProjectElectricalConfig.of()) {
+    const T = NET_TYPES[e.net] || NET_TYPES['3f_n'];
+    let vLine = null, vPhase = null, vMag;
+    if (T.phases === 3) { if (e.ref === 'phase') { vPhase = e.v; vLine = e.v * SQ3; } else { vLine = e.v; vPhase = e.v / SQ3; } vMag = vPhase; }
+    if (T.phases === 2) { vLine = e.v; vMag = e.v / SQ3; }
+    if (T.phases === 1) { vPhase = e.v; vMag = e.v; }
+    const avail = new Set(T.phases === 1 ? ['L1'] : T.phases === 2 ? ['L1', 'L2'] : PHASES); if (T.n) avail.add('N'); avail.add('PE');
+    return { ...e, type: T, vLine, vPhase: T.n ? vPhase : null, vMag, avail, kind: 'CA' };
+  },
+  label(e = ProjectElectricalConfig.of()) {
+    const E = this.describe(e);
+    const v = E.type.phases === 3 && E.type.n ? `${nomV(E.vPhase)}/${nomV(E.vLine)} V` : `${nomV(E.vLine || E.vPhase)} V`;
+    return `${v} · ${E.type.short} · ${E.hz} Hz`;
+  },
+  controlDefault(e = ProjectElectricalConfig.of()) { const E = this.describe(e); return nomV(E.vPhase || E.vLine); },
+  lineDefault(e = ProjectElectricalConfig.of()) { const E = this.describe(e); return nomV(E.vLine || E.vPhase); },
+};
+// ---- phasor arithmetic ----
+const V0 = Object.freeze({ re: 0, im: 0, dc: 0 });
+const vadd = (a, b) => ({ re: a.re + b.re, im: a.im + b.im, dc: a.dc + b.dc });
+const vsub = (a, b) => ({ re: a.re - b.re, im: a.im - b.im, dc: a.dc - b.dc });
+const vscale = (a, k) => ({ re: a.re * k, im: a.im * k, dc: a.dc * k });
+const vrot = (a, deg) => { const r = deg * Math.PI / 180, c = Math.cos(r), s = Math.sin(r); return { re: a.re * c - a.im * s, im: a.re * s + a.im * c, dc: a.dc }; };
+const vpol = (m, deg) => ({ re: m * Math.cos(deg * Math.PI / 180), im: m * Math.sin(deg * Math.PI / 180), dc: 0 });
+const vround = a => ({ re: Math.round(a.re * 100) / 100, im: Math.round(a.im * 100) / 100, dc: Math.round(a.dc * 100) / 100 });
+const acMag = a => Math.hypot(a.re, a.im);
+const vang = a => Math.atan2(a.im, a.re) * 180 / Math.PI;
+const PotentialDifferenceCalculator = {
+  // vector difference of two potentials in the same reference frame (never a subtraction of RMS magnitudes)
+  between(a, b) {
+    const d = vsub(a, b), ac = acMag(d), dc = Math.abs(d.dc), v = Math.hypot(ac, dc);
+    return { v, ac, dc, vec: d, ang: vang(d), kind: ac > 0.5 && dc > 0.5 ? 'misto' : dc > 0.5 ? 'CC' : ac > 0.5 ? 'CA' : null };
+  },
+};
+// ---- project network conductors ----
+const PHASE_ANG = { L1: 0, L2: -120, L3: 120 };
+const PhaseResolver = {
+  grid(E) {
+    const m = new Map();
+    for (const p of E.avail) {
+      const live = PHASES.includes(p);
+      m.set(p, { id: p, dom: 'R', vec: live ? vpol(E.vMag, PHASE_ANG[p]) : V0, hz: E.hz, live, base: p, name: p, cls: live ? 'live' : 'neu', pe: p === 'PE' });
+    }
+    return m;
+  },
+};
+// ---- transformers ----
+const TX_PRESETS = [[220, 127], [220, 24], [380, 220], [380, 127], [380, 24], [440, 380], [440, 220], [440, 127], [440, 24]];
+const TX_CONN = { Yy: 'Estrela / estrela (Yy0)', Yd: 'Estrela / triângulo (Yd11)', Dy: 'Triângulo / estrela (Dyn11)', Dd: 'Triângulo / triângulo (Dd0)' };
+const TransformerModel = {
+  ratio(c) { return (+c.vs || 0) / (+c.vp || 1); },
+  // V(term) → {fr, v, hz} of the root the terminal touches; returns the secondary state or null
+  evaluate(c, T0, V, diag) {
+    const vp = +c.vp || 1, vs = +c.vs || 0, tol = (+c.tol || 5) / 100, k = vs / vp;
+    const prim = applied => {
+      if (Math.abs(applied - vp) > vp * tol) diag.push({ code: 'txprim', level: 'warn', comp: c, title: 'PRIMÁRIO INCOMPATÍVEL',
+        rows: [['Transformador', c.tag], ['Primário nominal', fmtV(vp, 'CA')], ['Tensão aplicada', fmtV(applied, 'CA')], ['Secundário nominal', fmtV(vs, 'CA')], ['Saída teórica ideal', fmtV(applied * k, 'CA')]],
+        msg: applied > vp ? 'A tensão aplicada ao primário está acima da nominal; o secundário também fica acima do nominal.' : 'A tensão aplicada ao primário está abaixo da nominal; o secundário fica abaixo do nominal.',
+        hint: `Alimente o primário com ${fmtV(vp, 'CA')} ou escolha um transformador ${nomV(applied)}/${nomV(vs)} V.` });
+    };
+    if (T0.tx === '1f' || T0.tx === 'auto') {
+      const a = V('h1'), b = V(T0.tx === 'auto' ? 'c' : 'h2');
+      if (!a || !b || a.fr !== b.fr) return null;
+      const d = PotentialDifferenceCalculator.between(a.v, b.v);
+      if (d.v < 1) return null;
+      if (d.kind !== 'CA') { diag.push({ code: 'txdc', level: 'crit', comp: c, title: 'TRANSFORMADOR EM CC', msg: `${c.tag}: transformador não converte corrente contínua. O primário recebeu ${fmtV(d.v, d.kind === 'CC' ? 'CC' : '')}; nenhuma tensão é induzida no secundário.`, hint: 'Alimente o primário com corrente alternada.' }); return null; }
+      prim(d.v);
+      const out = vround(vscale({ ...d.vec, dc: 0 }, k));
+      return { hz: a.hz || b.hz, vin: Math.round(d.v * 10) / 10, out: T0.tx === 'auto' ? { x1: out, c: V0 } : { x1: out, x2: V0 } };
+    }
+    if (T0.tx === '3f') {
+      const H = ['h1', 'h2', 'h3'].map(V);
+      const ok = H.every(Boolean) && new Set(H.map(x => x.fr)).size === 1;
+      const L = ok ? [vsub(H[0].v, H[1].v), vsub(H[1].v, H[2].v), vsub(H[2].v, H[0].v)] : null;
+      if (!ok || L.some(x => acMag(x) < 1)) {
+        if (H.some(Boolean)) diag.push({ code: 'txfase', level: 'crit', comp: c, title: 'FALTA DE FASE NO PRIMÁRIO', msg: `${c.tag}: o primário trifásico precisa de L1, L2 e L3 da mesma alimentação em H1, H2 e H3. Sem as três fases o modelo não gera tensão no secundário.`, hint: 'Confira as ligações do primário.' });
+        return null;
+      }
+      const vin = L.reduce((s, x) => s + acMag(x), 0) / 3; prim(vin);
+      const shift = c.conn === 'Dy' || c.conn === 'Yd' ? 30 : 0;
+      const U = L.map(x => vrot(vscale({ ...x, dc: 0 }, k), shift));
+      const out = { x1: vround(vscale(vsub(U[0], U[2]), 1 / 3)), x2: vround(vscale(vsub(U[1], U[0]), 1 / 3)), x3: vround(vscale(vsub(U[2], U[1]), 1 / 3)) };
+      if (this.secStar(c) && c.nsec) out.x0 = V0;
+      return { hz: H[0].hz, vin: Math.round(vin * 10) / 10, out };
+    }
+    return null;
+  },
+  secStar(c) { return c.conn === 'Yy' || c.conn === 'Dy'; },
+  outputs(c, st) {
+    if (!st) return {};
+    const T0 = TYPES[c.type], o = {};
+    for (const [t, vec] of Object.entries(st.out)) {
+      const live = !(t === 'x0' || t === 'c' || (T0.tx === '1f' && t === 'x2'));
+      o[t] = { id: `${c.id}|${t}`, dom: c.id, vec, hz: st.hz, live, base: t, name: `${c.tag} ${T0.nums[t] || t}`, cls: live ? 'live' : 'neu' };
+    }
+    return o;
+  },
+  secondaryV(c, st) { if (!st) return null; const o = st.out; return TYPES[c.type].tx === '3f' ? acMag(vsub(o.x1, o.x2)) : acMag(vsub(o.x1, TYPES[c.type].tx === 'auto' ? o.c : o.x2)); },
+};
+// ---- AC/DC power supply ----
+const PowerSupplyModel = {
+  vout: c => +c.vout || 24,
+  outputs(c) {
+    const v = this.vout(c);
+    return { o1: { id: `${c.id}|+`, dom: c.id, vec: { re: 0, im: 0, dc: v }, hz: 0, live: false, base: '+', name: `${c.tag} +${v} V`, cls: 'dcp' },
+      o2: { id: `${c.id}|-`, dom: c.id, vec: V0, hz: 0, live: false, base: '-', name: `${c.tag} 0 V`, cls: 'dcn' } };
+  },
+  check(c, d, diag) {
+    if (!d || d.v < 1) return false;
+    const lo = +c.vinMin || 85, hi = +c.vinMax || 264;
+    if (d.kind !== 'CA') { diag.push({ code: 'psudc', level: 'crit', comp: c, title: 'ENTRADA INCOMPATÍVEL', msg: `${c.tag}: a entrada desta fonte é em corrente alternada e recebeu ${d.kind === 'CC' ? 'corrente contínua' : 'tensão mista'}. A fonte fica sem saída.` }); return false; }
+    if (d.v > hi) { diag.push({ code: 'over', level: 'crit', comp: c, title: 'SOBRETENSÃO NA ENTRADA', rows: [['Componente', c.tag], ['Faixa de entrada', `${lo}–${hi} VCA`], ['Tensão aplicada', fmtV(d.v, 'CA')]], msg: 'A entrada está acima da faixa admissível. No modelo, a fonte entra em proteção e não entrega tensão de saída.', hint: 'Alimente a fonte dentro da faixa ou use um transformador.' }); return false; }
+    if (d.v < lo) { diag.push({ code: 'under', level: 'warn', comp: c, title: 'SUBTENSÃO NA ENTRADA', rows: [['Componente', c.tag], ['Faixa de entrada', `${lo}–${hi} VCA`], ['Tensão aplicada', fmtV(d.v, 'CA')]], msg: 'A entrada está abaixo da faixa admissível; a fonte não liga.' }); return false; }
+    return true;
+  },
+};
+// ---- component ratings (educational model; limits configurable per component) ----
+const RATING = { coil: { min: 85, max: 110, what: 'da bobina' }, timer: { min: 85, max: 110, what: 'da bobina' }, sr: { min: 85, max: 110, what: 'do relé' }, lamp: { min: 90, max: 110, what: 'da carga' } };
+const RATED_TYPES = new Set(['bobina', 'temporizador', 'rele_seguranca', 'sinaleiro', 'buzzer', 'buzina', 'sirene']);
+const ComponentVoltageValidator = {
+  check(c, kind, d, diag) {
+    if (!d || d.v < 1) return false;   // open circuit or zero potential difference
+    if (d.peReturn) { diag.push({ code: 'pe', level: 'crit', comp: c, title: 'PE USADO COMO RETORNO', msg: `${c.tag}: um terminal está ligado só ao condutor de proteção PE. O PE não é condutor de retorno; a carga não é acionada.`, hint: 'Ligue o retorno ao neutro (N) ou a outra fase, conforme a tensão da carga.' }); return false; }
+    const vn = +c.vn;
+    if (!vn) return d.kind !== 'misto';   // rating not specified: simplified model of the original simulator
+    const vk = c.vk || 'CA', R = RATING[kind] || RATING.coil, tag = c.tag || TYPES[c.type].name;
+    const okKind = vk === 'CA/CC' ? d.kind !== 'misto' : vk === d.kind;
+    if (!okKind) { diag.push({ code: 'acdc', level: 'crit', comp: c, title: 'INCOMPATIBILIDADE CA/CC', rows: [['Componente', tag], ['Tensão nominal', `${vn} V${vk}`], ['Tensão aplicada', fmtV(d.v, d.kind)]], msg: `O componente é ${vk === 'CA' ? 'exclusivamente CA' : 'exclusivamente CC'} e recebeu ${d.kind === 'CC' ? 'corrente contínua' : d.kind === 'CA' ? 'corrente alternada' : 'tensão mista'}. Mesmo valor nominal não significa compatibilidade; o componente não é acionado.`, hint: vk === 'CA' ? 'Use uma bobina CC ou alimente com corrente alternada.' : 'Use uma fonte CA/CC ou um componente CA.' }); return false; }
+    if (d.kind === 'CA' && c.hzn && d.hz && +c.hzn !== d.hz) diag.push({ code: 'hz', level: 'warn', comp: c, title: 'FREQUÊNCIA INCOMPATÍVEL', rows: [['Componente', tag], ['Frequência nominal', `${c.hzn} Hz`], ['Frequência da alimentação', `${d.hz} Hz`]], msg: 'A frequência da alimentação difere da nominal. O modelo mantém o acionamento, mas o componente real pode aquecer ou perder força.' });
+    const lo = vn * (+c.tmin || R.min) / 100, hi = vn * (+c.tmax || R.max) / 100;
+    if (d.v > hi) { diag.push({ code: 'over', level: 'crit', comp: c, title: 'SOBRETENSÃO', rows: [['Componente', tag], ['Tensão nominal', `${vn} V${vk === 'CA/CC' ? '' : vk}`], ['Tensão aplicada', fmtV(d.v, d.kind)]], msg: `A tensão aplicada ultrapassa a tensão admissível ${R.what} (até ${Math.round(hi)} V).`, hint: `Revise a alimentação ou utilize um transformador ${nomV(d.v)}/${vn} V${d.kind === 'CA' ? 'CA' : ''}.` }); return true; }
+    if (d.v < lo) { diag.push({ code: 'under', level: 'warn', comp: c, title: 'SUBTENSÃO', rows: [['Componente', tag], ['Tensão nominal', `${vn} V${vk === 'CA/CC' ? '' : vk}`], ['Tensão aplicada', fmtV(d.v, d.kind)]], msg: `A tensão aplicada está abaixo do mínimo de operação ${R.what} (${Math.round(lo)} V); o componente não atua.`, hint: 'Confira a alimentação ou a tensão nominal escolhida.' }); return false; }
+    return true;
+  },
+};
+const ElectricalDiagnostics = {
+  unavailable(c, p, E) {
+    const isN = p === 'N';
+    return { code: isN ? 'nunavail' : 'funavail', level: 'crit', comp: c, title: isN ? 'NEUTRO INDISPONÍVEL' : 'FASE INDISPONÍVEL',
+      msg: isN ? `A rede configurada (${E.type.name}) não possui neutro disponível. Revise a configuração da rede ou utilize um dispositivo adequado de transformação.`
+        : `A rede configurada (${E.type.name}) não disponibiliza ${p}. Nenhuma tensão é criada artificialmente nesse condutor.`,
+      hint: 'Ajuste em Configurar folha › Configuração elétrica do projeto.' };
+  },
+  dedupe(list) { const seen = new Set(); return list.filter(d => { const k = d.code + '|' + (d.comp ? d.comp.id : '') + '|' + d.title; if (seen.has(k)) return false; seen.add(k); return true; }); },
+  html(d) {
+    return `<div class="diag ${d.level}"><b>ATENÇÃO — ${esc(d.title)}</b>${(d.rows || []).map(([k, v]) => `<span><i>${esc(k)}:</i> ${esc(v)}</span>`).join('')}<p>${esc(d.msg)}</p>${d.hint ? `<p class="dh">Sugestão: ${esc(d.hint)}</p>` : ''}</div>`;
+  },
+  text(d) { return `${d.title}${d.comp && d.comp.tag ? ' · ' + d.comp.tag : ''}`; },
+  // checks that do not depend on the simulation state (shown while editing)
+  static() {
+    const E = ElectricalNetwork.describe(), out = [];
+    for (const c of doc.comps) {
+      if (c.type === 'fase' && !E.avail.has(c.phase || 'L1')) out.push(this.unavailable(c, c.phase || 'L1', E));
+      if (c.type === 'neutro' && !E.avail.has('N')) out.push(this.unavailable(c, 'N', E));
+    }
+    return out;
+  },
+};
+const ElectricalDomainManager = {
+  list() {
+    const E = ElectricalNetwork.describe(), L = sim.labels || new Map(), on = id => [...L.values()].some(x => x.dom === id);
+    const out = [{ id: 'R', name: 'Rede do projeto', kind: 'CA', detail: ElectricalNetwork.label(), on: sim.running && on('R'), src: NET_TYPES[E.net].name, iso: '—' }];
+    for (const c of doc.comps) {
+      const T0 = TYPES[c.type];
+      if (T0.tx) { const st = sim.running && sim.tx && sim.tx[c.id], vsec = TransformerModel.secondaryV(c, st);
+        out.push({ id: c.id, name: `Secundário ${c.tag}`, kind: 'CA', detail: st ? `${fmtV(vsec, 'CA')} · ${st.hz} Hz (primário ${fmtV(st.vin, 'CA')})` : `${c.vs} V nominal · sem alimentação`, on: !!st, src: `${T0.name} ${c.vp}/${c.vs} V`, iso: T0.tx === 'auto' ? 'sem isolamento (autotransformador)' : 'isolado galvanicamente' }); }
+      if (c.type === 'fonte_24') out.push({ id: c.id, name: `Saída ${c.tag}`, kind: 'CC', detail: `${PowerSupplyModel.vout(c)} VCC`, on: !!(sim.running && sim.psu && sim.psu[c.id]), src: 'Fonte CA/CC', iso: 'saída isolada' });
+    }
+    return out;
+  },
+};
+let LBL = new Map(), LBLABS = () => null;
+const isPhase = p => !!p && (LBL.has(p) ? LBL.get(p).live : PHASES.includes(p));
 function solve(maxIter = 40) {
   const parent = new Map();
   const f = k => { if (!parent.has(k)) parent.set(k, k); let r = k; while (parent.get(r) !== r) r = parent.get(r); let n = k; while (parent.get(n) !== r) { const nx = parent.get(n); parent.set(n, r); n = nx; } return r; };
   const u = (a, b) => { const ra = f(a), rb = f(b); if (ra !== rb) parent.set(ra, rb); };
   const key = (c, t) => c + ':' + t;
   const byId = new Map(doc.comps.map(c => [c.id, c]));
-  let state = { coils: { ...sim.coils }, psu: { ...sim.psu }, sr: { ...sim.sr }, rff: { ...sim.rff } };
-  let srPowerById = {}, stable = false, short = null, potOf = () => undefined, timerOn = {}, lamps = {}, rootPot = new Map();
+  const E = ElectricalNetwork.describe(), GRID = PhaseResolver.grid(E);
+  const wired = new Set(); for (const w of doc.wires) { wired.add(key(w.a.c, w.a.t)); wired.add(key(w.b.c, w.b.t)); }
+  let state = { coils: { ...sim.coils }, psu: { ...sim.psu }, sr: { ...sim.sr }, rff: { ...sim.rff }, tx: JSON.parse(JSON.stringify(sim.tx || {})) };
+  let srPowerById = {}, stable = false, short = null, potOf = () => undefined, vecOf = () => null, timerOn = {}, lamps = {}, rootPot = new Map(), rootVec = new Map(), diag = [], applied = {};
   const loadRoots = [];
   for (let iter = 0; iter < maxIter && !stable; iter++) {
     parent.clear(); loadRoots.length = 0;
@@ -1128,23 +1431,51 @@ function solve(maxIter = 40) {
       for (const [a, b] of T0.pairs(act, c, ctx)) u(key(c.id, a), key(c.id, b));
     }
     for (const id of sim.injShort) { const c = byId.get(id); if (!c) continue; const ts = Object.keys(TYPES[c.type].terms); u(key(id, ts[0]), key(id, ts[1])); }
-    rootPot = new Map(); short = null;
+    // sources → labels on roots
+    diag = []; short = null; LBL = new Map();
+    const rootLabels = new Map();
     for (const c of doc.comps) {
       const T0 = TYPES[c.type]; if (!T0.src) continue;
       for (const [t, p] of Object.entries(T0.src(c, ctx))) {
-        const r = f(key(c.id, t)), q = norm(p), had = rootPot.get(r);
-        if (had && had !== q) short = short || [had, q];
-        else rootPot.set(r, q);
+        const lab = typeof p === 'string' ? GRID.get(p) : p;
+        if (!lab) { if (wired.has(key(c.id, t))) diag.push(ElectricalDiagnostics.unavailable(c, p, E)); continue; }
+        LBL.set(lab.id, lab);
+        const r = f(key(c.id, t)); if (!rootLabels.has(r)) rootLabels.set(r, []); rootLabels.get(r).push(lab);
       }
     }
-    if (short) { sim.shortState = JSON.parse(JSON.stringify(state)); state = { coils: {}, psu: {}, sr: {}, rff: {} }; timerOn = {}; lamps = {}; break; }
+    // domains → reference frames (weighted union-find with phasor offsets)
+    const fp = new Map(), fo = new Map();
+    const ff = d => { if (!fp.has(d)) { fp.set(d, d); fo.set(d, V0); } let off = V0, x = d; while (fp.get(x) !== x) { off = vadd(off, fo.get(x)); x = fp.get(x); } return [x, off]; };
+    const abs = L => { const [fr, off] = ff(L.dom); return { fr, v: vadd(L.vec, off) }; };
+    for (const Ls of rootLabels.values()) {
+      const a = Ls[0];
+      for (const b of Ls.slice(1)) {
+        const A = abs(a), B = abs(b);
+        if (A.fr === B.fr) { if (PotentialDifferenceCalculator.between(A.v, B.v).v > 1) short = short || [a.name, b.name]; }
+        else { fp.set(B.fr, A.fr); fo.set(B.fr, vsub(A.v, B.v)); }
+      }
+    }
+    if (short) { sim.shortState = JSON.parse(JSON.stringify(state)); state = { coils: {}, psu: {}, sr: {}, rff: {}, tx: {} }; timerOn = {}; lamps = {}; break; }
+    rootPot = new Map(); rootVec = new Map();
+    for (const [r, Ls] of rootLabels) {
+      const rep = Ls.find(x => x.live) || Ls.find(x => x.dom === 'R' && !x.pe) || Ls.find(x => !x.pe) || Ls[0], A = abs(rep);
+      rootPot.set(r, rep.id);
+      rootVec.set(r, { fr: A.fr, v: A.v, hz: rep.hz, live: Ls.some(x => x.live), pe: Ls.every(x => x.pe), cls: rep.cls });
+    }
+    LBLABS = id => LBL.has(id) ? abs(LBL.get(id)) : null;
     potOf = (cid, t) => rootPot.get(f(key(cid, t)));
-    const next = { coils: {}, psu: {}, sr: {}, rff: {} }; timerOn = {}; lamps = {};
+    vecOf = (cid, t) => rootVec.get(f(key(cid, t))) || null;
+    const across = (cid, a, b) => {
+      const A = vecOf(cid, a), B = vecOf(cid, b); if (!A || !B || A.fr !== B.fr) return null;
+      const d = PotentialDifferenceCalculator.between(A.v, B.v); d.hz = A.hz || B.hz; d.peReturn = (A.pe && B.live) || (B.pe && A.live); return d;
+    };
+    const next = { coils: {}, psu: {}, sr: {}, rff: {}, tx: {} }; timerOn = {}; lamps = {}; applied = {};
     const srPower = {}; srPowerById = {};
     for (const c of doc.comps) {
       const T0 = TYPES[c.type];
       for (const [a, b, kind] of (T0.loads || [])) {
-        const on = voltage(potOf(c.id, a), potOf(c.id, b));
+        const d = across(c.id, a, b); applied[c.id] = d;
+        const on = kind === 'psu' ? PowerSupplyModel.check(c, d, diag) : ComponentVoltageValidator.check(c, kind, d, diag);
         if (on) loadRoots.push(f(key(c.id, a)), f(key(c.id, b)));
         if (kind === 'coil') next.coils[c.tag] = next.coils[c.tag] || on;
         if (kind === 'timer') timerOn[c.tag] = timerOn[c.tag] || on;
@@ -1152,7 +1483,11 @@ function solve(maxIter = 40) {
         if (kind === 'psu') next.psu[c.id] = on;
         if (kind === 'sr') srPower[c.tag] = srPower[c.tag] || on;
       }
-      if (c.type === 'rff') { const ps = ['l1', 'l2', 'l3'].map(t => potOf(c.id, t)); next.rff[c.id] = ps.every(isPhase) && new Set(ps).size === 3; }
+      if (T0.tx) {
+        const st = TransformerModel.evaluate(c, T0, t => vecOf(c.id, t), diag);
+        if (st) { next.tx[c.id] = st; for (const t of T0.txIn) loadRoots.push(f(key(c.id, t))); }
+      }
+      if (c.type === 'rff') { const ps = ['l1', 'l2', 'l3'].map(t => potOf(c.id, t)); next.rff[c.id] = ps.every(isPhase) && new Set(ps).size === 3 && threePhaseSet(ps); }
     }
     for (const c of doc.comps) if (c.type === 'rele_seguranca') {
       const inOk = f(key(c.id, 's11')) === f(key(c.id, 's12'));
@@ -1165,14 +1500,31 @@ function solve(maxIter = 40) {
   }
   sim.osc = !stable && !short;
   sim.short = short;
-  Object.assign(sim, state, { timerOn, lamps, srPowerById, uf: f, rootPot, potOf: short ? () => undefined : potOf });
+  Object.assign(sim, state, { timerOn, lamps, srPowerById, uf: f, rootPot, rootVec, potOf: short ? () => undefined : potOf, vecOf: short ? () => null : vecOf, labels: LBL, applied: short ? {} : applied, elecNet: E });
   sim.motors = {};
   if (!short) for (const c of doc.comps) {
     if (c.type === 'motor_3f') sim.motors[c.id] = evalMotor3(['u', 'v', 'w'].map(t => potOf(c.id, t)));
     if (c.type === 'motor_6p') sim.motors[c.id] = evalMotor6(c, potOf, t => f(key(c.id, t)), rootPot);
-    if (sim.motors[c.id] && sim.motors[c.id].run) for (const t of Object.keys(TYPES[c.type].terms)) loadRoots.push(f(key(c.id, t)));
+    const m = sim.motors[c.id];
+    if (m && m.run) {
+      for (const t of Object.keys(TYPES[c.type].terms)) loadRoots.push(f(key(c.id, t)));
+      const ts = c.type === 'motor_3f' ? ['u', 'v'] : ['u1', 'v1'], A = vecOf(c.id, ts[0]), B = vecOf(c.id, ts[1]);
+      const d = A && B ? PotentialDifferenceCalculator.between(A.v, B.v) : null; applied[c.id] = d && { ...d, hz: A.hz };
+      const vn = +c.vn, vl = d ? d.v : 0;
+      if (vn && d) {
+        const ref = m.conn === 'triângulo' ? vn / SQ3 : vn;   // 6-lead motors: vn is the star (higher) voltage
+        if (vl > ref * 1.1) diag.push({ code: 'over', level: 'crit', comp: c, title: 'SOBRETENSÃO', rows: [['Componente', c.tag], ['Tensão nominal', `${nomV(ref)} V entre fases`], ['Tensão aplicada', fmtV(vl, 'CA')]], msg: 'A tensão entre fases aplicada ao motor ultrapassa a nominal (+10%).', hint: m.conn === 'triângulo' ? 'Ligue o motor em estrela ou use uma rede compatível.' : 'Revise a alimentação ou a ligação do motor.' });
+        else if (vl < ref * 0.9) diag.push({ code: 'under', level: 'warn', comp: c, title: 'SUBTENSÃO', rows: [['Componente', c.tag], ['Tensão nominal', `${nomV(ref)} V entre fases`], ['Tensão aplicada', fmtV(vl, 'CA')]], msg: 'A tensão entre fases aplicada ao motor está abaixo da nominal (−10%). O motor perde conjugado e tende a aquecer.' });
+      }
+    }
   }
+  sim.diag = short ? [] : ElectricalDiagnostics.dedupe(diag);
   sim.flow = new Set(short ? [] : loadRoots.filter(r => rootPot.has(r)));
+}
+// three labels from one balanced reference frame with non-zero voltage between each pair
+function threePhaseSet(ps) {
+  const v = ps.map(p => LBLABS(p)); if (v.some(x => !x) || new Set(v.map(x => x.fr)).size > 1) return false;
+  return [[0, 1], [1, 2], [2, 0]].every(([i, j]) => PotentialDifferenceCalculator.between(v[i].v, v[j].v).ac > 1);
 }
 function snapshot() {
   const s = {};
@@ -1190,9 +1542,13 @@ function logChanges(a, b) {
   for (const [k, v] of Object.entries(b)) if (a[k] !== v && !(a[k] === undefined && /desligado|apagado|parado|bloqueado|silencioso/.test(v))) sim.events.unshift({ t: sim.t, msg: `${k}: ${v}` });
   if (sim.events.length > 200) sim.events.length = 200;
 }
-function direction(ps) { const i = ps.map(p => PHASES.indexOf(p)); return ((i[1] - i[0] + 3) % 3 === 1 && (i[2] - i[1] + 3) % 3 === 1) ? 'horário' : 'anti-horário'; }
+function direction(ps) {
+  const v = ps.map(p => LBLABS(p));
+  if (v.every(Boolean)) { const ab = vsub(v[0].v, v[1].v), bc = vsub(v[1].v, v[2].v), d = ((vang(ab) - vang(bc)) % 360 + 360) % 360; return Math.abs(d - 120) < 30 ? 'horário' : 'anti-horário'; }
+  const i = ps.map(p => PHASES.indexOf(p)); return ((i[1] - i[0] + 3) % 3 === 1 && (i[2] - i[1] + 3) % 3 === 1) ? 'horário' : 'anti-horário'; }
 function evalMotor3(ps) {
   const ph = ps.filter(isPhase);
+  if (ph.length === 3 && new Set(ph).size === 3 && !threePhaseSet(ps)) return { run: false, msg: 'Fases de alimentações diferentes' };
   if (ph.length === 3 && new Set(ph).size === 3) { const dir = direction(ps); return { run: true, dir, msg: `Girando · ${dir}` }; }
   if (ph.length) return { run: false, msg: 'Falta de fase' };
   return { run: false };
@@ -1201,7 +1557,7 @@ function evalMotor6(c, potOf, rootOf, rootPot) {
   const P = t => potOf(c.id, t);
   const outer = ['u1', 'v1', 'w1'].map(P), inner = ['u2', 'v2', 'w2'].map(P);
   if (![...outer, ...inner].some(isPhase)) return { run: false };
-  const three = ps => ps.every(isPhase) && new Set(ps).size === 3;
+  const three = ps => ps.every(isPhase) && new Set(ps).size === 3 && threePhaseSet(ps);
   if (three(outer)) {
     const ir = ['u2', 'v2', 'w2'].map(rootOf);
     if (ir[0] === ir[1] && ir[1] === ir[2] && !isPhase(rootPot.get(ir[0]))) { const dir = direction(outer); return { run: true, dir, conn: 'estrela', msg: `Estrela (Y) · ${dir}` }; }
@@ -1236,9 +1592,10 @@ function clearFaults() {
   sim.events.unshift({ t: sim.t, msg: 'Proteções rearmadas e falhas removidas' });
   resolve(); render();
 }
-// ---- electrical quantities (didactic model: 220 V F-N, 380 V F-F, 60 Hz) ----
+// ---- electrical quantities (didactic model; network levels come from the project configuration) ----
 const LOAD_A = { coil: 0.05, timer: 0.03, lamp: 0.02, psu: 0.15, sr: 0.04 };
-const motorIn = c => (+c.kw || 1.5) * 1000 / (Math.sqrt(3) * 380 * 0.85 * 0.85);
+const motorVL = c => +c.vn || ElectricalNetwork.describe().vLine || 380;
+const motorIn = c => (+c.kw || 1.5) * 1000 / (Math.sqrt(3) * motorVL(c) * 0.85 * 0.85);
 function motorCurrent(c) {
   const m = sim.motors[c.id]; if (!m) return 0;
   const In = motorIn(c);
@@ -1252,11 +1609,11 @@ function motorCurrent(c) {
   return m.msg === 'Falta de fase' ? In * 1.73 : 0;
 }
 function updateElectrical(dt) {
-  const pots = new Set(sim.rootPot ? sim.rootPot.values() : []);
-  const phases = [...pots].filter(isPhase).length, hasN = pots.has('N');
+  const E = sim.elecNet || ElectricalNetwork.describe(), grid = [...(sim.labels || new Map()).values()].filter(x => x.dom === 'R');
+  const phases = new Set(grid.filter(x => x.live).map(x => x.id)).size, hasN = grid.some(x => x.id === 'N');
   let dip = 1; if (sim.spike && sim.t - sim.spike.t < 0.35) dip = 0.25;
-  const m = { v1: phases && hasN ? 220 * dip : 0, v3: phases >= 2 ? 380 * dip : 0, iCtrl: 0, motors: {} };
-  m.hz = m.v1 || m.v3 ? 60 : 0;
+  const m = { v1: phases && hasN && E.vPhase ? nomV(E.vPhase) * dip : 0, v3: phases >= 2 && E.vLine ? nomV(E.vLine) * dip : 0, iCtrl: 0, motors: {} };
+  m.hz = m.v1 || m.v3 ? E.hz : 0;
   for (const c of doc.comps) {
     const T0 = TYPES[c.type];
     for (const [, , kind] of (T0.loads || [])) {
@@ -1475,7 +1832,7 @@ const D2 = {
       return rr(-30, y - 6, 66, 12, off ? '#C9CED4' : col, 3, 1, '#1F2328') + (p === 'PE' && !off ? `<rect x="-30" y="${y - 6}" width="66" height="12" rx="3" fill="url(#peStripe)" stroke="none"/>` : '') + tx(-24, y + 3, p, 7, '#fff', 700, 'start');
     }).join('') + screwsOf(c) + (st.act ? tx(4, 60, 'DESLIGADA', 8, K.red) : ''),
   fonte_24: (c, st) => ln(-20, -36, -20, -26) + ln(20, -36, 20, -26) + ln(-20, 26, -20, 36) + ln(20, 26, 20, 36) + rr(-30, -28, 60, 56, '#D6DBE1', 5) + shade(-30, -28, 60, 56, 5) +
-      tx(0, -8, '24 V DC', 8.5) + tx(0, 4, 'POWER', 5.5, '#6B7280', 600) + ledD(0, 14, st.on) + screwsOf(c),
+      tx(0, -8, `${PowerSupplyModel.vout(c)} V DC`, 8.5) + tx(0, 4, 'POWER', 5.5, '#6B7280', 600) + ledD(0, 14, st.on) + screwsOf(c),
   trafo_3f: c => [-40, 0, 40].map(x => ln(x, -36, x, -24) + ln(x, 24, x, 36)).join('') + rr(-54, -26, 108, 52, '#5D6570', 4, 1.2, '#363C44') +
       [-40, 0, 40].map(x => rr(x - 12, -20, 24, 40, '#C67B3D', 6, 1, '#8A4F20') + [-12, -4, 4, 12].map(y => ln(x - 11, y, x + 11, y, '#A05F2A', 1)).join('')).join('') + screwsOf(c),
   botao_na: (c, st) => leads2() + block(0, '13–14 NA') + head(K.green, st.act) + screwsOf(c),
@@ -1554,7 +1911,7 @@ function faultFX(c, f) {
 // =====================================================================
 // Rendering — diagram sheets
 // =====================================================================
-const EMPTY = { pressed: new Set(), toggled: new Set(), tripped: new Set(), coils: {}, timerDone: {}, sr: {}, rff: {}, psu: {} };
+const EMPTY = { pressed: new Set(), toggled: new Set(), tripped: new Set(), coils: {}, timerDone: {}, sr: {}, rff: {}, psu: {}, tx: {} };
 function compState(c, live) {
   const T0 = TYPES[c.type], s = live && sim.running ? sim : EMPTY, st = { running: live && sim.running };
   st.act = T0.act ? T0.act(c, s) : false;
@@ -1571,8 +1928,8 @@ function compState(c, live) {
 }
 function netInfo(cid, t) {
   if (!sim.running || !sim.uf || sim.short) return '';
-  const r = sim.uf(cid + ':' + t), p = sim.rootPot.get(r);
-  const cls = isPhase(p) ? 'live' : p === 'N' ? 'neu' : p === '+24' ? 'dcp' : p === '0V' ? 'dcn' : '';
+  const r = sim.uf(cid + ':' + t), rv = sim.rootVec && sim.rootVec.get(r);
+  const cls = rv ? rv.cls : '';
   return cls && sim.flow.has(r) ? cls + ' flow' : cls;
 }
 function frameSVG(d, sheet) {
@@ -1686,6 +2043,7 @@ function render() {
   if (ui.view === 'lab') renderLab();
   updateTop();
   holoSync();
+  focusOnView(ui.view);
 }
 function renderWorld() {
   let s = `<g transform="translate(${ui.px} ${ui.py}) scale(${ui.zoom})">${sheetSVG(doc, ui.sheet, true)}`;
@@ -1728,10 +2086,12 @@ function renderStatus() {
   h += doc.comps.filter(c => c.type === 'temporizador').map(c => `<span class="chip${sim.timerDone[c.tag] ? ' on' : ''}"><span class="dot"></span>${esc(c.tag)} ${sim.running ? Math.min(+c.preset, sim.timerAcc[c.tag] || 0).toFixed(1) : '0.0'}/${(+c.preset).toFixed(1)} s</span>`).join('');
   h += motors.map(c => { const m = sim.motors[c.id] || {}; return `<span class="chip${m.run ? ' on' : m.msg ? ' warn' : ''}"><span class="dot"></span>${esc(c.tag)} ${esc(m.msg || 'parado')}</span>`; }).join('');
   if (sim.osc) h += `<span class="chip warn">Circuito oscilando: confira selo e intertravamento</span>`;
+  const att = sim.running ? sim.diag || [] : ElectricalDiagnostics.static();
+  if (att.length) h += `<button class="chip crit" id="attChip" title="${esc(att.map(d => ElectricalDiagnostics.text(d)).join(' · '))}">${att.length} atenç${att.length > 1 ? 'ões' : 'ão'}</button>`;
   if (warns.length) h += `<button class="chip warn" id="warnChip" title="${esc(warns.join(' · '))}">${warns.length} aviso${warns.length > 1 ? 's' : ''}</button>`;
   h += readoutsHTML();
-  $('#status').innerHTML = h;
-  const wc = $('#warnChip'); if (wc) wc.addEventListener('click', () => { ui.sel = null; ui.inspOpen = true; render(); });
+  const si = $('#statusIn'); if (si._h !== h) { si.innerHTML = h; si._h = h; }
+  for (const id of ['#warnChip', '#attChip']) { const wc = $(id); if (wc && !wc._b) { wc._b = 1; wc.addEventListener('click', () => { ui.sel = null; ui.inspOpen = true; render(); }); } }
 }
 const fmtN = (v, d = 1) => (v || 0).toLocaleString('pt-BR', { minimumFractionDigits: d, maximumFractionDigits: d });
 function totalCurrent() { const m = sim.meas || {}; if (m.iShort) return m.iShort; return Object.values(m.motors || {}).reduce((a, b) => a + b, 0) + (m.iCtrl || 0); }
@@ -1745,7 +2105,8 @@ function readoutsHTML() {
   const m = sim.meas || {}, [st, cls] = stateOf();
   const bolt = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M13 2 5 13h6l-1 9 8-12h-6z"/></svg>';
   const wave = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 12c2.5-6 5-6 7.5 0s5 6 7.5 0 3.5-4 5-2"/></svg>';
-  return `<span class="readouts"><span class="ro">${bolt}${fmtN(m.v1, 0)} V</span>${m.v3 ? `<span class="ro v3">${fmtN(m.v3, 0)} V F-F</span>` : ''}<span class="ro">${wave}${fmtN(totalCurrent(), totalCurrent() >= 100 ? 0 : 2)} A</span><span class="ro hz">${m.hz || 0} Hz</span><span class="ro ${cls}">Estado: ${st}</span></span>`;
+  const sc = ui.sel && ui.sel.kind === 'comp' && sim.running ? compById(ui.sel.id) : null, ap = sc && sim.applied ? sim.applied[sc.id] : null;
+  return `<span class="readouts"><span class="ro net" title="Tensão nominal configurada no projeto">Rede ${esc(ElectricalNetwork.label())}</span>${ap && ap.v >= 1 ? `<span class="ro selv" title="Tensão efetiva no componente selecionado">${esc(sc.tag || TYPES[sc.type].name)}: ${fmtV(ap.v, ap.kind)}</span>` : ''}<span class="ro">${bolt}${fmtN(m.v1, 0)} V</span>${m.v3 ? `<span class="ro v3">${fmtN(m.v3, 0)} V F-F</span>` : ''}<span class="ro">${wave}${fmtN(totalCurrent(), totalCurrent() >= 100 ? 0 : 2)} A</span><span class="ro hz">${m.hz || 0} Hz</span><span class="ro ${cls}">Estado: ${st}</span></span>`;
 }
 function updateReadoutsOnly() { const r = document.querySelector('#vOperate .readouts'); if (r) r.outerHTML = readoutsHTML(); }
 
@@ -1763,7 +2124,8 @@ function problems() {
     const linked = Object.keys(T0.terms).some(t => doc.wires.some(w => (w.a.c === c.id && w.a.t === t) || (w.b.c === c.id && w.b.t === t)));
     if (!linked) out.push(`${c.tag || T0.name}: sem nenhuma ligação ${where}`);
   }
-  if (!doc.comps.some(c => TYPES[c.type].src && c.type !== 'fonte_24')) out.push('Falta alimentação: insira Fase (L) e Neutro (N) ou a fonte trifásica');
+  for (const d of ElectricalDiagnostics.static()) out.push(`${d.title}: ${d.comp.tag || TYPES[d.comp.type].name} · ${d.msg}`);
+  if (!doc.comps.some(c => TYPES[c.type].src && c.type !== 'fonte_24' && !TYPES[c.type].tx)) out.push('Falta alimentação: insira Fase (L) e Neutro (N) ou a fonte trifásica');
   return out;
 }
 
@@ -1780,8 +2142,9 @@ function renderInspector() {
     if (c.type === 'fase') h += `<div class="field"><label for="fPhase">Fase</label><select id="fPhase" ${dis}>${PHASES.map(p => `<option ${c.phase === p ? 'selected' : ''}>${p}</option>`).join('')}</select></div>`;
     if (T0.sound) h += `<div class="field"><label for="fMode">Tipo de som</label><select id="fMode" ${dis}>${Object.entries(SOUND_MODES).map(([k, v]) => `<option value="${k}" ${soundOf(c).mode === k ? 'selected' : ''}>${v}</option>`).join('')}</select></div><div class="row"><button class="btn" id="aPrev">▶ Ouvir 2 s</button></div>`;
     if (c.type === 'sinaleiro') h += `<div class="field"><label for="fColor">Cor do sinaleiro</label><select id="fColor" ${dis}>${Object.keys(LAMP_COLORS).map(k => `<option value="${k}" ${c.color === k ? 'selected' : ''}>${k[0].toUpperCase() + k.slice(1)}</option>`).join('')}</select></div>`;
-    if (c.type.startsWith('motor')) h += `<div class="field"><label for="fKw">Potência (kW) · corrente nominal ${fmtN(motorIn(c), 2)} A em 380 V</label><input id="fKw" type="number" min="0.25" max="75" step="0.25" value="${+c.kw || 1.5}" ${dis}></div>`;
+    if (c.type.startsWith('motor')) h += `<div class="field"><label for="fKw">Potência (kW) · corrente nominal ${fmtN(motorIn(c), 2)} A em ${nomV(motorVL(c))} V</label><input id="fKw" type="number" min="0.25" max="75" step="0.25" value="${+c.kw || 1.5}" ${dis}></div>`;
     if (c.type === 'temporizador') h += `<div class="field"><label for="fPreset">Tempo de retardo (segundos)</label><input id="fPreset" type="number" min="0.1" max="600" step="0.1" value="${+c.preset}" ${dis}></div>`;
+    h += elecInspectorHTML(c, dis);
     const nums = Object.values(T0.nums).filter(Boolean);
     if (nums.length > 1) h += `<div class="field"><label>Bornes</label><div class="mono">${nums.join(' · ')}</div></div>`;
     const refs = crossList(c);
@@ -1801,6 +2164,8 @@ function renderInspector() {
   } else {
     const pr = problems();
     h += `<p class="title-lg">${esc(doc.project)}</p><p class="muted small">${doc.sheets.length} folha${doc.sheets.length > 1 ? 's' : ''} · ${doc.comps.length} componentes · ${doc.wires.length} fios</p>`;
+    h += `<div class="card ecard"><p class="h">Alimentação do projeto</p><p style="margin:0" class="mono">${esc(ElectricalNetwork.label())}</p>${doc.elec ? '' : '<p class="muted small" style="margin:4px 0 0">Padrão do simulador: o projeto não tem configuração elétrica própria.</p>'}<button class="btn" id="aNet">Configurar rede</button></div>`;
+    if (sim.running && sim.diag && sim.diag.length) h += `<div class="card warnc"><p class="h">Atenções elétricas</p>${sim.diag.map(d => ElectricalDiagnostics.html(d)).join('')}</div>`;
     h += pr.length ? `<div class="card warnc"><p class="h">Avisos</p><ul class="list">${pr.map(p => `<li>${esc(p)}</li>`).join('')}</ul></div>` : `<div class="card"><p class="h">Projeto</p><p style="margin:0">Nenhum aviso. O circuito está pronto para simular.</p></div>`;
     h += `<div class="card"><p class="h">Dicas</p><ul class="list help small">
       <li>Abra uma pasta à esquerda, toque num componente e depois na folha.</li>
@@ -1840,12 +2205,13 @@ function bindInspector() {
   on('fKw', 'change', e => { c.kw = Math.max(0.25, Math.min(75, +e.target.value || 1.5)); commit(); render(); });
   on('fPreset', 'change', e => { const v = Math.max(0.1, Math.min(600, +e.target.value || 1)); c.preset = Math.round(v * 10) / 10; commit(); render(); });
   on('aRot', 'click', () => rotateSel());
-  on('aDup', 'click', () => { const n = addComp(c.type, c.x + 80, c.y, { color: c.color, preset: c.preset, rot: c.rot, phase: c.phase }); if (TYPES[c.type].ref || TYPES[c.type].linkGroup) n.tag = c.tag; ui.sel = { kind: 'comp', id: n.id }; commit(); render(); });
+  on('aDup', 'click', () => { const { id, x, y, tag, sheet, ...rest } = c; const n = addComp(c.type, c.x + 80, c.y, rest); if (TYPES[c.type].ref || TYPES[c.type].linkGroup) n.tag = c.tag; ui.sel = { kind: 'comp', id: n.id }; commit(); render(); });
   on('aDel', 'click', deleteSel); on('aDelW', 'click', deleteSel);
   on('aEditW', 'click', () => openWireDialog(ui.sel.id));
   on('aAuto', 'click', () => { const w = doc.wires.find(x => x.id === ui.sel.id); w.pts = []; commit(); render(); });
   $$('#insp [data-wcol]').forEach(b => b.addEventListener('click', () => { const w = doc.wires.find(x => x.id === ui.sel.id); w.color = b.dataset.wcol; commit(); render(); }));
   $$('#insp [data-goto]').forEach(b => b.addEventListener('click', () => goTo(b.dataset.goto)));
+  bindElecInspector(c);
 }
 function rotateSel() { if (!ui.sel || ui.sel.kind !== 'comp' || sim.running) return; const c = compById(ui.sel.id); c.rot = ((c.rot || 0) + 90) % 360; commit(); render(); }
 function deleteSel() {
@@ -1992,6 +2358,7 @@ function renderMonitor() {
       <div class="ccard"><h3>${motors.length ? 'Corrente dos motores (A)' : 'Corrente de comando (A)'}</h3><p class="sub">Últimos 30 s · partida, regime, sobrecarga e falhas</p><div class="legend" id="lgI"></div><canvas class="chart" id="chI"></canvas><div class="ctip" id="tipI" hidden></div></div>
       <div class="ccard"><h3>Tensão da rede (V)</h3><p class="sub">Últimos 30 s · afundamento no curto-circuito</p><div class="legend" id="lgV"></div><canvas class="chart" id="chV"></canvas><div class="ctip" id="tipV" hidden></div></div>
     </div>
+    <div class="ccard" style="margin-bottom:22px"><h3>Domínios de alimentação</h3><p class="sub">Origem, nível, isolamento e estado de cada alimentação · atenções elétricas</p><div id="moDomains"></div></div>
     <section><div class="vhead" style="margin-bottom:10px"><div><p class="h" style="margin:0">Simular falhas</p><p class="muted small" style="margin:4px 0 0">${dis ? 'Inicie a simulação para provocar falhas.' : 'Veja a proteção atuar, a animação da falha e o efeito nos gráficos.'}</p></div>
       <button class="btn" id="moClear" ${dis ? 'disabled' : ''}>Rearmar proteções</button></div>
       <div class="faults">
@@ -2022,6 +2389,7 @@ function updateMonitorLive() {
   if (ui.view !== 'monitor' || !$('#moTiles')) return;
   const m = sim.meas || {}, [st] = stateOf();
   $('#moTitle').textContent = sim.running ? 'Simulação em andamento · ' + fmtTime(sim.t) : 'Simulação parada';
+  { const dh = domainsHTML(), el = $('#moDomains'); if (el && el._h !== dh) { el.innerHTML = dh; el._h = dh; } }
   const motors = doc.comps.filter(c => c.type.startsWith('motor'));
   const tile = (label, val, cls = '') => `<div class="tile ${cls}"><small>${esc(label)}</small><b>${val}</b></div>`;
   $('#moTiles').innerHTML = tile('Tensão fase-neutro', fmtN(m.v1, 0) + ' V', m.v1 ? 'on' : '') + tile('Tensão fase-fase', fmtN(m.v3, 0) + ' V', m.v3 ? 'on' : '') +
@@ -2313,9 +2681,18 @@ $('#sDel').addEventListener('click', () => {
     doc.sheets = doc.sheets.filter(x => x.id !== s.id); ui.sheet = doc.sheets[0].id; ui.sel = null; commit(); closeModal(); render();
   });
 });
+const blankProject = () => ({ project: 'Novo projeto', author: doc.author, logo: '', dateAuto: true,
+  sheets: [{ id: 's1', name: 'Força', desc: '', size: 'A3', orient: 'paisagem', cols: 12, rows: 6 }, { id: 's2', name: 'Comando', desc: '', size: 'A3', orient: 'paisagem', cols: 12, rows: 6 }], comps: [], wires: [] });
+function createProject(d) {
+  document.body.classList.remove('warp'); void document.body.offsetWidth;
+  if (!HOLO.reduced) { document.body.classList.add('warp'); setTimeout(() => document.body.classList.remove('warp'), 900); }
+  loadKeepingHistory(d);
+}
 function sheetDialog(mode) {
-  if (sim.running) return flash('Pare a simulação para editar as folhas.');
-  const s = doc.sheets.find(x => x.id === ui.sheet);
+  const isNew = mode === 'new';
+  if (sim.running && !isNew) return flash('Pare a simulação para editar as folhas.');
+  const D = isNew ? blankProject() : doc;
+  const s = isNew ? D.sheets[0] : doc.sheets.find(x => x.id === ui.sheet);
   if (mode === 'rename') {
     openModal(`<p class="title-lg">Renomear folha</p><div class="field"><label for="dName">Título da folha</label><input id="dName" value="${esc(s.name)}" maxlength="40"></div>
       <div class="row" style="justify-content:flex-end"><button class="btn" data-close>Cancelar</button><button class="btn pri" id="dSave">Salvar</button></div>`);
@@ -2323,9 +2700,11 @@ function sheetDialog(mode) {
     $('#dName').focus(); $('#dSave').addEventListener('click', save); $('#dName').addEventListener('keydown', ev => { if (ev.key === 'Enter') save(); });
     return;
   }
-  let logo = doc.logo || '';
+  let logo = D.logo || '';
+  const es = { e: { ...ProjectElectricalConfig.of(D) }, refTouched: !!D.elec };
   const today = new Date().toISOString().slice(0, 10);
-  openModal(`<div class="row" style="justify-content:space-between;align-items:center"><p class="title-lg">Configurar folha</p><button class="btn" data-close>Fechar</button></div>
+  openModal(`<div class="row" style="justify-content:space-between;align-items:center"><div>${isNew ? '<p class="eyebrow" style="margin:0">VOLT CORE · Novo projeto</p>' : ''}<p class="title-lg" style="margin:0">${isNew ? 'Configurar novo projeto' : 'Configurar folha'}</p></div><button class="btn" data-close id="dCloseCfg">Fechar</button></div>
+    ${isNew ? '<p class="muted small" style="margin:0">Tudo é opcional. Pule para usar os padrões do simulador.</p>' : ''}
     <div class="cfg">
       <label>Logo</label><div class="row" style="align-items:center"><div class="logobox" id="dLogoBox"></div><label class="btn" for="dLogo">Carregar</label><input id="dLogo" type="file" accept="image/png,image/jpeg,image/svg+xml,image/webp" hidden><button class="btn" id="dLogoDel">Remover</button></div>
       <label for="dSize">Tamanho</label><div class="row"><select id="dSize" style="flex:1">${Object.entries(SIZES).map(([k, [a, b]]) => `<option value="${k}" ${s.size === k ? 'selected' : ''}>${k} · ${a} × ${b} mm</option>`).join('')}</select>
@@ -2334,14 +2713,17 @@ function sheetDialog(mode) {
       <label for="dRows">Linhas</label><input id="dRows" type="number" min="2" max="26" value="${s.rows || 6}">
       <label for="dName">Título (centro)</label><input id="dName" value="${esc(s.name)}" maxlength="40">
       <label for="dDesc">Descrição</label><input id="dDesc" value="${esc(s.desc)}" maxlength="80" placeholder="Ex.: circuito de força do motor M1">
-      <label for="dAuth">Autor</label><input id="dAuth" value="${esc(doc.author)}" maxlength="60" placeholder="Nome do autor">
-      <label for="dProj">Projeto</label><input id="dProj" value="${esc(doc.project)}" maxlength="60" placeholder="Nome do projeto">
-      <label for="dDate">Data</label><input id="dDate" type="date" value="${doc.dateAuto === false && /^\d{4}-\d{2}-\d{2}$/.test(doc.dateIso || '') ? doc.dateIso : today}" ${doc.dateAuto === false ? '' : 'disabled'}>
+      <label for="dAuth">Autor</label><input id="dAuth" value="${esc(D.author)}" maxlength="60" placeholder="Nome do autor">
+      <label for="dProj">Projeto</label><input id="dProj" value="${esc(D.project)}" maxlength="60" placeholder="Nome do projeto">
+      <label for="dDate">Data</label><input id="dDate" type="date" value="${D.dateAuto === false && /^\d{4}-\d{2}-\d{2}$/.test(D.dateIso || '') ? D.dateIso : today}" ${D.dateAuto === false ? '' : 'disabled'}>
     </div>
-    <label class="chk"><input type="checkbox" id="dAuto" ${doc.dateAuto === false ? '' : 'checked'}> Data automática (hoje)</label>
-    <label class="chk"><input type="checkbox" id="dAll"> Aplicar tamanho, orientação, colunas e linhas a todas as folhas</label>
+    <label class="chk"><input type="checkbox" id="dAuto" ${D.dateAuto === false ? '' : 'checked'}> Data automática (hoje)</label>
+    <label class="chk"><input type="checkbox" id="dAll" ${isNew ? 'checked' : ''}> Aplicar tamanho, orientação, colunas e linhas a todas as folhas</label>
+    ${elecSectionHTML(es.e)}
     <p class="muted small" id="dMsg" style="margin:0"></p>
-    <div class="row" style="justify-content:flex-end"><button class="btn" data-close>Cancelar</button><button class="btn pri" id="dSave">Salvar</button></div>`);
+    <div class="row" style="justify-content:flex-end">${isNew ? '<button class="btn" id="dSkip">Pular configuração</button><button class="btn pri" id="dSave">Criar projeto</button>' : '<button class="btn" data-close>Cancelar</button><button class="btn pri" id="dSave">Salvar</button>'}</div>`, isNew ? 'holo' : '');
+  bindElecSection(es);
+  if (isNew) $('#dSkip').addEventListener('click', () => createProject(blankProject()));
   const showLogo = () => { $('#dLogoBox').innerHTML = logo ? `<img src="${logo}" alt="Logo">` : '<span class="muted small">Sem logo</span>'; };
   showLogo();
   $('#dAuto').addEventListener('change', e => { $('#dDate').disabled = e.target.checked; });
@@ -2359,11 +2741,15 @@ function sheetDialog(mode) {
   });
   $('#dSave').addEventListener('click', () => {
     const fmt = { size: $('#dSize').value, orient: $('#dOrient').value, cols: Math.min(40, Math.max(2, +$('#dCols').value || 12)), rows: Math.min(26, Math.max(2, +$('#dRows').value || 6)) };
-    for (const sh of $('#dAll').checked ? doc.sheets : [s]) Object.assign(sh, fmt);
+    const e = ProjectElectricalConfig.sanitize(es.e);
+    if (!e || !NET_TYPES[e.net] || !(e.v >= 12)) { $('#dMsg').textContent = 'Revise a configuração elétrica.'; return; }
+    for (const sh of $('#dAll').checked ? D.sheets : [s]) Object.assign(sh, fmt);
     s.name = $('#dName').value.trim() || s.name; s.desc = $('#dDesc').value.trim();
-    doc.author = $('#dAuth').value.trim(); doc.project = $('#dProj').value.trim() || doc.project; doc.logo = logo;
-    doc.dateAuto = $('#dAuto').checked;
-    if (!doc.dateAuto) { doc.dateIso = $('#dDate').value; const [y, m, dd] = (doc.dateIso || today).split('-'); doc.date = `${dd}/${m}/${y}`; }
+    D.author = $('#dAuth').value.trim(); D.project = $('#dProj').value.trim() || D.project; D.logo = logo;
+    D.dateAuto = $('#dAuto').checked;
+    if (!D.dateAuto) { D.dateIso = $('#dDate').value; const [y, m, dd] = (D.dateIso || today).split('-'); D.date = `${dd}/${m}/${y}`; }
+    if (isNew) { D.elec = e; createProject(D); return; }
+    if (doc.elec || JSON.stringify(e) !== JSON.stringify(ProjectElectricalConfig.of())) doc.elec = e;
     const out = doc.comps.filter(c => { const [W, H] = sheetDims(sheetOf(c)); return c.x > W - 40 || c.y > H - 40; }).length;
     commit(); closeModal(); render(); requestAnimationFrame(fit);
     if (out) flash(`${out} componente${out > 1 ? 's ficaram' : ' ficou'} fora da folha menor. Aumente o tamanho ou arraste para dentro.`);
@@ -2394,9 +2780,146 @@ document.addEventListener('keydown', ev => {
   else if (k === 'p' && !ev.shiftKey) { ev.preventDefault(); openPdfDialog(); }
 }, true);
 
+// ---------- Electrical properties in the inspector (reads results from the voltage engine) ----------
+function elecInspectorHTML(c, dis) {
+  const T0 = TYPES[c.type], E = ElectricalNetwork.describe(), ap = sim.running && sim.applied ? sim.applied[c.id] : null;
+  const my = (sim.running ? sim.diag || [] : ElectricalDiagnostics.static()).filter(d => d.comp && d.comp.id === c.id);
+  const fld = (label, inner) => `<div class="field"><label>${label}</label>${inner}</div>`;
+  const num = (p, v, min, max, step, ph = '') => `<input type="number" data-prop="${p}" data-num min="${min}" max="${max}" step="${step}" value="${v ?? ''}" placeholder="${ph}" ${dis}>`;
+  const sel = (p, opts, v, isNum) => `<select data-prop="${p}" ${isNum ? 'data-num' : ''} ${dis}>${opts.map(([k, l]) => `<option value="${k}" ${String(v ?? '') === String(k) ? 'selected' : ''}>${l}</option>`).join('')}</select>`;
+  const li = rows => `<ul class="list">${rows.map(([k, v]) => `<li><span class="muted">${esc(k)}</span><span class="mono">${esc(v)}</span></li>`).join('')}</ul>`;
+  const apTxt = !sim.running ? 'simulação parada' : ap && ap.v >= 1 ? fmtV(ap.v, ap.kind) + (ap.kind === 'CA' && ap.hz ? ` · ${ap.hz} Hz` : '') : 'sem circuito fechado';
+  let h = '';
+  if (['fase', 'neutro', 'fonte_3f'].includes(c.type)) {
+    const energized = sim.running && sim.labels && [...sim.labels.values()].some(x => x.dom === 'R');
+    h += `<div class="card ecard"><p class="h">Rede do projeto</p>${li([['Tipo', E.type.name], ['Tensão fase-fase', E.vLine ? fmtV(E.vLine, 'CA') : 'indisponível'], ['Tensão fase-neutro', E.vPhase ? fmtV(E.vPhase, 'CA') : 'indisponível'],
+      ['Frequência', E.hz + ' Hz'], ['Neutro', E.type.n ? 'disponível' : 'indisponível'], ['Estado', !sim.running ? 'simulação parada' : energized ? 'energizada' : 'desligada']])}<button class="btn" id="aNet">Configurar rede</button></div>`;
+  }
+  if (T0.tx) {
+    const st = sim.running && sim.tx ? sim.tx[c.id] : null, vsec = TransformerModel.secondaryV(c, st), k = TransformerModel.ratio(c);
+    h += fld('Combinações rápidas (primário/secundário)', `<div class="chips">${TX_PRESETS.map(([a, b]) => `<button class="chip${+c.vp === a && +c.vs === b ? ' on' : ''}" data-txp="${a}/${b}" ${dis}>${a}/${b} V</button>`).join('')}</div>`);
+    h += `<div class="frow">${fld('Primário (V)', num('vp', c.vp, 12, 1000, 1))}${fld('Secundário (V)', num('vs', c.vs, 6, 1000, 1))}</div>`;
+    h += `<div class="frow">${fld(T0.tx === '3f' ? 'Potência (VA)' : 'Potência (VA)', num('va', c.va, 10, 2000000, 10))}${fld('Frequência nominal', sel('hzn', [[50, '50 Hz'], [60, '60 Hz']], c.hzn, true))}</div>`;
+    h += `<div class="frow">${fld('Tolerância do primário (%)', num('tol', c.tol, 1, 20, 1))}${T0.tx !== 'auto' ? fld('Eficiência (%)', num('eff', c.eff, 50, 100, 1)) : ''}</div>`;
+    if (T0.tx === '3f') {
+      h += fld('Ligação dos enrolamentos', sel('conn', Object.entries(TX_CONN), c.conn || 'Dy'));
+      h += TransformerModel.secStar(c) ? `<label class="chk"><input type="checkbox" data-prop="nsec" ${c.nsec ? 'checked' : ''} ${dis}> Neutro X0 disponível no secundário</label>` : '<p class="muted small" style="margin:0">Secundário em triângulo: sem neutro (X0 indisponível).</p>';
+    }
+    h += `<div class="card ecard"><p class="h">${T0.tx === 'auto' ? 'Autotransformador · sem isolamento galvânico' : 'Enrolamentos isolados · secundário é um novo domínio'}</p>${li([
+      ['Primário nominal', fmtV(+c.vp, 'CA')], ['Tensão aplicada', st ? fmtV(st.vin, 'CA') : sim.running ? 'sem alimentação' : 'simulação parada'],
+      ['Secundário nominal', fmtV(+c.vs, 'CA')], ['Tensão calculada', st ? fmtV(vsec, 'CA') + ` · ${st.hz} Hz` : '—'], ['Relação', `${(+c.vp || 0)}:${(+c.vs || 0)} (k = ${k.toFixed(3)})`],
+      ['Potência nominal', c.va >= 1000 ? `${fmtN(c.va / 1000, 1)} kVA` : `${c.va || '—'} VA`], ['Estado', st ? 'energizado' : sim.running ? 'desenergizado' : 'simulação parada']])}</div>`;
+  }
+  if (c.type === 'fonte_24') {
+    const on = sim.running && sim.psu && sim.psu[c.id];
+    h += `<div class="frow">${fld('Saída (VCC)', sel('vout', [[12, '12 VCC'], [24, '24 VCC'], [48, '48 VCC']], PowerSupplyModel.vout(c), true))}${fld('Corrente nominal (A)', num('iout', c.iout, 0.1, 40, 0.1, '2,5'))}</div>`;
+    h += `<div class="frow">${fld('Entrada mínima (VCA)', num('vinMin', c.vinMin, 12, 1000, 1, '85'))}${fld('Entrada máxima (VCA)', num('vinMax', c.vinMax, 12, 1000, 1, '264'))}</div>`;
+    h += `<div class="card ecard"><p class="h">Fonte CA/CC</p>${li([['Entrada aplicada', apTxt], ['Saída', on ? `${PowerSupplyModel.vout(c)} VCC` : 'sem saída'], ['Potência nominal', c.iout ? `${fmtN(PowerSupplyModel.vout(c) * c.iout, 0)} W` : '—'], ['Estado', on ? 'ligada' : sim.running ? 'desligada' : 'simulação parada']])}</div>`;
+  }
+  if (RATED_TYPES.has(c.type)) {
+    const on = c.type === 'bobina' ? sim.coils[c.tag] : c.type === 'temporizador' ? sim.timerOn[c.tag] : c.type === 'rele_seguranca' ? sim.srPowerById[c.id] : sim.lamps[c.id];
+    h += `<div class="frow">${fld('Tensão nominal (V)', num('vn', c.vn, 6, 1000, 1, 'não especificada'))}${fld('Tipo', sel('vk', [['CA', 'CA'], ['CC', 'CC'], ['CA/CC', 'CA/CC']], c.vk || 'CA'))}</div>`;
+    h += `<div class="frow">${fld('Frequência', sel('hzn', [['', 'qualquer'], [50, '50 Hz'], [60, '60 Hz']], c.hzn, true))}${fld('Potência (VA)', num('va', c.va, 0.1, 5000, 0.1, 'opcional'))}</div>`;
+    const R = RATING[(T0.loads || [[0, 0, 'coil']])[0][2]] || RATING.coil;
+    h += `<div class="frow">${fld('Faixa mínima (%)', num('tmin', c.tmin, 50, 100, 1, String(R.min)))}${fld('Faixa máxima (%)', num('tmax', c.tmax, 100, 150, 1, String(R.max)))}</div>`;
+    const cur = on && ap && c.va ? `${fmtN(c.va / ap.v, 3)} A` : 'não calculada' + (c.va ? '' : ' (informe a potência)');
+    const comp = !c.vn ? 'modelo simplificado (tensão nominal não especificada)' : my.length ? my.map(d => d.title.toLowerCase()).join(', ') : sim.running && ap ? 'compatível' : '—';
+    h += `<div class="card ecard"><p class="h">Alimentação</p>${li([['Tensão nominal', c.vn ? `${c.vn} V${c.vk === 'CA/CC' ? ' CA/CC' : c.vk || 'CA'}` : 'não especificada'], ['Tensão aplicada', apTxt], ['Corrente', cur], ['Compatibilidade', comp], ['Estado', on ? 'energizado' : sim.running ? 'desenergizado' : 'simulação parada']])}</div>`;
+  }
+  if (c.type.startsWith('motor')) {
+    h += fld(c.type === 'motor_6p' ? 'Tensão nominal em estrela (V entre fases)' : 'Tensão nominal (V entre fases)', num('vn', c.vn, 100, 1000, 1, 'não especificada'));
+    if (sim.running) h += `<div class="card ecard"><p class="h">Alimentação</p>${li([['Tensão entre fases', apTxt]])}</div>`;
+  }
+  return h + my.map(d => ElectricalDiagnostics.html(d)).join('');
+}
+function bindElecInspector(c) {
+  $$('#insp [data-prop]').forEach(el => el.addEventListener('change', () => {
+    if (!c) return; const p = el.dataset.prop; let v = el.type === 'checkbox' ? el.checked : el.value;
+    if (el.hasAttribute('data-num')) { if (v === '') v = undefined; else { v = +v; const lo = parseFloat(el.min), hi = parseFloat(el.max); if (Number.isFinite(lo)) v = Math.max(lo, v); if (Number.isFinite(hi)) v = Math.min(hi, v); } }
+    if (v === undefined || v === '') delete c[p]; else c[p] = v;
+    commit(); render();
+  }));
+  $$('#insp [data-txp]').forEach(b => b.addEventListener('click', () => { const [a, s] = b.dataset.txp.split('/').map(Number); c.vp = a; c.vs = s; commit(); render(); }));
+  const n = document.getElementById('aNet'); if (n) n.addEventListener('click', () => sheetDialog('config'));
+}
+function domainsHTML() {
+  const rows = ElectricalDomainManager.list();
+  return `<table class="dtab"><thead><tr><th>Domínio</th><th>Origem</th><th>Nível</th><th>Isolamento</th><th>Estado</th></tr></thead><tbody>${rows.map(r => `<tr class="${r.on ? 'on' : ''}"><td><b>${esc(r.name)}</b></td><td>${esc(r.src)}</td><td class="mono">${esc(r.detail)} · ${r.kind}</td><td>${esc(r.iso)}</td><td><span class="dot"></span>${r.on ? 'energizado' : 'desligado'}</td></tr>`).join('')}</tbody></table>` +
+    ((sim.diag || []).length ? `<div class="dlist">${sim.diag.map(d => ElectricalDiagnostics.html(d)).join('')}</div>` : '<p class="muted small" style="margin:8px 0 0">Nenhuma atenção elétrica no momento.</p>');
+}
+
+// ---------- Electrical section of the project configuration (shared by both dialogs) ----------
+const BOLT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M13 2 5 13h6l-1 9 8-12h-6z"/></svg>';
+function elecSectionHTML(e) {
+  return `<section class="esec" id="eSec"><p class="h">Configuração elétrica do projeto</p>
+    <p class="muted small" style="margin:0">Alimentação de entrada (tensão nominal)</p>
+    <div class="vbtns">${NET_VOLTS.map(v => `<button type="button" class="vbtn${e.v === v ? ' act' : ''}" data-ev="${v}" aria-pressed="${e.v === v}">${BOLT}<b>${v}</b><small>VCA</small></button>`).join('')}</div>
+    <p class="muted small" style="margin:0">Tipo de rede</p>
+    <div class="seg">${Object.entries(NET_TYPES).map(([k, t]) => `<button type="button" class="${e.net === k ? 'act' : ''}" data-enet="${k}">${t.name}</button>`).join('')}</div>
+    <div class="row" style="gap:16px;flex-wrap:wrap">
+      <div><p class="muted small" style="margin:0 0 6px">A tensão informada é</p><div class="seg"><button type="button" class="${e.ref === 'line' ? 'act' : ''}" data-eref="line">Fase-fase</button><button type="button" class="${e.ref === 'phase' ? 'act' : ''}" data-eref="phase">Fase-neutro</button></div></div>
+      <div><p class="muted small" style="margin:0 0 6px">Frequência</p><div class="seg"><button type="button" class="${e.hz === 50 ? 'act' : ''}" data-ehz="50">50 Hz</button><button type="button" class="${e.hz === 60 ? 'act' : ''}" data-ehz="60">60 Hz</button></div></div>
+    </div>
+    <div class="eprev" id="ePrev"></div></section>`;
+}
+function bindElecSection(state) {
+  const sync = () => {
+    const e = state.e;
+    if (e.net === '1f') e.ref = 'phase'; if (e.net === '2f') e.ref = 'line';
+    $$('#eSec [data-ev]').forEach(b => { b.classList.toggle('act', +b.dataset.ev === e.v); b.setAttribute('aria-pressed', +b.dataset.ev === e.v); });
+    $$('#eSec [data-enet]').forEach(b => b.classList.toggle('act', b.dataset.enet === e.net));
+    $$('#eSec [data-eref]').forEach(b => { b.classList.toggle('act', b.dataset.eref === e.ref); b.disabled = e.net === '1f' || e.net === '2f'; });
+    $$('#eSec [data-ehz]').forEach(b => b.classList.toggle('act', +b.dataset.ehz === e.hz));
+    const E = ElectricalNetwork.describe(e), cond = [...PHASES.filter(p => E.avail.has(p)), ...(E.avail.has('N') ? ['N'] : []), 'PE'];
+    const odd = E.type.phases === 3 && !STD_V.includes(nomV(E.vLine));
+    $('#ePrev').innerHTML = `<p class="h">Prévia · ${esc(E.type.name)}</p><ul class="list">
+      <li><span class="muted">Tensão informada</span><span class="mono">${e.v} VCA (${e.ref === 'line' ? 'fase-fase' : 'fase-neutro'})</span></li>
+      <li><span class="muted">Tensão entre fases</span><span class="mono">${E.vLine ? (e.ref === 'line' ? '' : '≈ ') + fmtV(E.vLine, 'CA') : 'indisponível (uma fase só)'}</span></li>
+      <li><span class="muted">Tensão fase-neutro</span><span class="mono">${E.vPhase ? (e.ref === 'phase' ? '' : '≈ ') + fmtV(E.vPhase, 'CA') : 'indisponível (sem neutro)'}</span></li>
+      <li><span class="muted">Condutores</span><span class="mono">${cond.join(' · ')}</span></li>
+      <li><span class="muted">Frequência</span><span class="mono">${e.hz} Hz</span></li></ul>
+      ${odd ? `<p class="small warnt" style="margin:6px 0 0">Combinação não padronizada: ${e.v} V entre fase e neutro resulta em ${nomV(E.vLine)} V entre fases.</p>` : ''}
+      ${E.type.phases === 3 && E.vLine >= 400 && E.type.n ? '<p class="muted small" style="margin:6px 0 0">Para 127 V, 220 V ou 380 V nesta rede use um transformador.</p>' : ''}`;
+  };
+  $$('#eSec [data-ev]').forEach(b => b.addEventListener('click', () => { state.e.v = +b.dataset.ev; if (!state.refTouched) state.e.ref = ProjectElectricalConfig.defaultRef(state.e.net, state.e.v); sync(); }));
+  $$('#eSec [data-enet]').forEach(b => b.addEventListener('click', () => { state.e.net = b.dataset.enet; if (!state.refTouched) state.e.ref = ProjectElectricalConfig.defaultRef(state.e.net, state.e.v); sync(); }));
+  $$('#eSec [data-eref]').forEach(b => b.addEventListener('click', () => { state.e.ref = b.dataset.eref; state.refTouched = true; sync(); }));
+  $$('#eSec [data-ehz]').forEach(b => b.addEventListener('click', () => { state.e.hz = +b.dataset.ehz; sync(); }));
+  sync();
+}
+
+// ---------- Auto Focus Mode (diagram workspace) ----------
+const FOCUS = { delay: 3000, open: 350, close: 400 };
+const focus = { navigationExpanded: true, focusMode: false, autoCollapseTimer: null, manualOverride: false, activeView: null };
+function setNavigation(expanded) {
+  focus.navigationExpanded = expanded; focus.focusMode = !expanded && ui.view === 'diagram';
+  const app = $('.app'), nav = $('nav.bottom'), b = $('#navToggle');
+  app.classList.toggle('nav-collapsed', !expanded);
+  nav.inert = !expanded; nav.setAttribute('aria-hidden', String(!expanded));
+  if (b) { b.classList.toggle('collapsed', !expanded); b.setAttribute('aria-expanded', String(expanded)); b.title = b.ariaLabel = expanded ? 'Recolher navegação' : 'Mostrar navegação'; }
+}
+function clearFocusTimer() { if (focus.autoCollapseTimer) clearTimeout(focus.autoCollapseTimer); focus.autoCollapseTimer = null; }
+function focusOnView(v) {
+  if (v === focus.activeView) return;
+  focus.activeView = v; clearFocusTimer(); focus.manualOverride = false; setNavigation(true);
+  if (v === 'diagram') focus.autoCollapseTimer = setTimeout(() => { focus.autoCollapseTimer = null; if (ui.view === 'diagram' && !focus.manualOverride) setNavigation(false); }, FOCUS.delay);
+}
+function toggleNavigation() {
+  clearFocusTimer();
+  if (focus.navigationExpanded) { focus.manualOverride = false; setNavigation(false); }
+  else { focus.manualOverride = true; setNavigation(true); }
+}
+$('#navToggle').addEventListener('click', toggleNavigation);
+if (window.ResizeObserver) new ResizeObserver(() => { if (ui.view === 'diagram') renderWorld(); }).observe($('#cv'));
+
 // ---------- Modals ----------
-function openModal(html) { $('#sheet').innerHTML = html; $('#modal').hidden = false; }
-function closeModal() { $('#modal').hidden = true; }
+let modalTimer = null;
+function openModal(html, cls = '') { clearTimeout(modalTimer); const m = $('#modal'); m.classList.remove('closing'); $('#sheet').className = 'msheet' + (cls ? ' ' + cls : ''); $('#sheet').innerHTML = html; m.hidden = false; }
+function closeModal() {
+  const m = $('#modal'); if (m.hidden) return;
+  if ($('#sheet').classList.contains('holo') && !HOLO.reduced) { m.classList.add('closing'); clearTimeout(modalTimer); modalTimer = setTimeout(() => { m.hidden = true; m.classList.remove('closing'); }, 220); }
+  else m.hidden = true;
+}
 $('#modal').addEventListener('click', ev => { if (ev.target.id === 'modal' || ev.target.closest('[data-close]')) closeModal(); });
 function loadKeepingHistory(src) {
   if (sim.running) stopSim();
@@ -3205,7 +3728,7 @@ function drawBokeh(ctx, w, h) {
 
 // ---------- Centralized operations (HolographicHome) ----------
 const HOME_OPS = [
-  { id: 'novo', title: 'Novo projeto', desc: 'Prancheta em branco com folhas de Força e Comando, pronta para montar um circuito.', object: 'board', run: () => loadKeepingHistory({ project: 'Novo projeto', author: doc.author, sheets: [{ id: 's1', name: 'Força' }, { id: 's2', name: 'Comando' }], comps: [], wires: [] }) },
+  { id: 'novo', title: 'Novo projeto', desc: 'Prancheta em branco com folhas de Força e Comando, pronta para montar um circuito.', object: 'board', run: () => sheetDialog('new') },
   { id: 'continuar', title: 'Continuar projeto', desc: () => `Retoma "${doc.project}" exatamente de onde você parou: ${doc.sheets.length} folha(s), ${doc.comps.length} componentes.`, object: 'circuit', run: () => { ui.view = 'diagram'; render(); requestAnimationFrame(fit); } },
   { id: 'abrir', title: 'Abrir arquivo', desc: 'Importa um projeto .voltacademy ou .json salvo no computador, substituindo ou somando folhas.', object: 'file', run: () => { const i = $('#homeFile'); i.value = ''; i.click(); } },
   { id: 'exemplos', title: 'Exemplos de projeto', desc: () => `${EXAMPLES.length} circuitos prontos da biblioteca VoltAcademy, para estudar no Holographic Project Lab.`, object: 'library', run: () => { ui.view = 'lab'; render(); } },
@@ -3503,6 +4026,6 @@ if (matchMedia('(max-width: 1100px)').matches) ui.inspOpen = false;
 render();
 requestAnimationFrame(fit);
 window.addEventListener('resize', () => fit());
-window.__va = { Home, Lab, HOME_OPS, homeSelect, homeConfirm, labSelect, labOpen, exportPDF, projectFile, mergeProject, doc: () => doc, sim, ui, points: id => fullPointsAny(doc.wires.find(w => w.id === id)), audio, solve: resolve, rawSolve: solve, clearFaults, updateElectrical, startSim, stopSim, load, EXAMPLES, TYPES, interact, render, setView: v => { ui.view = v; render(); } };
+window.__va = { focus, setNavigation, toggleNavigation, FOCUS, serialize, sheetDialog, blankProject, ElectricalNetwork, ProjectElectricalConfig, TransformerModel, PotentialDifferenceCalculator, ElectricalDomainManager, ElectricalDiagnostics, addComp, Home, Lab, HOME_OPS, homeSelect, homeConfirm, labSelect, labOpen, exportPDF, projectFile, mergeProject, doc: () => doc, sim, ui, points: id => fullPointsAny(doc.wires.find(w => w.id === id)), audio, solve: resolve, rawSolve: solve, clearFaults, updateElectrical, startSim, stopSim, load, EXAMPLES, TYPES, interact, render, setView: v => { ui.view = v; render(); } };
 })();
 </script>
