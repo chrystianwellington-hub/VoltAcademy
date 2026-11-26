@@ -15,7 +15,7 @@ Ao abrir, o circuito "Partida direta com selo" já vem carregado. Aperte **SIMUL
 ## Interface
 - **Barra superior:** Simular/Parar com cronômetro, Desfazer, Refazer, Projeto (salvar/abrir), Ajuda, Tema claro/escuro e Painel de propriedades.
 - **Biblioteca retrátil (esquerda):** só as categorias ficam fixas (Alimentação, Comando, Contatores e relés, Proteção,
-  Cargas). Clicar abre um painel deslizante com os componentes daquela categoria e busca; clicar de novo fecha. O painel
+  Cargas). Clicar abre um painel deslizante com os componentes daquela categoria em lista de uma coluna (ícone + nome) e busca; clicar de novo fecha. O painel
   flutua sobre a folha, então o desenho não muda de tamanho, zoom nem posição. Componentes entram por clique ou arrastando
   até a folha.
 - **Active Energy UI:** o elemento ativo de cada grupo (categoria, folha, ferramenta, modo, navegação, painel, simulação)
@@ -56,10 +56,12 @@ Ao abrir, o circuito "Partida direta com selo" já vem carregado. Aperte **SIMUL
   por sobrecarga ou falta de fase, tudo com animação de falha. "Rearmar proteções" volta ao normal.
 
 ## Tela inicial e Project Lab (holográficos)
-- **VOLT CORE:** núcleo de energia em 3D (anéis em eixos diferentes, partículas douradas, plasma pulsante, arcos de
-  energia e varredura) com máquina de estados IDLE · SELECT · MATERIALIZE · PREVIEW · LOADING · SUCCESS.
+- **VOLT CORE:** reator de energia em 3D no estilo "sol de plasma": esfera com granulação e filamentos procedurais,
+  coroa e lens flare, anéis giroscópicos dourados com contas de luz, câmara com luz azul ao fundo, partículas, arcos de
+  energia e varredura, com máquina de estados IDLE · SELECT · MATERIALIZE · PREVIEW · LOADING · SUCCESS.
 - **Carrossel em órbita:** as operações Novo projeto, Continuar projeto, Abrir arquivo e Exemplos ficam em uma órbita
-  de 360° (espaçamento calculado pela quantidade, hoje 90°), cada uma com seu objeto holográfico animado. Navegação por
+  de 360° (espaçamento calculado pela quantidade, hoje 90°), cada uma com seu objeto holográfico de vidro dourado animado (prancheta, painéis com o circuito salvo, pasta de vidro
+  que abre com páginas subindo e painéis de exemplos em leque), sobre fundo com bokeh. Navegação por
   clique, arraste, setas, roda do mouse e Enter. As operações ficam centralizadas em `HOME_OPS` (id, título, descrição,
   objeto, ação): incluir uma nova não exige mexer no carrossel.
 - **Holographic Project Lab:** lista lateral dos exemplos (mesma fonte `EXAMPLES`), projeção 3D construída a partir dos
