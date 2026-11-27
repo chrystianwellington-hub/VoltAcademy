@@ -101,13 +101,16 @@ Ao abrir, o circuito "Partida direta com selo" já vem carregado. Aperte **SIMUL
   nem molduras — apenas o objeto, uma luz de pedestal e o rótulo.
   A frente fica maior e com luz amarela; laterais médios; fundo menores e mais escuros. Navegação por clique, setas, arraste,
   roda do mouse e teclado; clicar no módulo da frente executa a função. Abaixo: nome, descrição, contagem e botão principal.
-  **Animações cinematográficas por módulo** (controlador `JarvisFX`: iniciar, pausar, encerrar e reiniciar): ao chegar à
-  frente, cada ícone executa a sua sequência exclusiva em SVG + CSS 3D — Abrir (folha sai da pasta, gira, anel azul com
-  pontos), Continuar (ponteiros aceleram, anel de linha do tempo, estabiliza na hora atual), Novo (o “+” pulsa, a folha vira
-  prancha com linhas técnicas e símbolos e o botão CRIAR PROJETO é destacado, sem criar nada), Exemplos (livro abre, páginas
-  viram e um circuito se monta com corrente animada) e Exercícios (borla balança, fórmulas e cálculo são escritos, símbolos
-  de contator, motor, relé e sensor formam um circuito prático). Só uma sequência por vez, troca com fade suave, órbita e
-  interação nunca bloqueadas; as funções dos botões continuam as mesmas.
+  **Composição:** o núcleo é o protagonista (maior), os módulos são satélites menores e sutis, e o título é discreto.
+  **Rede neural de energia (`JarvisNet`):** nós e ligações espalhados pela tela, pulsos que partem do núcleo, ondas a cada
+  seleção e linhas de energia do núcleo até cada satélite (dourada no selecionado).
+  **Animação hero (`JarvisFX`: iniciar, pausar, encerrar, reiniciar):** uma única camada desacoplada da órbita. Quando o
+  módulo chega à frente, o ícone orbital se dissolve e o objeto reconstruído em camadas vetoriais assume o lugar e anima —
+  sem imagem fixa com animação por cima. Abrir (pasta abre, folhas sobem ao núcleo por trilhas de dados, anel de carga),
+  Continuar (relógio vem à frente, ponteiros voltam e retomam até a hora atual, linha do tempo e partículas), Novo (o “+”
+  vira a prancha: grade, linhas técnicas e símbolos; destaca CRIAR PROJETO sem criar nada), Exemplos (livro abre, páginas
+  viram, circuito e holograma com corrente) e Exercícios (capelo gira, borla balança, fórmulas, cálculo e esquema prático).
+  Nome, descrição e botão entram em sequência depois da animação. Só uma animação por vez; a interação nunca é bloqueada.
   Qualidade automática pelo tempo de quadro, pausa fora da tela, respeito a "reduzir movimento" e alternativa em Canvas 2D
   quando o navegador não tem WebGL2.
 - **Holographic Project Lab:** lista lateral dos exemplos (mesma fonte `EXAMPLES`), projeção 3D construída a partir dos
