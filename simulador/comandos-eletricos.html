@@ -547,6 +547,19 @@ textarea.json { font-family: var(--font-mono); font-size: 12px; min-height: 200p
 @keyframes flow { to { stroke-dashoffset: -16; } }
 #cv .wprev { fill: none; stroke-width: 2.4; stroke-dasharray: 6 5; pointer-events: none; }
 #cv .ghost { opacity: .45; pointer-events: none; }
+#cv .devid { font: 600 8.5px var(--font-mono); fill: #3E5F86; }
+.spec .specbody { display: grid; gap: 8px; } .spec .diag { margin: 0; }
+.docgrid { display: grid; grid-template-columns: minmax(240px, 380px) 1fr; gap: 14px; align-items: start; } @media (max-width: 760px) { .docgrid { grid-template-columns: 1fr; } }
+.docidx { margin: 0; padding: 0; list-style: none; } .docidx li { display: flex; justify-content: space-between; gap: 10px; padding: 4px 0; border-bottom: 1px dashed var(--line); font-size: 13px; }
+.coverpv { position: relative; aspect-ratio: 297 / 210; background: #fff; color: #1B1E23; border: 1px solid #DDE1E6; border-radius: 6px; padding: 9% 7% 6%; overflow: hidden; box-shadow: var(--shadow); font-family: Arial, sans-serif; }
+.coverpv .cv-bar { position: absolute; left: 0; right: 0; top: 0; height: 4px; background: #C9962F; }
+.coverpv .cv-head { display: flex; align-items: center; gap: 10px; height: 18%; min-height: 22px; } .coverpv .cv-head img { max-height: 100%; max-width: 40%; object-fit: contain; } .coverpv .cv-head b { font-size: 14px; }
+.coverpv .cv-va { font-weight: 800; font-size: 14px; } .coverpv .cv-va i { font-style: normal; color: #C9962F; }
+.coverpv .cv-k { margin: 10px 0 2px; font-size: 7px; letter-spacing: .2em; color: #8A6210; font-weight: 700; } .coverpv .cv-t { margin: 0; font-size: 20px; font-weight: 800; line-height: 1.1; } .coverpv .cv-d { margin: 4px 0 0; font-size: 9px; color: #4B5563; }
+.coverpv .cv-meta { position: absolute; left: 7%; right: 7%; bottom: 7%; display: flex; gap: 14px; background: #F6F7F9; border-radius: 4px; padding: 5px 8px; font-size: 9px; font-weight: 700; } .coverpv .cv-meta small { display: block; font-size: 6px; letter-spacing: .1em; color: #6A717C; font-weight: 400; text-transform: uppercase; }
+.bst { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 11.5px; font-weight: 600; } .bst.verified { background: #DCF5E6; color: #146C3B; } .bst.pending { background: #FDF0D5; color: #8A5A00; } .bst.generic { background: #EAEDF1; color: #4B5563; }
+.bomiss { display: grid; gap: 6px; margin-top: 8px; } #dCover .coverpv { max-width: 420px; }
+#cv .sguides { pointer-events: none; } #cv .sguides line { stroke: #2F8CFF; stroke-width: 1; vector-effect: non-scaling-stroke; stroke-dasharray: 5 4; opacity: .7; }
 .tag { font: 500 13px var(--font-mono); fill: #2A2C24; stroke: none; }
 .num { font: 500 9.5px var(--font-mono); fill: #77735F; stroke: none; }
 .xref { font: 500 9px var(--font-mono); fill: #8A6210; stroke: none; }
@@ -1455,7 +1468,7 @@ function normalizeWireNumbers() {
 const netOfWire = w => wireNets().find(n => n.includes(w)) || [w];
 function endLabel(e) { const c = compById(e.c); if (!c) return '?'; const T0 = TYPES[c.type], n = T0.nums[e.t] || (Object.keys(T0.terms).length > 1 ? e.t.toUpperCase() : ''); return `${c.tag || T0.name}${n ? ':' + n : ''}`; }
 // ---------- History & persistence ----------
-function serialize() { return JSON.stringify({ app: PLATFORM, kind: 'comandos-eletricos', version: 6, elec: doc.elec || undefined, app: doc.app || undefined, project: doc.project, author: doc.author, logo: doc.logo || '', dateAuto: doc.dateAuto !== false, date: doc.date || '', dateIso: doc.dateIso || '', sheets: doc.sheets, comps: doc.comps, wires: doc.wires }); }
+function serialize() { return JSON.stringify({ app: PLATFORM, kind: 'comandos-eletricos', version: 6, elec: doc.elec || undefined, app: doc.app || undefined, project: doc.project, author: doc.author, company: doc.company || '', pdesc: doc.pdesc || '', logo: doc.logo || '', dateAuto: doc.dateAuto !== false, date: doc.date || '', dateIso: doc.dateIso || '', sheets: doc.sheets, comps: doc.comps, wires: doc.wires }); }
 // ---------- Global session state (single source of truth) ----------
 // sessionStatus: idle | active · activeProject: name or null · simulationRunning mirrors the engine · lastSavedProject: persisted reference only
 const Session = { status: 'idle', activeProject: null, lastSavedProject: null, get active() { return this.status === 'active'; }, get simulationRunning() { return !!sim.running; } };
@@ -1466,7 +1479,9 @@ function activateSession(animate = true) {
   if (first && animate && !HOLO.reduced) { document.body.classList.remove('just-active'); void document.body.offsetWidth; document.body.classList.add('just-active'); setTimeout(() => document.body.classList.remove('just-active'), 1200); }
 }
 function saveLocal() { if (!Session.active) return; Session.lastSavedProject = { project: doc.project, sheets: doc.sheets.length, comps: doc.comps.length, savedAt: '' }; try { localStorage.setItem('voltacademy.ce.doc', serialize()); localStorage.setItem('voltacademy.ce.sheet', ui.sheet || ''); } catch (e) {} }
+let docRev = 0;   // project revision: every confirmed change, undo/redo, import or restore bumps it
 function commit() {
+  docRev++;
   normalizeWireNumbers();
   hist.stack = hist.stack.slice(0, hist.idx + 1);
   hist.stack.push(serialize()); hist.idx = hist.stack.length - 1;
@@ -1481,15 +1496,15 @@ function load(json, { keepHistory = false, activate = true } = {}) {
   const sheets = (Array.isArray(d.sheets) && d.sheets.length ? d.sheets : [{ id: 's1', name: 'Folha 1' }]).map(s => ({ id: s.id, name: s.name || 'Folha', desc: s.desc || '', size: SIZES[s.size] ? s.size : 'A3', orient: s.orient === 'retrato' ? 'retrato' : 'paisagem', cols: Math.min(40, Math.max(2, +s.cols || 12)), rows: Math.min(26, Math.max(2, +s.rows || 6)) }));
   const ids = new Set(sheets.map(s => s.id));
   const ap = d.app && typeof d.app === 'object' && ApplicationRegistry.get(d.app.id) ? { id: d.app.id, mode: d.app.mode === 'exercise' ? 'exercise' : 'example', session: d.app.session || '', started: d.app.started || '', results: d.app.results && typeof d.app.results === 'object' ? d.app.results : {}, hints: d.app.hints && typeof d.app.hints === 'object' ? d.app.hints : {}, validatedAt: d.app.validatedAt || '' } : null;
-  doc = { app: ap, elec: ProjectElectricalConfig.sanitize(d.elec), project: d.project || 'Projeto sem nome', author: d.author || '', logo: typeof d.logo === 'string' && d.logo.startsWith('data:image/') ? d.logo : '', dateAuto: d.dateAuto !== false, date: d.date || '', dateIso: d.dateIso || '', sheets,
-    comps: d.comps.map(c => ({ ...c, sheet: ids.has(c.sheet) ? c.sheet : sheets[0].id })),
+  doc = { app: ap, elec: ProjectElectricalConfig.sanitize(d.elec), project: d.project || 'Projeto sem nome', author: d.author || '', company: String(d.company || '').slice(0, 60), pdesc: String(d.pdesc || '').slice(0, 160), logo: typeof d.logo === 'string' && d.logo.startsWith('data:image/') ? d.logo : '', dateAuto: d.dateAuto !== false, date: d.date || '', dateIso: d.dateIso || '', sheets,
+    comps: d.comps.map(c => { const o = { ...c, sheet: ids.has(c.sheet) ? c.sheet : sheets[0].id }; if (o.spec !== undefined) { const sp = o.type === 'bobina' ? DeviceCatalog.sanitize(o.spec) : null; if (sp) o.spec = sp; else delete o.spec; } return o; }),
     wires: d.wires.map(w => ({ ...w, pts: w.pts ? w.pts.map(p => [...p]) : [] })) };
   const num = x => +String(x).replace(/\D/g, '') || 0;
   nextId = 1 + Math.max(0, ...doc.comps.map(c => num(c.id)), ...doc.wires.map(w => num(w.id)), ...doc.sheets.map(s => num(s.id)));
   normalizeWireNumbers();
   if (!ids.has(ui.sheet)) ui.sheet = sheets[0].id;
   ui.sel = null; ui.multi.clear();
-  if (!keepHistory) { hist.stack = []; hist.idx = -1; commit(); }
+  if (!keepHistory) { hist.stack = []; hist.idx = -1; commit(); } else docRev++;
   if (activate) { const was = Session.active; activateSession(!keepHistory || !was); Session.activeProject = doc.project; if (!was) saveLocal(); }
 }
 function undo() { if (hist.idx > 0 && !sim.running) { hist.idx--; load(hist.stack[hist.idx], { keepHistory: true }); saveLocal(); render(); } }
@@ -2349,6 +2364,7 @@ function sheetSVG(d, sheetId, live, look = 'sym') {
     s += `<rect class="chit" x="${bx}" y="${by}" width="${bw}" height="${bh}" rx="6"/>`;
     s += symbolSVG(c, st, d, live ? ui.look : look);
     if (!T0.notag) s += `<text x="${T0.tagAt[0]}" y="${T0.tagAt[1]}" class="tag">${esc(c.tag)}</text>`;
+    if (c.type === 'bobina' && c.spec) { const sh = DeviceCatalog.short(c.spec); if (sh) s += `<text x="${T0.tagAt[0]}" y="${T0.tagAt[1] + 12}" class="devid">${esc(sh)}</text>`; }
     if (TIMER_T.has(c.type)) s += `<text x="22" y="20" class="num">${(+c.preset || 0).toFixed(1)} s</text>`;
     const tgt = live && !sim.running && (ui.mode === 'wire' || ui.wireStart);
     for (const [t, [x, y]] of Object.entries(T0.terms)) {
@@ -2393,6 +2409,7 @@ function renderWorld() {
       s += `<path d="M${P.map(p => p.join(' ')).join(' L')}" class="wprev${ui.hoverTerm ? ' ok' : ''}" stroke="${ui.wireColor}"/>`;
     }
   }
+  if (ui.guides) s += `<g class="sguides">${ui.guides.map(g => g.dir === 'v' ? `<line x1="${g.x}" y1="${g.a}" x2="${g.x}" y2="${g.b}"/>` : `<line x1="${g.a}" y1="${g.y}" x2="${g.b}" y2="${g.y}"/>`).join('')}</g>`;
   if (ui.placing && ui.cursor) s += `<g class="ghost" transform="translate(${snap(ui.cursor[0])} ${snap(ui.cursor[1])})">${symbolSVG({ type: ui.placing, color: 'verde', tag: '', kw: 1.5, preset: 3 }, {})}</g>`;
   s += '</g>';
   $('#world').innerHTML = s;
@@ -2508,6 +2525,8 @@ function renderInspector() {
     h += `<p class="title-lg">${esc(T0.name)}</p><p class="muted small">Folha ${refOf(doc, c)} · ${esc(T0.cat)}</p>`;
     if (!T0.notag) h += `<div class="field"><label for="fTag">Tag${T0.ref ? ' (igual à da bobina que comanda este contato)' : T0.linkGroup ? ' (igual à da outra ponta, em qualquer folha)' : ''}</label><input id="fTag" class="mono" value="${esc(c.tag)}" ${dis}></div>`;
     h += bindFieldHTML(c, dis);
+    if (c.type === 'bobina') h += specSectionHTML(c, dis);
+    if (T0.ref === 'coil') { const own = doc.comps.filter(x => x.type === 'bobina' && x.tag === c.tag); h += `<p class="muted small" style="margin:0">Dispositivo físico: ${own.length === 1 ? esc(c.tag) + ' · ' + esc(own[0].spec ? (own[0].spec.status === 'verified' ? own[0].spec.model : COIL_KINDS[own[0].spec.kind] + (own[0].spec.currentA ? ' ' + own[0].spec.currentA + ' A' : '')) : 'não especificado') : own.length ? 'ambíguo (' + own.length + ' bobinas com esta TAG)' : 'sem bobina correspondente'}</p>`; }
     if (c.type === 'fase') h += `<div class="field"><label for="fPhase">Fase</label><select id="fPhase" ${dis}>${PHASES.map(p => `<option ${c.phase === p ? 'selected' : ''}>${p}</option>`).join('')}</select></div>`;
     if (T0.sound) h += `<div class="field"><label for="fMode">Tipo de som</label><select id="fMode" ${dis}>${Object.entries(SOUND_MODES).map(([k, v]) => `<option value="${k}" ${soundOf(c).mode === k ? 'selected' : ''}>${v}</option>`).join('')}</select></div><div class="row"><button class="btn" id="aPrev">▶ Ouvir 2 s</button></div>`;
     if (c.type === 'sinaleiro') h += `<div class="field"><label for="fColor">Cor do sinaleiro</label><select id="fColor" ${dis}>${Object.keys(LAMP_COLORS).map(k => `<option value="${k}" ${c.color === k ? 'selected' : ''}>${k[0].toUpperCase() + k.slice(1)}</option>`).join('')}</select></div>`;
@@ -2575,6 +2594,7 @@ function bindInspector() {
   on('fKw', 'change', e => { c.kw = Math.max(0.25, Math.min(75, +e.target.value || 1.5)); commit(); render(); });
   on('fPreset', 'change', e => { const v = Math.max(0.1, Math.min(600, +e.target.value || 1)); c.preset = Math.round(v * 10) / 10; commit(); render(); });
   on('aRot', 'click', () => rotateSel()); on('gRot', 'click', () => rotateSel()); on('gDup', 'click', () => duplicateSel()); on('gDel', 'click', () => deleteSel());
+  if (c && c.type === 'bobina') bindSpecSection(c);
   on('aDup', 'click', () => { const { id, x, y, tag, sheet, ...rest } = c; const n = addComp(c.type, c.x + 80, c.y, rest); if (TYPES[c.type].ref || TYPES[c.type].linkGroup) n.tag = c.tag; ui.sel = { kind: 'comp', id: n.id }; commit(); render(); });
   on('aDel', 'click', deleteSel); on('aDelW', 'click', deleteSel);
   on('aEditW', 'click', () => openWireDialog(ui.sel.id));
@@ -2632,7 +2652,7 @@ function deleteSel(confirmed = false) {
 function updateHint() {
   let t;
   if (sim.running) t = 'Simulação em andamento: segure os botões e toque em chaves, sensores, proteções e fonte. Os fios animados mostram por onde a corrente passa.';
-  else if (ui.placing) t = `Toque na folha para inserir: ${TYPES[ui.placing].name}. Esc cancela.`;
+  else if (ui.placing) t = `Inserção contínua: ${TYPES[ui.placing].name} · cada clique na folha insere um novo · botão direito, Esc ou clique no item encerra.`;
   else if (ui.mode === 'wire') t = ui.wireStart ? 'Toque nos pontos de dobra ou direto no borne de destino. Esc cancela.' : 'Toque num borne para começar o fio.';
   else if (ui.mode === 'pan') t = 'Arraste para mover a folha.';
   else if (ui.multi.size > 1) t = `${ui.multi.size} componentes selecionados · arraste para mover juntos · Del exclui · Ctrl+C/Ctrl+V copia · Ctrl+D duplica · R gira`;
@@ -2698,8 +2718,9 @@ function buildFolders(swap = false) {
     return `<button class="part${ui.placing === k ? ' act' : ''}" data-part="${k}" title="${T0.name} — clique e depois toque na folha, ou arraste até a folha"><svg viewBox="${bx + bw / 2 - side / 2} ${by + bh / 2 - side / 2} ${side} ${side}">${pv}</svg><span>${T0.name.replace(' (retardo na energização)', '')}</span></button>`;
   }).join('') + '</div>' : `<p class="muted small">Nenhum componente com "${esc(ui.search)}" em ${esc(cat)}.</p>`;
 }
-function setActiveCategory(fn) {
+function setActiveCategory(fn, { keepPlacing = false } = {}) {
   const prev = ui.activeCategory, next = typeof fn === 'function' ? fn(prev) : fn;
+  if (next !== prev && ui.placing && !keepPlacing) { ui.placing = null; ui.cursor = null; ui.guides = null; ui.mode = 'select'; ui.placeCancelT = performance.now(); setTimeout(render); }
   ui.activeCategory = next; ui.folder = next;
   if (next !== prev) { ui.search = ''; $('#search').value = ''; }
   buildRail(); buildFolders(!!prev && !!next && prev !== next || (!prev && !!next));
@@ -2740,6 +2761,14 @@ function renderOperate() {
     else b.addEventListener('click', () => sim.running && interact(c));
   });
 }
+function docSectionHTML() {
+  const pl = planDocument(), B = pl.bom, st = k => `<span class="bst ${k}">${SPEC_STATUS[k]}</span>`;
+  return `<section class="docsec" data-rev="${pl.rev}"><p class="h">Documentação do projeto · revisão ${pl.rev} · atualizada automaticamente</p><div class="docgrid">${coverPreviewHTML(doc)}
+    <div class="card"><p class="h" style="margin-bottom:6px">Índice do PDF (${pl.total} páginas)</p><ol class="docidx">${pl.entries.map(e => `<li data-k="${e.k}"><span>${esc(e.title)}</span><b class="mono">${e.n > 1 ? `${e.page}–${e.page + e.n - 1}` : e.page}</b></li>`).join('')}</ol></div></div></section>
+  <section id="bomSec"><p class="h">Lista de materiais · ${B.devices} dispositivos físicos · ${B.symbols} símbolos</p><div class="tablewrap"><table class="bom"><thead><tr><th>TAG(s)</th><th>Categoria</th><th>Fabricante</th><th>Família / modelo</th><th>Código comercial</th><th>Bobina</th><th>Corrente (base)</th><th>Qtd</th><th>Status</th></tr></thead><tbody>
+    ${B.rows.map(r => `<tr data-status="${r.status}"><td class="mono">${esc(r.tags.join(', '))}</td><td>${esc(r.category)}</td><td>${esc(r.manufacturer)}</td><td>${esc(bomModel(r))}</td><td class="mono">${esc(r.code)}</td><td class="mono">${esc(r.coil)}</td><td class="mono">${esc(r.current)}</td><td class="mono"><b>${r.qty}</b></td><td>${st(r.status)}</td></tr>`).join('')}
+  </tbody></table></div>${B.issues.length ? `<div class="bomiss">${B.issues.map(t => `<div class="diag warn"><b>VERIFICAR</b><p>${esc(t)}</p></div>`).join('')}</div>` : ''}<p class="muted small">Pendente = família do fabricante sem confirmação por ficha técnica · Genérico = sem marca nem código comercial. Contatos de força e auxiliares contam com a bobina do mesmo dispositivo.</p></section>`;
+}
 function renderTags() {
   if (!Session.active) { $('#vTags').innerHTML = `<div class="emptywait" role="status"><p class="hw-k">LISTAS E RELATÓRIO</p><p>Nenhum material disponível. Inicie um projeto para visualizar sua documentação e lista de componentes.</p><button class="btn pri" type="button" data-gohome>Ir para o início</button></div>`; return; }
   const rows = doc.comps.filter(c => !TYPES[c.type].notag).slice().sort((a, b) => a.tag.localeCompare(b.tag, 'pt', { numeric: true }));
@@ -2759,6 +2788,7 @@ function renderTags() {
   const csv = ['Nº;De;Para;Folha;Tipo;Cor;Seção (mm²)', ...wr.map(r => [r.no, r.from, r.to, r.sheet, r.kind === 'potencia' ? 'Potência' : 'Comando', r.color, String(r.sec).replace('.', ',')].join(';'))].join('\n');
   $('#vTags').innerHTML = `<div class="vhead"><div><p class="eyebrow">Listas e relatório</p><h2>${rows.length} componentes · ${wr.length} fios · ${wireNets().length} pontos numerados</h2></div>
       <div class="row"><button class="btn" id="tRenum">Renumerar fios</button><button class="btn pri" id="tCsv">Copiar lista de fios (CSV)</button></div></div>
+    ${docSectionHTML()}
     <section><p class="h">Resumo de cabos por bitola</p><div class="tablewrap"><table><thead><tr><th>Circuito</th><th>Seção</th><th>Cor</th><th>Quantidade de fios</th><th>Comprimento no desenho*</th></tr></thead><tbody>
     ${sum.map(g => `<tr><td>${g.kind === 'potencia' ? 'Potência' : 'Comando'}</td><td class="mono">${fmtSec(g.sec)}</td><td><span class="swl" style="background:${(WIRE_COLORS.find(x => x[1] === g.color) || ['#999'])[0]}"></span>${esc(g.color)}</td><td class="mono">${g.n}</td><td class="mono">${m(g.len)} m</td></tr>`).join('') || '<tr><td colspan="5" class="muted">Nenhum fio no projeto.</td></tr>'}
     </tbody></table></div><p class="muted small">* Estimativa pelo traçado no diagrama (1 m a cada 5 quadrículas). Use como referência; meça a montagem real.</p></section>
@@ -2892,8 +2922,36 @@ function toWorld(ev) {
 }
 let drag = null;
 const touches = new Map(); let pinch = null;
+// Double click on a component = same component, < 300 ms, < 6 px, no drag in between (pointer capture breaks native dblclick targets)
+let lastTap = null;
+function isDoubleTap(ev, id) {
+  const now = performance.now(), ok = ev.button === 0 && !ev.ctrlKey && !ev.metaKey && !ev.shiftKey && lastTap && lastTap.id === id && !lastTap.moved
+    && now - lastTap.t < 300 && Math.hypot(ev.clientX - lastTap.x, ev.clientY - lastTap.y) < 6 && now - (ui.lastPlaceT || 0) > 400;
+  lastTap = ok ? null : { id, t: now, x: ev.clientX, y: ev.clientY, moved: false };
+  return ok;
+}
+function openProps(sel) { ui.sel = sel; ui.inspOpen = true; ui.pmTab = 'props'; ui.pmLastSel = sel.kind + ':' + sel.id; }
+// Smart guides: centre-to-centre alignment hints (visual only, never moved, never exported)
+const compCenter = c => { const r = compRect(c); return [(r[0] + r[2]) / 2, (r[1] + r[3]) / 2]; };
+function smartGuides(skip, ctr) {
+  if (!ctr) return null;
+  const tol = 7 / ui.zoom; let bx = null, by = null;
+  for (const o of doc.comps) {
+    if (o.sheet !== ui.sheet || skip.has(o.id)) continue;
+    const [ox, oy] = compCenter(o), dx = Math.abs(ox - ctr[0]), dy = Math.abs(oy - ctr[1]);
+    if (dx < tol && (!bx || dx < bx.d || (dx === bx.d && Math.abs(oy - ctr[1]) < Math.abs(bx.oy - ctr[1])))) bx = { d: dx, x: ox, oy };
+    if (dy < tol && (!by || dy < by.d || (dy === by.d && Math.abs(ox - ctr[0]) < Math.abs(by.ox - ctr[0])))) by = { d: dy, y: oy, ox };
+  }
+  const g = [];
+  if (bx) g.push({ dir: 'v', x: bx.x, a: Math.min(bx.oy, ctr[1]) - 40, b: Math.max(bx.oy, ctr[1]) + 40 });
+  if (by) g.push({ dir: 'h', y: by.y, a: Math.min(by.ox, ctr[0]) - 40, b: Math.max(by.ox, ctr[0]) + 40 });
+  return g.length ? g : null;
+}
+function ghostGuides() { if (!ui.placing || !ui.cursor) return null; return smartGuides(new Set(), compCenter({ type: ui.placing, x: snap(ui.cursor[0]), y: snap(ui.cursor[1]), rot: 0 })); }
+function cancelPlacing() { if (!ui.placing && !ui.guides) return; ui.placing = null; ui.cursor = null; ui.guides = null; ui.mode = 'select'; ui.placeCancelT = performance.now(); buildFolders(); render(); }
 function orth(a, b) { return Math.abs(b[0] - a[0]) > Math.abs(b[1] - a[1]) ? [b[0], a[1]] : [a[0], b[1]]; }
 svg.addEventListener('pointerdown', ev => {
+  if (ev.button === 2) { if (ui.placing) { ev.preventDefault(); cancelPlacing(); } return; }
   touches.set(ev.pointerId, [ev.clientX, ev.clientY]);
   if (ev.button === 1) { ev.preventDefault(); drag = { kind: 'pan', sx: ev.clientX, sy: ev.clientY, px: ui.px, py: ui.py }; svg.setPointerCapture(ev.pointerId); return; }
   if (touches.size === 2) { const [a, b] = [...touches.values()]; if (drag && drag.kind === 'press') pressEnd(); drag = null; pinch = { d: Math.hypot(a[0] - b[0], a[1] - b[1]) }; return; }
@@ -2904,13 +2962,15 @@ svg.addEventListener('pointerdown', ev => {
       const c = compById(compEl.dataset.comp), T0 = TYPES[c.type];
       if (T0.inter === 'push') { pressStart(c); if (sim.running) { svg.setPointerCapture(ev.pointerId); drag = { kind: 'press' }; } return; }
       if (T0.inter) { interact(c); return; }
-      ui.sel = { kind: 'comp', id: c.id }; ui.inspOpen = true; render(); return;
+      if (isDoubleTap(ev, c.id)) openProps({ kind: 'comp', id: c.id }); else ui.sel = { kind: 'comp', id: c.id };
+      render(); return;
     }
     drag = { kind: 'pan', sx: ev.clientX, sy: ev.clientY, px: ui.px, py: ui.py }; svg.setPointerCapture(ev.pointerId); return;
   }
-  if (ui.placing) {
-    const c = addComp(ui.placing, p[0], p[1]); ui.sel = { kind: 'comp', id: c.id };
-    if (!ev.shiftKey) { ui.placing = null; buildFolders(); }
+  if (ui.placing) {   // continuous insertion: every valid left click adds a new instance; the tool stays armed
+    if (ev.button !== 0) return;
+    const [W, H] = curDims(); if (p[0] < 20 || p[1] < 20 || p[0] > W - 20 || p[1] > H - 20) return;
+    const c = addComp(ui.placing, p[0], p[1]); ui.sel = { kind: 'comp', id: c.id }; ui.multi.clear(); ui.lastPlaceT = performance.now(); lastTap = null; ui.cursor = p;
     commit(); render(); return;
   }
   const segEl = ev.target.closest('[data-seg]');
@@ -2928,8 +2988,9 @@ svg.addEventListener('pointerdown', ev => {
       const c = compById(compEl.dataset.comp);
       if (ev.ctrlKey || ev.metaKey) { if (!ui.multi.size && ui.sel && ui.sel.kind === 'comp') ui.multi.add(ui.sel.id); if (ui.multi.has(c.id)) ui.multi.delete(c.id); else ui.multi.add(c.id); const f = ui.multi.has(c.id) ? c.id : [...ui.multi][0]; ui.sel = f ? { kind: 'comp', id: f } : null; render(); return; }
       if (ev.shiftKey) { if (!ui.multi.size && ui.sel && ui.sel.kind === 'comp') ui.multi.add(ui.sel.id); ui.multi.add(c.id); ui.sel = { kind: 'comp', id: c.id }; render(); return; }
+      const dbl = isDoubleTap(ev, c.id);
       if (!isSelComp(c.id)) selectOnly(c.id); else ui.sel = { kind: 'comp', id: c.id };
-      ui.inspOpen = true;
+      if (dbl) openProps({ kind: 'comp', id: c.id });   // only a real double click opens Properties
       const ids = selIds(), set = new Set(ids);
       drag = { kind: 'move', id: c.id, p0: [p[0], p[1]], orig: ids.map(id => { const k = compById(id); return [id, k.x, k.y]; }), wires: doc.wires.filter(w => set.has(w.a.c) && set.has(w.b.c) && w.pts && w.pts.length).map(w => [w, w.pts.map(q => [...q])]), moved: false };
       svg.setPointerCapture(ev.pointerId); render(); return;
@@ -2937,7 +2998,7 @@ svg.addEventListener('pointerdown', ev => {
     if (wireEl) { ui.multi.clear();
       const id = wireEl.dataset.wire;
       if (ui.sel && ui.sel.kind === 'wire' && ui.sel.id === id) { const k = nearestSeg(id, p); if (k != null) { startSegDrag(id, k, p); svg.setPointerCapture(ev.pointerId); return; } }
-      ui.sel = { kind: 'wire', id }; ui.inspOpen = true; render(); return;
+      ui.sel = { kind: 'wire', id }; render(); return;
     }
     if (ev.pointerType !== 'touch' && ev.button === 0 && !ev.altKey) {
       const add = ev.shiftKey || ev.ctrlKey || ev.metaKey; if (!add) clearSelection();
@@ -2957,9 +3018,10 @@ svg.addEventListener('pointermove', ev => {
     let dx = snap(p[0] - drag.p0[0]), dy = snap(p[1] - drag.p0[1]);
     dx = Math.max(40 - Math.min(...xs), Math.min(W - 40 - Math.max(...xs), dx)); dy = Math.max(40 - Math.min(...ys), Math.min(H - 40 - Math.max(...ys), dy));
     if (dx !== drag.dx || dy !== drag.dy) {
-      drag.dx = dx; drag.dy = dy; drag.moved = drag.moved || !!(dx || dy);
+      drag.dx = dx; drag.dy = dy; drag.moved = drag.moved || !!(dx || dy); if (drag.moved && lastTap) lastTap.moved = true;
       for (const [id, x, y] of drag.orig) { const c = compById(id); c.x = x + dx; c.y = y + dy; }
       for (const [w, pts] of drag.wires) w.pts = pts.map(([x, y]) => [x + dx, y + dy]);
+      ui.guides = drag.moved ? smartGuides(new Set(drag.orig.map(o => o[0])), compCenter(compById(drag.id))) : null;
       renderDiagram();
     }
     return;
@@ -2978,8 +3040,10 @@ svg.addEventListener('pointermove', ev => {
     ui.hoverTerm = h;
     if ((h && (!was || was.c !== h.c || was.t !== h.t)) || (!h && was)) renderWorld();
   }
-  if (ui.placing) { ui.cursor = p; renderWorld(); }
+  if (ui.placing) { ui.cursor = p; ui.guides = ghostGuides(); renderWorld(); }
 });
+svg.addEventListener('pointerleave', () => { if (ui.placing) { ui.cursor = null; ui.guides = null; renderWorld(); } });
+svg.addEventListener('contextmenu', ev => { if (ui.placing || performance.now() - (ui.placeCancelT || 0) < 800) ev.preventDefault(); });
 function nearestTerm(p, r) {
   let best = null, bd = r / Math.max(0.4, Math.min(ui.zoom, 1.5)) ;
   for (const c of doc.comps) { if (c.sheet !== ui.sheet) continue; for (const t of Object.keys(TYPES[c.type].terms)) { const [x, y] = termPos(c, t), d = Math.hypot(x - p[0], y - p[1]); if (d < bd) { bd = d; best = { c: c.id, t }; } } }
@@ -3024,6 +3088,7 @@ function moveSeg(p) {
 }
 const endDrag = ev => {
   touches.delete(ev.pointerId); if (touches.size < 2) pinch = null;
+  if (ui.guides && !ui.placing) { ui.guides = null; renderWorld(); }
   if (!drag) return;
   if (drag.kind === 'press') pressEnd();
   if (drag.kind === 'move' && drag.moved) commit();
@@ -3083,8 +3148,9 @@ $('#folders').addEventListener('click', ev => {
   const part = ev.target.closest('[data-part]'); if (!part) return;
   if (paletteDrag && paletteDrag.dropped) { paletteDrag = null; return; }
   if (sim.running) return flash('Pare a simulação para editar o circuito.');
-  ui.placing = ui.placing === part.dataset.part ? null : part.dataset.part; ui.wireStart = null;
-  if (ui.placing && matchMedia('(max-width: 900px)').matches) setActiveCategory(null);
+  if (ui.placing === part.dataset.part) return cancelPlacing();
+  ui.placing = part.dataset.part; ui.wireStart = null; ui.mode = 'select'; ui.guides = null;
+  if (matchMedia('(max-width: 900px)').matches) setActiveCategory(null, { keepPlacing: true });
   buildFolders(); render();
 });
 // drag a component from the drawer and drop it on the sheet
@@ -3158,7 +3224,7 @@ $('#sDel').addEventListener('click', () => {
     doc.sheets = doc.sheets.filter(x => x.id !== s.id); ui.sheet = doc.sheets[0].id; ui.sel = null; ui.multi.clear(); commit(); closeModal(); render();
   });
 });
-const blankProject = () => ({ project: 'Novo projeto', author: doc.author, logo: '', dateAuto: true,
+const blankProject = () => ({ project: 'Novo projeto', author: doc.author, company: '', pdesc: '', logo: '', dateAuto: true,
   sheets: [{ id: 's1', name: 'Força', desc: '', size: 'A3', orient: 'paisagem', cols: 12, rows: 6 }, { id: 's2', name: 'Comando', desc: '', size: 'A3', orient: 'paisagem', cols: 12, rows: 6 }], comps: [], wires: [] });
 function createProject(d) {
   document.body.classList.remove('warp'); void document.body.offsetWidth;
@@ -3192,21 +3258,27 @@ function sheetDialog(mode) {
       <label for="dDesc">Descrição</label><input id="dDesc" value="${esc(s.desc)}" maxlength="80" placeholder="Ex.: circuito de força do motor M1">
       <label for="dAuth">Autor</label><input id="dAuth" value="${esc(D.author)}" maxlength="60" placeholder="Nome do autor">
       <label for="dProj">Projeto</label><input id="dProj" value="${esc(D.project)}" maxlength="60" placeholder="Nome do projeto">
+      <label for="dCompany">Empresa / marca</label><input id="dCompany" value="${esc(D.company || '')}" maxlength="60" placeholder="Opcional · aparece na capa">
+      <label for="dPDesc">Descrição do projeto</label><input id="dPDesc" value="${esc(D.pdesc || '')}" maxlength="160" placeholder="Opcional · resumo na capa">
       <label for="dDate">Data</label><input id="dDate" type="date" value="${D.dateAuto === false && /^\d{4}-\d{2}-\d{2}$/.test(D.dateIso || '') ? D.dateIso : today}" ${D.dateAuto === false ? '' : 'disabled'}>
     </div>
     <label class="chk"><input type="checkbox" id="dAuto" ${D.dateAuto === false ? '' : 'checked'}> Data automática (hoje)</label>
+    <div class="field"><label>Prévia da capa do PDF</label><div id="dCover"></div><p class="muted small" style="margin:2px 0 0">Sem empresa nem logo, a capa usa a identidade VoltAcademy. Campos vazios não aparecem.</p></div>
     <label class="chk"><input type="checkbox" id="dAll" ${isNew ? 'checked' : ''}> Aplicar tamanho, orientação, colunas e linhas a todas as folhas</label>
     ${elecSectionHTML(es.e)}
     <p class="muted small" id="dMsg" style="margin:0"></p>
     <div class="row" style="justify-content:flex-end">${isNew ? '<button class="btn" id="dSkip">Pular configuração</button><button class="btn pri" id="dSave">Criar projeto</button>' : '<button class="btn" data-close>Cancelar</button><button class="btn pri" id="dSave">Salvar</button>'}</div>`, isNew ? 'holo' : '');
   bindElecSection(es);
   if (isNew) $('#dSkip').addEventListener('click', () => createProject(blankProject()));
-  const showLogo = () => { $('#dLogoBox').innerHTML = logo ? `<img src="${logo}" alt="Logo">` : '<span class="muted small">Sem logo</span>'; };
+  const cover = () => { const t = { project: $('#dProj').value.trim() || D.project, author: $('#dAuth').value.trim(), company: $('#dCompany').value.trim(), pdesc: $('#dPDesc').value.trim(), logo, sheets: D.sheets, dateAuto: $('#dAuto').checked, date: (() => { const [y, m, dd] = ($('#dDate').value || today).split('-'); return `${dd}/${m}/${y}`; })() }; $('#dCover').innerHTML = coverPreviewHTML(t); };
+  const showLogo = () => { $('#dLogoBox').innerHTML = logo ? `<img src="${logo}" alt="Logo">` : '<span class="muted small">Sem logo</span>'; cover(); };
+  ['#dProj', '#dAuth', '#dCompany', '#dPDesc', '#dDate', '#dAuto'].forEach(q => $(q).addEventListener('input', cover)); $('#dAuto').addEventListener('change', cover);
   showLogo();
   $('#dAuto').addEventListener('change', e => { $('#dDate').disabled = e.target.checked; });
   $('#dLogoDel').addEventListener('click', () => { logo = ''; showLogo(); });
   $('#dLogo').addEventListener('change', ev => {
     const f = ev.target.files[0]; if (!f) return;
+    if (!/^image\/(png|jpeg|svg\+xml|webp)$/.test(f.type)) { $('#dMsg').textContent = 'Formato não suportado. Use PNG, JPG, SVG ou WebP.'; return; }
     if (f.size > 4e6) { $('#dMsg').textContent = 'Imagem acima de 4 MB. Use um arquivo menor.'; return; }
     const r = new FileReader();
     r.onload = () => { const img = new Image(); img.onload = () => {
@@ -3222,7 +3294,7 @@ function sheetDialog(mode) {
     if (!e || !NET_TYPES[e.net] || !(e.v >= 12)) { $('#dMsg').textContent = 'Revise a configuração elétrica.'; return; }
     for (const sh of $('#dAll').checked ? D.sheets : [s]) Object.assign(sh, fmt);
     s.name = $('#dName').value.trim() || s.name; s.desc = $('#dDesc').value.trim();
-    D.author = $('#dAuth').value.trim(); D.project = $('#dProj').value.trim() || D.project; D.logo = logo;
+    D.author = $('#dAuth').value.trim(); D.project = $('#dProj').value.trim() || D.project; D.logo = logo; D.company = $('#dCompany').value.trim(); D.pdesc = $('#dPDesc').value.trim();
     D.dateAuto = $('#dAuto').checked;
     if (!D.dateAuto) { D.dateIso = $('#dDate').value; const [y, m, dd] = (D.dateIso || today).split('-'); D.date = `${dd}/${m}/${y}`; }
     if (isNew) { D.elec = e; createProject(D); return; }
@@ -3235,7 +3307,7 @@ function sheetDialog(mode) {
 document.addEventListener('keydown', ev => {
   if (ev.target.closest('input,textarea,select')) return;
   if ($('#modal').hidden && !(ev.ctrlKey || ev.metaKey) && holoKey(ev)) return;
-  if (ev.key === 'Escape') { const busy = ui.placing || ui.wireStart || !$('#modal').hidden; ui.placing = null; ui.wireStart = null; ui.wirePts = []; closeModal(); $('#colorPop').hidden = true; if (!busy && (ui.multi.size || ui.sel) && ui.view === 'diagram') { clearSelection(); buildFolders(); } else if (!busy && ui.activeCategory) setActiveCategory(null); else { if (!busy && ui.inspOpen && ui.view === 'diagram') ui.inspOpen = false; buildFolders(); } render(); return; }
+  if (ev.key === 'Escape') { const busy = ui.placing || ui.wireStart || !$('#modal').hidden; if (ui.placing) { ui.mode = 'select'; ui.guides = null; ui.cursor = null; ui.placeCancelT = performance.now(); setTimeout(() => { buildFolders(); render(); }); } ui.placing = null; ui.wireStart = null; ui.wirePts = []; closeModal(); $('#colorPop').hidden = true; if (!busy && (ui.multi.size || ui.sel) && ui.view === 'diagram') { clearSelection(); buildFolders(); } else if (!busy && ui.activeCategory) setActiveCategory(null); else { if (!busy && ui.inspOpen && ui.view === 'diagram') ui.inspOpen = false; buildFolders(); } render(); return; }
   if (ui.view !== 'diagram' && ev.key !== ' ') return;
   if (!Session.active) return;
   if ((ev.key === 'Delete' || ev.key === 'Backspace') && (ui.sel || ui.multi.size)) { ev.preventDefault(); deleteSel(); }
@@ -3300,10 +3372,11 @@ function elecInspectorHTML(c, dis) {
   }
   if (RATED_TYPES.has(c.type)) {
     const on = c.type === 'bobina' ? sim.coils[c.tag] : TIMER_T.has(c.type) ? sim.timerOn[c.tag] : c.type === 'rele_seguranca' ? sim.srPowerById[c.id] : sim.lamps[c.id];
-    h += `<div class="frow">${fld('Tensão nominal (V)', num('vn', c.vn, 6, 1000, 1, 'não especificada'))}${fld('Tipo', sel('vk', [['CA', 'CA'], ['CC', 'CC'], ['CA/CC', 'CA/CC']], c.vk || 'CA'))}</div>`;
+    const lockV = c.type === 'bobina' && c.spec && c.spec.vmin > 0, d0 = dis; if (lockV) dis = 'disabled';
+    h += `<div class="frow">${fld('Tensão nominal (V)' + (lockV ? ' · definida pelo dispositivo' : ''), num('vn', c.vn, 6, 1000, 1, 'não especificada'))}${fld('Tipo', sel('vk', [['CA', 'CA'], ['CC', 'CC'], ['CA/CC', 'CA/CC']], c.vk || 'CA'))}</div>`;
     h += `<div class="frow">${fld('Frequência', sel('hzn', [['', 'qualquer'], [50, '50 Hz'], [60, '60 Hz']], c.hzn, true))}${fld('Potência (VA)', num('va', c.va, 0.1, 5000, 0.1, 'opcional'))}</div>`;
     const R = RATING[(T0.loads || [[0, 0, 'coil']])[0][2]] || RATING.coil;
-    h += `<div class="frow">${fld('Faixa mínima (%)', num('tmin', c.tmin, 50, 100, 1, String(R.min)))}${fld('Faixa máxima (%)', num('tmax', c.tmax, 100, 150, 1, String(R.max)))}</div>`;
+    h += `<div class="frow">${fld('Faixa mínima (%)', num('tmin', c.tmin, 1, 100, 1, String(R.min)))}${fld('Faixa máxima (%)', num('tmax', c.tmax, 100, 250, 1, String(R.max)))}</div>`; dis = d0;
     const cur = on && ap && c.va ? `${fmtN(c.va / ap.v, 3)} A` : 'não calculada' + (c.va ? '' : ' (informe a potência)');
     const comp = !c.vn ? 'modelo simplificado (tensão nominal não especificada)' : my.length ? my.map(d => d.title.toLowerCase()).join(', ') : sim.running && ap ? 'compatível' : '—';
     h += `<div class="card ecard"><p class="h">Alimentação</p>${li([['Tensão nominal', c.vn ? `${c.vn} V${c.vk === 'CA/CC' ? ' CA/CC' : c.vk || 'CA'}` : 'não especificada'], ['Tensão aplicada', apTxt], ['Corrente', cur], ['Compatibilidade', comp], ['Estado', on ? 'energizado' : sim.running ? 'desenergizado' : 'simulação parada']])}</div>`;
@@ -3756,11 +3829,307 @@ function openFile() {
 }
 
 // ---------------------------------------------------------------- PDF (no dependencies)
+// =====================================================================
+// DeviceCatalog — tipo físico da bobina (contator / relé) com catálogo encadeado.
+// Fonte: anexo "Biblioteca de contatores e relés". Famílias = dados preliminares (pendentes);
+// referências verificadas = classificação do arquivo de origem; genéricos = sem marca nem SKU.
+// O símbolo IEC e a lógica elétrica da bobina não mudam: só a especificação do dispositivo físico.
+// =====================================================================
+const COIL_KINDS = { contactor: 'Contator de potência', interface_relay: 'Relé de interface tipo borne', relay: 'Relé convencional (genérico)' };
+const SPEC_STATUS = { verified: 'Verificado', pending: 'Pendente', generic: 'Genérico' };
+const RATING_BASIS = { contactor: 'AC-3', interface_relay: 'carga resistiva', relay: 'carga resistiva' };
+const fam = (kind, manufacturer, family, currents, AC = [], DC = [], extra = {}) => ({ kind, manufacturer, family, currents, coils: [...AC.map(v => ['AC', v, v]), ...DC.map(v => ['DC', v, v]), ...(extra.ranges || [])], note: extra.note || '' });
+const CATALOG_FAMILIES = [
+  fam('contactor', 'WEG', 'CWB / CWM', [9, 12, 18, 25, 32, 40, 50, 65, 80, 95, 110, 125], [24, 110, 127, 220, 230, 240, 380, 440], [24, 48, 110, 125, 220]),
+  fam('contactor', 'Siemens', 'SIRIUS 3RT2', [9, 12, 17, 25, 32, 40, 50, 65, 80, 95], [24, 110, 120, 230, 240, 400], [24, 48, 110]),
+  fam('contactor', 'Schneider Electric', 'TeSys Deca LC1D', [9, 12, 18, 25, 32, 38, 40, 50, 65, 80, 95, 115, 150], [24, 48, 110, 120, 127, 220, 230, 240, 380, 440], [24, 48, 110, 125, 220]),
+  fam('contactor', 'Rockwell / Allen-Bradley', 'Bulletin 100-C / 100-E', [9, 12, 16, 23, 30, 37, 43, 55, 60, 72, 85, 97], [24, 110, 120, 208, 220, 230, 240, 480], [24, 48, 110]),
+  fam('contactor', 'ABB', 'AF', [9, 12, 16, 26, 30, 38, 40, 52, 65, 80, 96, 116, 140], [], [], { ranges: [['AC', 24, 60], ['DC', 20, 60], ['AC_DC', 100, 250], ['AC_DC', 250, 500]], note: 'Bobinas eletrônicas por faixa, conforme o modelo.' }),
+  fam('contactor', 'Metaltex', 'CT', [9, 12, 22, 32, 40, 50, 65, 85, 100], [24, 110, 220, 380], [24]),
+  fam('contactor', 'Eaton', 'DILM', [7, 9, 12, 15, 17, 25, 32, 38, 40, 50, 65, 80, 95], [24, 110, 120, 230, 240, 400], [24, 48, 110]),
+  fam('contactor', 'Lovato Electric', 'BF', [9, 12, 18, 25, 32, 38, 40, 50, 65, 80, 95, 115, 150], [24, 110, 120, 220, 230, 240, 400], [24, 48, 110]),
+  fam('contactor', 'CHINT', 'NC1 / NXC', [9, 12, 18, 25, 32, 40, 50, 65, 80, 95], [24, 110, 220, 230, 380, 415], [24], { note: 'Bobinas conforme a linha.' }),
+  fam('contactor', 'Sibratec', 'CJX2', [9, 12, 18, 25, 32, 40, 50, 65, 80, 95], [24, 110, 220, 380], [24], { note: 'Bobinas conforme a linha.' }),
+  fam('interface_relay', 'Phoenix Contact', 'PLC-INTERFACE / PLC-RSC', [6], [24, 120, 230], [12, 24], { note: 'CA/CC conforme a variante.' }),
+  fam('interface_relay', 'Weidmüller', 'TERMSERIES', [6, 8], [24, 115, 230], [12, 24, 48], { note: 'CA/CC conforme a variante.' }),
+  fam('interface_relay', 'Finder', 'Série 38 / 39', [6], [24, 110, 230], [12, 24], { note: 'CA/CC conforme a variante.' }),
+  fam('interface_relay', 'Metaltex', 'PRZ / PRZP', [6], [110, 220], [12, 24]),
+  fam('interface_relay', 'Omron', 'G2RV-SR / G2RV-ST', [6], [24, 100, 110, 200, 230], [12, 24, 48]),
+  fam('interface_relay', 'Schneider Electric', 'Harmony RSL', [6], [24, 110, 230], [12, 24], { note: 'CA/CC conforme a variante.' }),
+  fam('interface_relay', 'Siemens', 'SIRIUS 3RQ3', [6], [110, 230], [], { ranges: [['AC_DC', 24, 24]], note: 'Conforme a variante.' }),
+  fam('interface_relay', 'WAGO', 'Série 857', [6], [], [24], { note: 'CA/CC conforme a variante.' }),
+  fam('interface_relay', 'Rockwell / Allen-Bradley', 'Bulletin 700-HL', [6], [], [24], { note: 'CA/CC conforme a variante.' }),
+  fam('interface_relay', 'ABB', 'CR-S', [6], [], [5, 12, 24], { note: 'CA/CC conforme a variante.' }),
+];
+const CATALOG_REFS = [
+  { id: 'schneider-lc1d09m7', componentType: 'contactor', manufacturer: 'Schneider Electric', family: 'TeSys Deca LC1D', model: 'LC1D09M7', coilSupplyType: 'AC', coilVoltageMinV: 220, coilVoltageMaxV: 220, ratedCurrentA: 9, currentRatingBasis: 'AC-3', verificationStatus: 'verified', sourceUrl: 'https://www.se.com/br/pt/product/LC1D09M7/' },
+  { id: 'schneider-lc1d09bd', componentType: 'contactor', manufacturer: 'Schneider Electric', family: 'TeSys Deca LC1D', model: 'LC1D09BD', coilSupplyType: 'DC', coilVoltageMinV: 24, coilVoltageMaxV: 24, ratedCurrentA: 9, currentRatingBasis: 'AC-3', verificationStatus: 'verified', sourceUrl: 'https://iportal.se.com/Contents/docs/SQD-LC1D09BD.PDF' },
+  { id: 'schneider-lc1d32bd', componentType: 'contactor', manufacturer: 'Schneider Electric', family: 'TeSys Deca LC1D', model: 'LC1D32BD', coilSupplyType: 'DC', coilVoltageMinV: 24, coilVoltageMaxV: 24, ratedCurrentA: 32, currentRatingBasis: 'AC-3', verificationStatus: 'verified', sourceUrl: 'https://www.se.com/br/pt/product/LC1D32BD/' },
+  { id: 'weg-cwb32-11-30d25', componentType: 'contactor', manufacturer: 'WEG', family: 'CWB / CWM', model: 'CWB32-11-30D25', coilSupplyType: 'AC', coilVoltageMinV: 240, coilVoltageMaxV: 240, ratedCurrentA: 32, currentRatingBasis: 'AC-3', verificationStatus: 'verified', sourceUrl: 'https://www.weg.net/catalog/weg/BR/pt/p/12679556' },
+  { id: 'phoenix-2966171', componentType: 'interface_relay', manufacturer: 'Phoenix Contact', family: 'PLC-INTERFACE / PLC-RSC', model: 'PLC-RSC-24DC/21 (2966171)', coilSupplyType: 'DC', coilVoltageMinV: 24, coilVoltageMaxV: 24, ratedCurrentA: 6, currentRatingBasis: 'carga resistiva', verificationStatus: 'verified', sourceUrl: 'https://www.phoenixcontact.com/pt-br/produtos/modulo-de-rele-plc-rsc-24dc-21-2966171' },
+  { id: 'phoenix-2909524', componentType: 'interface_relay', manufacturer: 'Phoenix Contact', family: 'PLC-INTERFACE / PLC-RSC', model: 'PLC-RSC-24DC/21/EX (2909524)', coilSupplyType: 'DC', coilVoltageMinV: 24, coilVoltageMaxV: 24, ratedCurrentA: 6, currentRatingBasis: 'carga resistiva', verificationStatus: 'verified', sourceUrl: 'https://www.phoenixcontact.com/pt-br/produtos/modulo-de-rele-plc-rsc-24dc-21-ex-2909524' },
+  { id: 'phoenix-2967060', componentType: 'interface_relay', manufacturer: 'Phoenix Contact', family: 'PLC-INTERFACE / PLC-RSC', model: 'PLC-RSC-24DC/21-21 (2967060)', coilSupplyType: 'DC', coilVoltageMinV: 24, coilVoltageMaxV: 24, ratedCurrentA: 6, currentRatingBasis: 'carga resistiva', verificationStatus: 'verified', sourceUrl: 'https://www.phoenixcontact.com/pt-br/produtos/modulo-de-rele-plc-rsc-24dc-21-21-2967060' },
+];
+const GENERIC_SPEC = {
+  contactor: { currents: [6, 7, 9, 12, 15, 16, 17, 18, 22, 23, 25, 26, 30, 32, 37, 38, 40, 43, 50, 52, 55, 60, 65, 72, 80, 85, 90, 95, 97, 100, 110, 115, 125, 150, 185, 205, 225, 250, 300, 330, 400, 500, 630, 800], AC: [12, 24, 48, 110, 115, 120, 127, 208, 220, 230, 240, 380, 400, 415, 440, 480], DC: [12, 24, 48, 60, 110, 125, 220] },
+  interface_relay: { currents: [1, 2, 3, 5, 6, 8], AC: [12, 24, 48, 100, 110, 115, 120, 127, 220, 230, 240], DC: [5, 6, 12, 24, 48, 60, 110, 125, 220] },
+  relay: { currents: [10, 12, 16], AC: [12, 24, 48, 100, 110, 115, 120, 127, 220, 230, 240], DC: [5, 6, 12, 24, 48, 60, 110, 125, 220] },
+};
+const SUPPLY_TXT = { AC: 'Vca', DC: 'Vcc', AC_DC: 'V CA/CC' };
+const coilTxt = (sup, a, b) => !sup || !(a > 0) ? '—' : a === b ? `${a} ${SUPPLY_TXT[sup]}` : `${a}–${b} ${SUPPLY_TXT[sup]}`;
+const coilKey = (sup, a, b) => `${sup}:${a}:${b}`;
+const DeviceCatalog = {
+  families: kind => CATALOG_FAMILIES.filter(f => f.kind === kind),
+  refs: kind => CATALOG_REFS.filter(r => r.componentType === kind),
+  ref: id => CATALOG_REFS.find(r => r.id === id) || null,
+  family: (kind, man, family) => CATALOG_FAMILIES.find(f => f.kind === kind && f.manufacturer === man && f.family === family) || null,
+  coilOptions(s) {
+    if (s.status === 'pending') { const f = this.family(s.kind, s.manufacturer, s.family); return f ? f.coils : []; }
+    if (s.status === 'generic') { const g = GENERIC_SPEC[s.kind]; return [...g.AC.map(v => ['AC', v, v]), ...g.DC.map(v => ['DC', v, v])]; }
+    return [];
+  },
+  currentOptions(s) {
+    if (s.status === 'pending') { const f = this.family(s.kind, s.manufacturer, s.family); return f ? f.currents : []; }
+    if (s.status === 'generic') return GENERIC_SPEC[s.kind].currents;
+    return [];
+  },
+  // keep only values that exist in the catalog for the chosen path (no invented combinations)
+  sanitize(raw) {
+    if (!raw || typeof raw !== 'object' || !COIL_KINDS[raw.kind]) return null;
+    const kind = raw.kind, status = SPEC_STATUS[raw.status] ? raw.status : 'generic';
+    if (status === 'verified') {
+      const r = this.ref(raw.refId);
+      if (r && r.componentType === kind) return { kind, status, refId: r.id, manufacturer: r.manufacturer, family: r.family, model: r.model, supply: r.coilSupplyType, vmin: r.coilVoltageMinV, vmax: r.coilVoltageMaxV, currentA: r.ratedCurrentA, basis: r.currentRatingBasis, sourceUrl: r.sourceUrl };
+      return { kind, status: 'verified', refId: null };
+    }
+    const s = { kind, status, refId: null, basis: RATING_BASIS[kind] };
+    if (status === 'pending') {
+      const f = this.family(kind, raw.manufacturer, raw.family) || null; if (!f) return { kind, status, refId: null, basis: s.basis, manufacturer: this.families(kind).some(x => x.manufacturer === raw.manufacturer) ? raw.manufacturer : undefined };
+      Object.assign(s, { manufacturer: f.manufacturer, family: f.family, model: f.family });
+    } else Object.assign(s, { manufacturer: '', family: '', model: '' });
+    const co = this.coilOptions(s).find(o => o[0] === raw.supply && o[1] === +raw.vmin && o[2] === +raw.vmax);
+    if (co) Object.assign(s, { supply: co[0], vmin: co[1], vmax: co[2] });
+    if (this.currentOptions(s).includes(+raw.currentA)) s.currentA = +raw.currentA;
+    return s;
+  },
+  short(s) {
+    if (!s) return '';
+    if (s.status === 'verified') return s.model ? s.model.replace(/\s*\(.*\)$/, '') : '';
+    const cur = s.currentA ? `${s.currentA} A` : '', coil = s.vmin ? coilTxt(s.supply, s.vmin, s.vmax).replace(' V CA/CC', 'V CA/CC') : '';
+    if (s.status === 'pending') return [s.family && s.family.split(' / ')[0], cur].filter(Boolean).join(' ') + (s.family ? ' *' : '');
+    return cur || coil ? ['Gen.', cur, coil].filter(Boolean).join(' ') : '';
+  },
+};
+const specOf = c => c.spec || null;
+function coilContacts(d, c) { return d.comps.filter(x => TYPES[x.type].ref === 'coil' && x.tag === c.tag); }
+function specWarnings(d, c, s) {
+  const out = [], cs = coilContacts(d, c), power = cs.filter(x => x.type === 'contator_forca').length, aux = cs.length - power;
+  if (s && s.kind !== 'contactor' && power) out.push(`${power} contato${power > 1 ? 's' : ''} de força associado${power > 1 ? 's' : ''} a ${c.tag}: relés não possuem contatos de força. Nada foi alterado no diagrama.`);
+  if (s && s.kind === 'interface_relay' && aux > 1) out.push(`Relé de interface tipo borne costuma ter 1 contato comutador (11 COM · 12 NF · 14 NA); ${c.tag} tem ${aux} contatos auxiliares associados.`);
+  if (s && s.status === 'pending') out.push('Família candidata: os valores de bobina e corrente precisam ser confirmados na ficha técnica antes da compra.');
+  const twins = d.comps.filter(x => x.type === 'bobina' && x.tag === c.tag && x.id !== c.id).length;
+  if (twins) out.push(`Há outra bobina com a TAG ${c.tag}: os contatos ficam ambíguos entre os dispositivos.`);
+  return out;
+}
+function applySpecElectrical(c, s) {   // the coil rating follows the chosen device; contacts and wiring are untouched
+  if (!s || !(s.vmin > 0)) return;
+  c.vk = s.supply === 'DC' ? 'CC' : s.supply === 'AC_DC' ? 'CA/CC' : 'CA';
+  if (s.vmin === s.vmax) { c.vn = s.vmin; delete c.tmin; delete c.tmax; }
+  else { c.vn = Math.round((s.vmin + s.vmax) / 2); c.tmin = Math.max(1, Math.round(s.vmin / c.vn * 100)); c.tmax = Math.round(s.vmax / c.vn * 100); }
+}
+function specSectionHTML(c, dis) {
+  const s = specOf(c) || { kind: 'contactor', status: 'generic', refId: null }, kind = s.kind;
+  const opt = (v, l, cur) => `<option value="${esc(String(v))}" ${String(cur ?? '') === String(v) ? 'selected' : ''}>${esc(l)}</option>`;
+  const sel = (k, label, opts, cur, ph) => `<div class="field"><label for="sp_${k}">${label}</label><select id="sp_${k}" data-spec="${k}" ${dis}>${ph ? `<option value="" ${cur ? '' : 'selected'} disabled>${esc(ph)}</option>` : ''}${opts.map(([v, l]) => opt(v, l, cur)).join('')}</select></div>`;
+  const origins = [['verified', 'Referência comercial verificada'], ['pending', 'Família do fabricante (dados pendentes)'], ['generic', 'Genérico configurável']].filter(([k]) => k === 'generic' || (k === 'verified' ? DeviceCatalog.refs(kind).length : DeviceCatalog.families(kind).length));
+  let h = `<details class="pmsec spec" open><summary class="pmt"><span>◆</span>Dispositivo físico</summary><div class="specbody">`;
+  h += sel('kind', 'Tipo', Object.entries(COIL_KINDS), kind);
+  h += sel('status', 'Origem dos dados', origins, s.status);
+  if (s.status === 'verified') h += sel('refId', 'Referência comercial', DeviceCatalog.refs(kind).map(r => [r.id, `${r.manufacturer} · ${r.model} · ${coilTxt(r.coilSupplyType, r.coilVoltageMinV, r.coilVoltageMaxV)} · ${r.ratedCurrentA} A`]), s.refId, 'Selecione a referência');
+  if (s.status === 'pending') {
+    const mans = [...new Set(DeviceCatalog.families(kind).map(f => f.manufacturer))];
+    h += sel('manufacturer', 'Fabricante', mans.map(m => [m, m]), s.manufacturer, 'Selecione o fabricante');
+    if (s.manufacturer) h += sel('family', 'Família / modelo', DeviceCatalog.families(kind).filter(f => f.manufacturer === s.manufacturer).map(f => [f.family, f.family]), s.family, 'Selecione a família');
+  }
+  if (s.status === 'pending' && s.family || s.status === 'generic') {
+    h += sel('coil', 'Alimentação da bobina', DeviceCatalog.coilOptions(s).map(([a, b, cc]) => [coilKey(a, b, cc), coilTxt(a, b, cc)]), s.vmin ? coilKey(s.supply, s.vmin, s.vmax) : '', 'Selecione CA/CC e tensão');
+    h += sel('currentA', `Corrente nominal dos contatos (${RATING_BASIS[kind]})`, DeviceCatalog.currentOptions(s).map(v => [v, `${v} A`]), s.currentA, 'Selecione a corrente');
+  }
+  const f = s.status === 'pending' ? DeviceCatalog.family(kind, s.manufacturer, s.family) : null;
+  const rows = [['Tipo', COIL_KINDS[kind]], ['Fabricante', s.manufacturer || (s.status === 'generic' ? 'genérico (sem marca)' : '—')], ['Família / modelo', s.status === 'generic' ? 'genérico' : s.family || '—'],
+    ['Código comercial', s.status === 'verified' && s.model ? s.model : 'não aplicável'], ['Bobina', s.vmin ? coilTxt(s.supply, s.vmin, s.vmax) : 'não definida'],
+    ['Contatos', s.currentA ? `${s.currentA} A · ${s.basis || RATING_BASIS[kind]}` : 'não definida'], ['Status', SPEC_STATUS[s.status]]];
+  h += `<ul class="list">${rows.map(([k, v]) => `<li><span class="muted">${k}</span><span>${esc(v)}</span></li>`).join('')}</ul>`;
+  if (f && f.note) h += `<p class="muted small" style="margin:0">${esc(f.note)}</p>`;
+  if (s.status === 'verified' && s.sourceUrl) h += `<p class="small" style="margin:0">Fonte: <a href="${esc(s.sourceUrl)}" target="_blank" rel="noopener">ficha técnica</a></p>`;
+  h += `<p class="muted small" style="margin:0">A corrente dos contatos não é a corrente da bobina: o consumo da bobina vem da potência (VA) informada abaixo.</p>`;
+  const w = specWarnings(doc, c, s); if (w.length) h += w.map(t => `<div class="diag warn"><b>ATENÇÃO</b><p>${esc(t)}</p></div>`).join('');
+  return h + '</div></details>';
+}
+function bindSpecSection(c) {
+  $$('#insp [data-spec]').forEach(el => el.addEventListener('change', () => {
+    const k = el.dataset.spec, v = el.value, cur = specOf(c) || { kind: 'contactor', status: 'generic' };
+    let n;
+    if (k === 'kind') n = { kind: v, status: 'generic' };
+    else if (k === 'status') n = { kind: cur.kind, status: v, manufacturer: v === 'pending' ? (DeviceCatalog.families(cur.kind)[0] || {}).manufacturer : undefined };
+    else if (k === 'refId') n = { kind: cur.kind, status: 'verified', refId: v };
+    else if (k === 'manufacturer') n = { kind: cur.kind, status: 'pending', manufacturer: v, family: (DeviceCatalog.families(cur.kind).find(f => f.manufacturer === v) || {}).family };
+    else if (k === 'family') n = { ...cur, family: v, supply: undefined, vmin: undefined, vmax: undefined, currentA: undefined };
+    else if (k === 'coil') { const [a, b, cc] = v.split(':'); n = { ...cur, supply: a, vmin: +b, vmax: +cc }; }
+    else if (k === 'currentA') n = { ...cur, currentA: +v };
+    const next = DeviceCatalog.sanitize(n);
+    const commitSpec = () => { c.spec = next; applySpecElectrical(c, next); commit(); render(); };
+    const newW = specWarnings(doc, c, next).filter(t => !/^Família candidata/.test(t)), oldW = specWarnings(doc, c, cur).filter(t => !/^Família candidata/.test(t));
+    if (k === 'kind' && newW.length > oldW.length) {
+      openModal(`<p class="title-lg">Trocar o tipo de ${esc(c.tag)}?</p>${newW.map(t => `<div class="diag warn"><b>ATENÇÃO</b><p>${esc(t)}</p></div>`).join('')}
+        <p class="muted small" style="margin:0">Fios, contatos e pinagem não serão alterados automaticamente.</p><div class="row" style="justify-content:flex-end"><button class="btn" data-close id="spCancel">Cancelar</button><button class="btn pri" id="spOk">Aplicar mesmo assim</button></div>`);
+      $('#spOk').addEventListener('click', () => { closeModal(); commitSpec(); }); $('#spCancel').addEventListener('click', () => render());
+      return;
+    }
+    commitSpec();
+  }));
+}
+
+// =====================================================================
+// Documentação derivada: BOM, capa, índice e paginação — tudo calculado a partir do projeto atual.
+// Nada é armazenado em separado: cada chamada lê a revisão corrente (docRev).
+// =====================================================================
+const BOM_OWNER = { coil: ['bobina'], timer: ['temporizador', 'temporizador_off'] };
+function compSpecTxt(c) {
+  const parts = [];
+  if (c.type.startsWith('motor')) parts.push(`${fmtN(+c.kw || 1.5, 2)} kW`, `${c.vn || ''} V`.trim());
+  if (c.type === 'sinaleiro' && c.color) parts.push(c.color);
+  if (RATED_TYPES.has(c.type) && c.vn && c.type !== 'bobina') parts.push(`${c.vn} V ${c.vk || 'CA'}`);
+  if (TYPES[c.type].tx && c.vp) parts.push(`${c.vp}/${c.vs} V`, c.va ? `${c.va} VA` : '');
+  if (c.type === 'fonte_24') parts.push(`${c.vout || 24} VCC`, c.iout ? `${c.iout} A` : '');
+  return parts.filter(Boolean).join(' · ');
+}
+function bomOf(d = doc) {
+  const rel = d.comps.filter(c => !TYPES[c.type].notag && !TYPES[c.type].linkGroup && c.type !== 'juncao');
+  const principal = c => !TYPES[c.type].ref && !['ft_na', 'ft_nf'].includes(c.type);
+  const devices = rel.filter(principal).map(c => ({ id: c.id, comp: c, tag: c.tag, members: [c] })), issues = [];
+  const seen = {}, orphans = new Map();
+  for (const dv of devices) { const k = dv.comp.type + '|' + dv.tag; (seen[k] = seen[k] || []).push(dv); }
+  for (const [k, list] of Object.entries(seen)) if (list.length > 1) issues.push(`TAG ${list[0].tag} repetida em ${list.length} componentes "${TYPES[list[0].comp.type].name}": contados separadamente — verifique se são dispositivos distintos.`);
+  for (const c of rel.filter(x => !principal(x))) {
+    const owners = TYPES[c.type].ref ? BOM_OWNER[TYPES[c.type].ref] || [] : ['rele_termico'];
+    const cand = devices.filter(dv => owners.includes(dv.comp.type) && dv.tag === c.tag);
+    if (cand.length === 1) cand[0].members.push(c);
+    else if (!cand.length) {   // the physical device exists even if only its contact is drawn: count it once, flagged as inferred
+      const k = owners[0] + '|' + c.tag; let dv = orphans.get(k);
+      if (!dv) { dv = { id: 'inf:' + k, comp: { type: owners[0], tag: c.tag }, tag: c.tag, members: [], inferred: true }; orphans.set(k, dv); issues.push(`${c.tag}: só há contatos no diagrama, sem ${owners.map(o => TYPES[o].name.toLowerCase()).join(' ou ')} desenhado — dispositivo contado uma vez como inferido.`); }
+      dv.members.push(c);
+    }
+    else issues.push(`${TYPES[c.type].name} ${c.tag}: ambíguo entre ${cand.length} dispositivos com a mesma TAG.`);
+  }
+  const rowOf0 = dv => {
+    const c = dv.comp, T0 = TYPES[c.type];
+    if (c.type === 'bobina') {
+      const s = specOf(c);
+      if (!s) return { category: 'Contatores e relés', manufacturer: '—', model: 'Contator/relé (não especificado)', code: '—', coil: c.vn ? `${c.vn} ${c.vk === 'CC' ? 'Vcc' : c.vk === 'CA/CC' ? 'V CA/CC' : 'Vca'}` : '—', current: '—', status: 'generic', spec: '' };
+      return { category: COIL_KINDS[s.kind], manufacturer: s.status === 'generic' ? 'Genérico' : s.manufacturer || '—', model: s.status === 'generic' ? 'Genérico' : s.family || '—',
+        code: s.status === 'verified' ? s.model : '—', coil: s.vmin ? coilTxt(s.supply, s.vmin, s.vmax) : '—', current: s.currentA ? `${s.currentA} A (${s.basis || RATING_BASIS[s.kind]})` : '—', status: s.status, spec: '' };
+    }
+    return { category: T0.cat, manufacturer: '—', model: T0.name, code: '—', coil: RATED_TYPES.has(c.type) && c.vn ? `${c.vn} ${c.vk === 'CC' ? 'Vcc' : 'Vca'}` : '—', current: '—', status: 'generic', spec: compSpecTxt(c) };
+  };
+  const rowOf = dv => { const r = rowOf0(dv); return dv.inferred ? { ...r, model: r.model + ' (inferido pelo contato)' } : r; };
+  devices.push(...orphans.values());
+  const groups = new Map();
+  for (const dv of devices) {
+    const r = rowOf(dv), key = [r.category, r.manufacturer, r.model, r.code, r.coil, r.current, r.status, r.spec].join('|');
+    if (!groups.has(key)) groups.set(key, { ...r, tags: [], qty: 0, members: 0 });
+    const g = groups.get(key); g.qty++; g.tags.push(dv.tag); g.members += dv.members.length;
+  }
+  const rows = [...groups.values()].map(g => ({ ...g, tags: g.tags.sort((a, b) => a.localeCompare(b, 'pt', { numeric: true })) }))
+    .sort((a, b) => a.category.localeCompare(b.category, 'pt') || a.tags[0].localeCompare(b.tags[0], 'pt', { numeric: true }));
+  return { rev: docRev, rows, devices: devices.length, symbols: rel.length, issues };
+}
+const bomModel = r => r.model + (r.spec ? ` · ${r.spec}` : '');
+// ---- document plan (logical index + physical pagination, computed in two passes) ----
+const DOC_IDX_PER = 16, DOC_BOM_PER = 15;
+function bomChunks(B) { const lines = B.rows.map(r => ['r', r]).concat(B.issues.length ? [['h', 'Pendências e ambiguidades'], ...B.issues.map(t => ['n', t])] : []); const out = []; for (let i = 0; i < Math.max(1, lines.length); i += DOC_BOM_PER) out.push(lines.slice(i, i + DOC_BOM_PER)); return out; }
+function planDocument({ sheets = doc.sheets, cover = true, bom = true, report = true } = {}) {
+  const B = bomOf(doc), bomP = bom ? bomChunks(B).length : 0, repP = report ? reportPagesSVG().length : 0;
+  const entries = [];
+  if (cover) entries.push({ k: 'cover', title: 'Capa', n: 1 }, { k: 'index', title: 'Índice', n: 0 });
+  sheets.forEach(s => entries.push({ k: 'sheet', id: s.id, title: `Folha ${sheetNo(doc, s.id)} · ${s.name}`, n: 1 }));
+  if (bom) entries.push({ k: 'bom', title: 'Lista de materiais', n: bomP });
+  if (report) entries.push({ k: 'report', title: 'Relatório de cabos e componentes', n: repP });
+  const idxP = cover ? Math.max(1, Math.ceil(entries.length / DOC_IDX_PER)) : 0;   // pass 1: how many index pages the index itself needs
+  let p = 1; for (const e of entries) { if (e.k === 'index') e.n = idxP; e.page = p; p += e.n; }   // pass 2: real physical pages
+  return { rev: docRev, entries, total: p - 1, bom: B, idxPages: idxP };
+}
+// ---- identity (company text and/or logo, or VoltAcademy) ----
+function identityOf(d = doc) { return { company: (d.company || '').trim(), logo: d.logo || '', custom: !!((d.company || '').trim() || d.logo) }; }
+function wrapTxt(t, max) { const out = []; let line = ''; for (const w of String(t).split(/\s+/)) { if ((line + ' ' + w).trim().length > max && line) { out.push(line); line = w; } else line = (line + ' ' + w).trim(); } if (line) out.push(line); return out; }
+function docDate(d = doc) { return d.dateAuto === false && d.date ? d.date : new Date().toLocaleDateString('pt-BR'); }
+const PG = { W: 297 * MM, H: 210 * MM };
+function pageFooter(plan, page, label) { return `<line x1="60" y1="${PG.H - 70}" x2="${PG.W - 60}" y2="${PG.H - 70}" stroke="#D7DBE1"/><text x="60" y="${PG.H - 40}" font-family="Arial" font-size="16" fill="#6A717C">${esc(doc.project)} · revisão ${plan.rev}${label ? ' · ' + esc(label) : ''}</text><text x="${PG.W - 60}" y="${PG.H - 40}" text-anchor="end" font-family="Arial" font-size="16" fill="#6A717C">Página ${page} de ${plan.total}</text>`; }
+function coverSVG(plan) {
+  const id = identityOf(), W = PG.W, H = PG.H, title = (doc.project || '').trim() || 'Projeto sem nome';
+  let head = '';
+  if (id.custom) {
+    let x = 80;
+    if (id.logo) { head += `<image href="${id.logo}" x="80" y="70" width="320" height="120" preserveAspectRatio="xMinYMid meet"/>`; x = 430; }
+    if (id.company) head += `<text x="${id.logo ? x : 80}" y="142" font-family="Arial" font-size="40" font-weight="700" fill="#1B1E23">${esc(id.company)}</text>`;
+  } else head += `<rect x="80" y="82" width="96" height="96" rx="22" fill="#26281F"/><path d="M134 96 106 136h22l-4 32 30-44h-22z" fill="#E2B656"/><text x="200" y="146" font-family="Arial" font-size="44" font-weight="800" fill="#1B1E23">VOLT<tspan fill="#C9962F">ACADEMY</tspan></text>`;
+  const lines = wrapTxt(title, 28).slice(0, 3), desc = wrapTxt(doc.pdesc || '', 78).slice(0, 3);
+  const meta = [['Autor', doc.author], ['Empresa', id.company], ['Data', docDate()], ['Folhas', String(doc.sheets.length)], ['Revisão', String(plan.rev)], ['Páginas', String(plan.total)]].filter(([, v]) => v && String(v).trim());
+  let y = 370, body = `<rect width="${W}" height="${H}" fill="#fff"/><rect x="0" y="0" width="${W}" height="16" fill="#C9962F"/>${head}<line x1="80" y1="230" x2="${W - 80}" y2="230" stroke="#E2E5EA" stroke-width="2"/>`;
+  body += `<text x="80" y="300" font-family="Arial" font-size="20" letter-spacing="4" font-weight="700" fill="#8A6210">PROJETO DE COMANDOS ELÉTRICOS</text>`;
+  for (const l of lines) { body += `<text x="80" y="${y}" font-family="Arial" font-size="60" font-weight="800" fill="#1B1E23">${esc(l)}</text>`; y += 70; }
+  const rowsN0 = Math.ceil(meta.length / 3), boxTop = H - 110 - rowsN0 * 80;
+  for (const l of desc) { if (y + 10 > boxTop - 24) break; body += `<text x="80" y="${y + 10}" font-family="Arial" font-size="26" fill="#4B5563">${esc(l)}</text>`; y += 36; }
+  const rowsN = Math.ceil(meta.length / 3), my = H - 70 - rowsN * 80; body += `<rect x="80" y="${my - 40}" width="${W - 160}" height="${rowsN * 80 + 20}" rx="10" fill="#F6F7F9"/>`;
+  meta.forEach(([k, v], i) => { const cx = 110 + (i % 3) * ((W - 220) / 3), cy = my + Math.floor(i / 3) * 80; body += `<text x="${cx}" y="${cy}" font-family="Arial" font-size="14" letter-spacing="2" fill="#6A717C">${esc(k.toUpperCase())}</text><text x="${cx}" y="${cy + 32}" font-family="Arial" font-size="22" font-weight="700" fill="#1B1E23">${esc(String(v).length > 26 ? String(v).slice(0, 25) + '…' : v)}</text>`; });
+  if (id.custom) body += `<text x="${W - 80}" y="${H - 22}" text-anchor="end" font-family="Arial" font-size="15" fill="#9AA1AC">Gerado com VoltAcademy</text>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${body}</svg>`;
+}
+function indexPagesSVG(plan) {
+  const out = [], list = plan.entries;
+  for (let k = 0; k < plan.idxPages; k++) {
+    const page = (list.find(e => e.k === 'index').page) + k;
+    let body = `<rect width="${PG.W}" height="${PG.H}" fill="#fff"/><text x="60" y="100" font-family="Arial" font-size="40" font-weight="700" fill="#1B1E23">Índice${k ? ' (continuação)' : ''}</text>`;
+    list.slice(k * DOC_IDX_PER, (k + 1) * DOC_IDX_PER).forEach((e, i) => {
+      const y = 170 + i * 40, pg = e.n > 1 ? `${e.page}–${e.page + e.n - 1}` : String(e.page);
+      body += `<text x="70" y="${y}" font-family="Arial" font-size="22" fill="#1B1E23">${esc(e.title)}</text><line x1="${80 + e.title.length * 11.5}" y1="${y - 6}" x2="${PG.W - 170}" y2="${y - 6}" stroke="#C9CED6" stroke-dasharray="2 6"/><text x="${PG.W - 70}" y="${y}" text-anchor="end" font-family="Arial" font-size="22" font-weight="700" fill="#1B1E23">${pg}</text>`;
+    });
+    out.push(`<svg xmlns="http://www.w3.org/2000/svg" width="${PG.W}" height="${PG.H}" viewBox="0 0 ${PG.W} ${PG.H}">${body}${pageFooter(plan, page, 'índice')}</svg>`);
+  }
+  return out;
+}
+const BOM_COLS = [['TAG(s)', 110], ['Categoria', 150], ['Fabricante', 140], ['Família / modelo', 190], ['Código', 125], ['Bobina', 100], ['Corrente (base)', 115], ['Qtd', 38], ['Status', 95]];
+function bomPagesSVG(plan) {
+  const chunks = bomChunks(plan.bom), start = (plan.entries.find(e => e.k === 'bom') || { page: 1 }).page, out = [];
+  const fit = (t, w) => { const max = Math.floor(w / 7.3); t = String(t); return t.length > max ? t.slice(0, max - 1) + '…' : t; };
+  chunks.forEach((chunk, k) => {
+    let body = `<rect width="${PG.W}" height="${PG.H}" fill="#fff"/><text x="60" y="90" font-family="Arial" font-size="34" font-weight="700" fill="#1B1E23">Lista de materiais${k ? ' (continuação)' : ''}</text>
+      <text x="60" y="122" font-family="Arial" font-size="16" fill="#6A717C">${plan.bom.devices} dispositivos físicos · ${plan.bom.symbols} símbolos · status: Verificado = referência conferida · Pendente = confirmar na ficha · Genérico = sem marca</text>`;
+    let y = 150, x = 60; body += `<rect x="56" y="${y - 2}" width="${PG.W - 112}" height="30" fill="#F2F3F5"/>`;
+    for (const [h, w] of BOM_COLS) { body += `<text x="${x}" y="${y + 20}" font-family="Arial" font-size="13" font-weight="700" fill="#4B5563">${h}</text>`; x += w; }
+    y += 32;
+    for (const [kind, v] of chunk) {
+      if (kind === 'h') { body += `<text x="60" y="${y + 24}" font-family="Arial" font-size="17" font-weight="700" fill="#8A6210">${esc(v.toUpperCase())}</text>`; y += 34; continue; }
+      if (kind === 'n') { body += `<text x="60" y="${y + 20}" font-family="Arial" font-size="15" fill="#9A3412">• ${esc(fit(v, PG.W - 140))}</text>`; y += 28; continue; }
+      const cells = [v.tags.join(', '), v.category, v.manufacturer, bomModel(v), v.code, v.coil, v.current, String(v.qty), SPEC_STATUS[v.status]];
+      x = 60; cells.forEach((t, i) => { body += `<text x="${x}" y="${y + 20}" font-family="Arial" font-size="13" ${i === 7 ? 'font-weight="700"' : ''} fill="${i === 8 && v.status === 'pending' ? '#B45309' : '#1B1E23'}">${esc(fit(t, BOM_COLS[i][1] - 8))}</text>`; x += BOM_COLS[i][1]; });
+      body += `<line x1="56" y1="${y + 28}" x2="${PG.W - 56}" y2="${y + 28}" stroke="#E2E5EA"/>`; y += 30;
+    }
+    out.push(`<svg xmlns="http://www.w3.org/2000/svg" width="${PG.W}" height="${PG.H}" viewBox="0 0 ${PG.W} ${PG.H}">${body}${pageFooter(plan, start + k, 'lista de materiais')}</svg>`);
+  });
+  return out;
+}
+function coverPreviewHTML(d) {   // live HTML preview of the cover (same rules as the PDF cover)
+  const id = identityOf(d), title = (d.project || '').trim() || 'Projeto sem nome';
+  const head = id.custom ? `${id.logo ? `<img src="${id.logo}" alt="">` : ''}${id.company ? `<b>${esc(id.company)}</b>` : ''}` : '<span class="cv-va">⚡ VOLT<i>ACADEMY</i></span>';
+  const meta = [['Autor', d.author], ['Data', docDate(d)], ['Folhas', d.sheets ? d.sheets.length : '']].filter(([, v]) => v && String(v).trim());
+  return `<div class="coverpv" aria-label="Prévia da capa"><div class="cv-bar"></div><div class="cv-head">${head}</div><p class="cv-k">PROJETO DE COMANDOS ELÉTRICOS</p><p class="cv-t">${esc(title)}</p>${(d.pdesc || '').trim() ? `<p class="cv-d">${esc(d.pdesc)}</p>` : ''}<div class="cv-meta">${meta.map(([k, v]) => `<span><small>${k}</small>${esc(String(v))}</span>`).join('')}</div></div>`;
+}
 function printCSS() {
   let css = `svg{--paper:#FFFFFF;--frame:#8F8A7A;--live:#CF3F25;--neutral:#2D6BB0;--gold:#C9962F;--gold-soft:#FBF1DC;--ok:#1F9D55;--accent:#B8861E;--critical:#dc3c3d;
     --font-body:"IBM Plex Sans",Arial,sans-serif;--font-mono:"IBM Plex Mono","Courier New",monospace;--font-display:"Archivo","Arial Black",Arial,sans-serif}`;
   for (const sh of document.styleSheets) { let rules; try { rules = sh.cssRules; } catch (e) { continue; }
-    for (const r of rules) if (r.selectorText && /#cv|\.sym|\.stamp|\.rul|\.tag\b|\.num\b|\.xref|\.wno|\.d2\b|\.it\b|\.sl\b/.test(r.selectorText)) css += r.cssText + '\n'; }
+    for (const r of rules) if (r.selectorText && /#cv|\.sym|\.stamp|\.rul|\.tag\b|\.devid|\.num\b|\.xref|\.wno|\.d2\b|\.it\b|\.sl\b/.test(r.selectorText)) css += r.cssText + '\n'; }
   return css;
 }
 function sheetStandaloneSVG(sheet, { look = 'sym', grid = false } = {}) {
@@ -3771,7 +4140,7 @@ function sheetStandaloneSVG(sheet, { look = 'sym', grid = false } = {}) {
     <filter id="glow" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
     ${sheetSVG(doc, sheet.id, false, look)}</svg>`;
 }
-function reportPagesSVG() {
+function reportPagesSVG(plan = null) {
   // A4 landscape pages with the cable summary, wire list and component list.
   const W = 297 * MM, H = 210 * MM, rowsPer = 34, pages = [];
   const wr = wireRows(), groups = {};
@@ -3786,7 +4155,7 @@ function reportPagesSVG() {
   for (let i = 0; i < lines.length; i += rowsPer) {
     const chunk = lines.slice(i, i + rowsPer); let y = 150;
     let body = `<rect width="${W}" height="${H}" fill="#fff"/><text x="60" y="80" font-family="Arial" font-size="34" font-weight="700" fill="#1B1E23">Relatório de cabos e componentes</text>
-      <text x="60" y="112" font-family="Arial" font-size="18" fill="#6A717C">${esc(doc.project)} · ${new Date().toLocaleDateString('pt-BR')} · página ${pages.length + 1}</text>`;
+      <text x="60" y="112" font-family="Arial" font-size="18" fill="#6A717C">${esc(doc.project)} · ${new Date().toLocaleDateString('pt-BR')}${plan ? '' : ` · página ${pages.length + 1}`}</text>` + (plan ? pageFooter(plan, (plan.entries.find(e => e.k === 'report') || { page: 1 }).page + pages.length, 'relatório') : '');
     for (const [k, v, wd] of chunk) {
       if (k === 't' && wd) cols = wd;
       if (k === 'g') { y += 10; continue; }
@@ -3833,16 +4202,26 @@ function buildPDF(pages, title) {
   put(`trailer\n<< /Size ${infoId + 1} /Root 1 0 R /Info ${infoId} 0 R >>\nstartxref\n${xref}\n%%EOF`);
   return new Blob(parts, { type: 'application/pdf' });
 }
-async function exportPDF({ which = 'all', look = 'sym', grid = false, report = true, dpi = 150 } = {}) {
-  const sheets = which === 'all' ? doc.sheets : doc.sheets.filter(x => x.id === ui.sheet);
+async function exportPDF({ which = 'all', look = 'sym', grid = false, report = true, dpi = 150, cover = true, bom = true } = {}) {
+  // 1) capture: everything below is derived synchronously from the current revision (no await until rasterising)
+  const all = which === 'all', sheets = all ? doc.sheets.slice() : doc.sheets.filter(x => x.id === ui.sheet);
+  if (!all) { cover = false; bom = false; report = false; }
+  // 2) derivation + 3) pagination in two passes (index size → physical page numbers)
+  const plan = planDocument({ sheets, cover, bom, report }), jobs = [];
+  const A4 = [297, 210];
+  if (cover) { jobs.push({ svg: coverSVG(plan), mm: A4 }); indexPagesSVG(plan).forEach(svg => jobs.push({ svg, mm: A4 })); }
+  for (const sh of sheets) { const [W, H] = sheetDims(sh); jobs.push({ svg: sheetStandaloneSVG(sh, { look, grid }), mm: [W / MM, H / MM], sheet: true }); }
+  if (bom) bomPagesSVG(plan).forEach(svg => jobs.push({ svg, mm: A4 }));
+  if (report) for (const r of reportPagesSVG(cover ? plan : null)) jobs.push({ svg: r.svg, mm: r.mm });
+  const title = doc.project, meta = { rev: plan.rev, total: plan.total, entries: plan.entries.map(e => ({ k: e.k, title: e.title, page: e.page, n: e.n })), bomRows: plan.bom.rows.length, project: doc.project };
+  if (cover && jobs.length !== plan.total) throw new Error(`paginação inconsistente (${jobs.length} ≠ ${plan.total})`);
+  // 4) generation
   const pages = [];
-  for (const sh of sheets) {
-    const [W, H] = sheetDims(sh), mm = [W / MM, H / MM], scale = Math.min(dpi / 25.4, 9000 / Math.max(mm[0], mm[1]));
-    const wPx = Math.round(mm[0] * scale), hPx = Math.round(mm[1] * scale);
-    pages.push({ mm, wPx, hPx, jpeg: await svgToJpeg(sheetStandaloneSVG(sh, { look, grid }), wPx, hPx) });
+  for (const j of jobs) {
+    const scale = j.sheet ? Math.min(dpi / 25.4, 9000 / Math.max(j.mm[0], j.mm[1])) : dpi / 25.4, wPx = Math.round(j.mm[0] * scale), hPx = Math.round(j.mm[1] * scale);
+    pages.push({ mm: j.mm, wPx, hPx, jpeg: await svgToJpeg(j.svg, wPx, hPx) });
   }
-  if (report) for (const r of reportPagesSVG()) { const s2 = dpi / 25.4, wPx = Math.round(r.mm[0] * s2), hPx = Math.round(r.mm[1] * s2); pages.push({ mm: r.mm, wPx, hPx, jpeg: await svgToJpeg(r.svg, wPx, hPx) }); }
-  return buildPDF(pages, doc.project);
+  const blob = buildPDF(pages, title); blob.meta = meta; window.__lastPdfMeta = meta; return blob;
 }
 function openPdfDialog() {
   openModal(`<div class="row" style="justify-content:space-between;align-items:center"><p class="title-lg">Exportar PDF</p><button class="btn" data-close>Fechar</button></div>
@@ -3851,14 +4230,19 @@ function openPdfDialog() {
       <label for="xLook">Aparência</label><select id="xLook"><option value="sym">Símbolos IEC (padrão de projeto)</option><option value="2d">2D (equipamentos)</option></select>
       <label for="xDpi">Qualidade</label><select id="xDpi"><option value="110">Rascunho (arquivo leve)</option><option value="150" selected>Normal</option><option value="220">Alta (impressão grande)</option></select>
     </div>
-    <label class="chk"><input type="checkbox" id="xReport" checked> Incluir relatório de cabos e lista de componentes</label>
+    <label class="chk"><input type="checkbox" id="xCover" checked> Capa e índice automático</label>
+    <label class="chk"><input type="checkbox" id="xBom" checked> Lista de materiais (atualizada automaticamente)</label>
+    <label class="chk"><input type="checkbox" id="xReport" checked> Relatório de cabos e lista de componentes</label>
+    <p class="muted small" style="margin:0" id="xPlan"></p>
     <label class="chk"><input type="checkbox" id="xGrid"> Mostrar a grade pontilhada</label>
     <p class="muted small" id="xMsg" style="margin:0"></p>
     <div class="row" style="justify-content:flex-end"><button class="btn" data-close>Cancelar</button><button class="btn pri" id="xGo">Gerar PDF</button></div>`);
+  const planTxt = () => { const all = $('#xWhich').value === 'all'; if (!all) { $('#xPlan').textContent = 'Só a folha atual: sem capa, índice e listas.'; return; } const pl = planDocument({ cover: $('#xCover').checked, bom: $('#xBom').checked, report: $('#xReport').checked }); $('#xPlan').textContent = `${pl.total} página${pl.total > 1 ? 's' : ''} · revisão ${pl.rev} · ` + pl.entries.filter(e => e.k !== 'index').map(e => `${e.title.replace(/^Folha \d+ · /, '')} p. ${e.page}`).join(' · '); };
+  ['#xWhich', '#xCover', '#xBom', '#xReport'].forEach(q => $(q).addEventListener('change', planTxt)); planTxt();
   $('#xGo').addEventListener('click', async () => {
     const btn = $('#xGo'); btn.disabled = true; $('#xMsg').textContent = 'Gerando as páginas…';
     try {
-      const blob = await exportPDF({ which: $('#xWhich').value, look: $('#xLook').value, dpi: +$('#xDpi').value, report: $('#xReport').checked, grid: $('#xGrid').checked });
+      const blob = await exportPDF({ which: $('#xWhich').value, look: $('#xLook').value, dpi: +$('#xDpi').value, report: $('#xReport').checked, grid: $('#xGrid').checked, cover: $('#xCover').checked, bom: $('#xBom').checked });
       const name = `${safeName(doc.project)}.pdf`;
       const r = await saveBlob(blob, name, [{ description: 'PDF', accept: { 'application/pdf': ['.pdf'] } }]);
       if (r !== 'cancel') { closeModal(); flashInfo(`PDF gerado: ${name} (${(blob.size / 1048576).toLocaleString('pt-BR', { maximumFractionDigits: 1 })} MB)`); }
@@ -6494,6 +6878,6 @@ if (matchMedia('(max-width: 1100px)').matches) ui.inspOpen = false;
 render();
 requestAnimationFrame(fit);
 window.addEventListener('resize', () => fit());
-window.__va = { Session, VoltState, continueProject, JarvisNet, JarvisFX, JarvisCore, Orbit, layoutOrbit, Sfx, SfxWatch, LiveScript, sceneSVG, hmiView, hmiDiagHTML, monitorIOHTML, elecAlerts, updateHMI, Proc, DemoRunner, ApplicationRegistry, ExerciseLibraryRegistry, ExampleLibraryRegistry, TagBindingManager, HMIBindingEngine, VirtualActuatorEngine, VirtualProcessEngine, ExerciseTestRunner, ExerciseValidationEngine, ExerciseProgressManager, ExerciseSession, EX, simStep, focus, setNavigation, toggleNavigation, FOCUS, serialize, sheetDialog, blankProject, ElectricalNetwork, ProjectElectricalConfig, TransformerModel, PotentialDifferenceCalculator, ElectricalDomainManager, ElectricalDiagnostics, addComp, Home, Lab, HOME_OPS, homeSelect, homeConfirm, labSelect, labOpen, exportPDF, projectFile, mergeProject, doc: () => doc, sim, ui, points: id => fullPointsAny(doc.wires.find(w => w.id === id)), audio, solve: resolve, rawSolve: solve, clearFaults, updateElectrical, startSim, stopSim, load, EXAMPLES, TYPES, interact, render, setView: v => { ui.view = v; render(); } };
+window.__va = { commitNow: () => { commit(); }, exportSheetSVG: () => sheetStandaloneSVG(doc.sheets.find(s => s.id === ui.sheet) || doc.sheets[0]), exportPDF, __idx: indexPagesSVG, __bom: bomPagesSVG, bomOf, planDocument, coverSVG, DeviceCatalog, CATALOG_FAMILIES, CATALOG_REFS, GENERIC_SPEC, specWarnings, rev: () => docRev, Session, VoltState, continueProject, JarvisNet, JarvisFX, JarvisCore, Orbit, layoutOrbit, Sfx, SfxWatch, LiveScript, sceneSVG, hmiView, hmiDiagHTML, monitorIOHTML, elecAlerts, updateHMI, Proc, DemoRunner, ApplicationRegistry, ExerciseLibraryRegistry, ExampleLibraryRegistry, TagBindingManager, HMIBindingEngine, VirtualActuatorEngine, VirtualProcessEngine, ExerciseTestRunner, ExerciseValidationEngine, ExerciseProgressManager, ExerciseSession, EX, simStep, focus, setNavigation, toggleNavigation, FOCUS, serialize, sheetDialog, blankProject, ElectricalNetwork, ProjectElectricalConfig, TransformerModel, PotentialDifferenceCalculator, ElectricalDomainManager, ElectricalDiagnostics, addComp, Home, Lab, HOME_OPS, homeSelect, homeConfirm, labSelect, labOpen, exportPDF, projectFile, mergeProject, doc: () => doc, sim, ui, points: id => fullPointsAny(doc.wires.find(w => w.id === id)), audio, solve: resolve, rawSolve: solve, clearFaults, updateElectrical, startSim, stopSim, load, EXAMPLES, TYPES, interact, render, setView: v => { ui.view = v; render(); } };
 })();
 </script>

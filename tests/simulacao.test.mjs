@@ -304,7 +304,8 @@ await p.click('#bFile'); await p.click('#pPdf');
 const [dp] = await Promise.all([p.waitForEvent('download', { timeout: 60000 }), p.click('#xGo')]);
 const pdf = await (await import('node:fs/promises')).readFile(await dp.path());
 const pagesN = (pdf.toString('latin1').match(/\/Type \/Page\b/g) || []).length;
-results.push(['PDF: arquivo válido com folhas e relatório', pdf.slice(0, 5).toString() === '%PDF-' && pdf.slice(-6).toString().includes('%%EOF') && pagesN === 4]);
+const pdfMeta = await p.evaluate(() => window.__lastPdfMeta);
+results.push(['PDF: arquivo válido com capa, índice, folhas, lista de materiais e relatório', pdf.slice(0, 5).toString() === '%PDF-' && pdf.slice(-6).toString().includes('%%EOF') && pagesN === pdfMeta.total && pdfMeta.entries.map(e => e.k).join(',') === 'cover,index,sheet,sheet,bom,report']);
 
 // ---- Biblioteca retrátil (activeCategory) e Active Energy UI ----
 const fresh = await browser.newPage({ viewport: { width: 1440, height: 900 } });
@@ -634,7 +635,7 @@ await sl.waitForTimeout(300);
 const scr = (tag, type) => sl.evaluate(([t, ty]) => { const va = window.__va, c = va.doc().comps.find(x => x.tag === t && (!ty || x.type === ty) && x.sheet === va.ui.sheet), r = document.getElementById('cv').getBoundingClientRect(); return [r.left + va.ui.px + c.x * va.ui.zoom, r.top + va.ui.py + c.y * va.ui.zoom]; }, [tag, type]);
 const clickAt = async ([x, y], mod) => { if (mod) await sl.keyboard.down(mod); await sl.mouse.click(x, y); if (mod) await sl.keyboard.up(mod); await sl.waitForTimeout(80); };
 await clickAt(await scr('S0'));
-results.push(['Seleção: clique seleciona um componente e abre as propriedades', await sl.evaluate(() => { const va = window.__va; return va.ui.sel && va.doc().comps.find(c => c.id === va.ui.sel.id).tag === 'S0' && va.ui.inspOpen; })]);
+results.push(['Seleção: clique seleciona um componente (Propriedades só com duplo clique)', await sl.evaluate(() => { const va = window.__va; return va.ui.sel && va.doc().comps.find(c => c.id === va.ui.sel.id).tag === 'S0' && !va.ui.inspOpen; })]);
 await clickAt(await scr('Q1'), 'Control'); await clickAt(await scr('H2'), 'Control'); await clickAt(await scr('FT1'), 'Shift');
 results.push(['Seleção: Ctrl/Shift + clique combinam categorias diferentes', await sl.evaluate(() => { const va = window.__va, tags = [...va.ui.multi].map(id => va.doc().comps.find(c => c.id === id)); return va.ui.multi.size === 4 && new Set(tags.map(c => va.TYPES[c.type].cat)).size >= 3 && document.querySelectorAll('#cv .comp.msel').length === 4; })]);
 await clickAt(await scr('H2'), 'Control');
@@ -835,6 +836,185 @@ results.push(['Jarvis: Abrir projeto abre o seletor de arquivos', !!fc]);
 results.push(['Jarvis: barra superior com Projeto, Ajuda, Som e Tema com ícones sólidos; Início em destaque', await jh.evaluate(() => { const vis = ['#bFile', '#bHelp', '#bSound', '#bTheme'].every(s => !document.querySelector(s).hidden && document.querySelector(s + ' .solid')) && ['#bRun', '#bUndo', '#bInsp'].every(s => document.querySelector(s).hidden); const n = document.querySelector('.nav.home'); return vis && n.classList.contains('act') && n.classList.contains('energy-active'); })]);
 await jh.close();
 
+// ---- Editor CAD: duplo clique, inserção contínua, guias inteligentes ----
+{
+  const ed = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  ed.on('pageerror', e => errors.push(e.message + ' @ ' + (e.stack || '').split('\n').slice(1, 4).join(' | ')));
+  await ed.goto(page); await ed.waitForTimeout(500);
+  await ed.evaluate(() => { const va = window.__va; va.load(va.EXAMPLES[0].build()); va.setView('diagram'); va.ui.inspOpen = false; va.render(); });
+  await ed.waitForTimeout(500);
+  const scr = (x, y) => ed.evaluate(([x, y]) => { const va = window.__va, svg = document.getElementById('cv'), pt = svg.createSVGPoint(); pt.x = va.ui.px + x * va.ui.zoom; pt.y = va.ui.py + y * va.ui.zoom; const q = pt.matrixTransform(svg.getScreenCTM()); return [q.x, q.y]; }, [x, y]);
+  const ctr = tag => ed.evaluate(t => { const c = window.__va.doc().comps.find(c => c.tag === t && c.type === 'bobina') || window.__va.doc().comps.find(c => c.tag === t); const r = document.querySelector(`[data-comp="${c.id}"] .chit`).getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2, c.id]; }, tag);
+  const st = () => ed.evaluate(() => { const va = window.__va; return { open: !!va.ui.inspOpen, tab: va.ui.pmTab, sel: va.ui.sel && va.ui.sel.id, multi: va.ui.multi.size, placing: va.ui.placing, n: va.doc().comps.length }; });
+  let [kx, ky, kid] = await ctr('S1');
+  await ed.mouse.click(kx, ky); await ed.waitForTimeout(150);
+  let s1 = await st();
+  results.push(['Editor: clique simples seleciona sem abrir Propriedades', s1.sel === kid && !s1.open && !await ed.evaluate(() => document.getElementById('pm').classList.contains('open'))]);
+  await ed.waitForTimeout(400); await ed.mouse.click(kx, ky); await ed.waitForTimeout(450); await ed.mouse.click(kx, ky); await ed.waitForTimeout(150);
+  results.push(['Editor: dois cliques espaçados no mesmo componente não abrem o painel', !(await st()).open]);
+  await ed.waitForTimeout(400); await ed.mouse.dblclick(kx, ky); await ed.waitForTimeout(250);
+  s1 = await st();
+  results.push(['Editor: duplo clique verdadeiro abre Propriedades do componente clicado', s1.open && s1.tab === 'props' && s1.sel === kid && await ed.evaluate(() => document.getElementById('pm').classList.contains('open') && !document.getElementById('insp').hidden && /Botão/.test(document.querySelector('#insp .title-lg').textContent))]);
+  const [sx, sy, sid] = await ctr('S0'); await ed.waitForTimeout(400); await ed.mouse.click(sx, sy); await ed.waitForTimeout(200);
+  s1 = await st();
+  results.push(['Editor: com o painel aberto, clique simples só atualiza o componente', s1.open && s1.tab === 'props' && s1.sel === sid]);
+  await ed.evaluate(() => { const va = window.__va; va.ui.inspOpen = false; va.ui.sel = null; va.ui.multi.clear(); va.render(); });
+  await ed.waitForTimeout(400); await ed.keyboard.down('Control'); await ed.mouse.click(kx, ky); await ed.mouse.click(sx, sy); await ed.keyboard.up('Control'); await ed.waitForTimeout(200);
+  s1 = await st();
+  results.push(['Editor: seleção múltipla com Ctrl preservada e sem abrir o painel', s1.multi === 2 && !s1.open]);
+  await ed.click('#bInsp'); await ed.waitForTimeout(250);
+  results.push(['Editor: botão Painel continua abrindo manualmente', (await st()).open]);
+  await ed.evaluate(() => { const va = window.__va; va.ui.inspOpen = false; va.ui.multi.clear(); va.ui.sel = null; va.render(); }); await ed.waitForTimeout(300);
+  // continuous insertion
+  const arm = async () => { await ed.evaluate(() => { if (window.__va.ui.activeCategory !== 'Contatores e relés') document.querySelector('[data-folder="Contatores e relés"]').click(); }); await ed.waitForTimeout(350); await ed.click('#folders [data-part="bobina"]'); await ed.waitForTimeout(150); };
+  await arm();
+  const n0 = (await st()).n, h0 = await ed.evaluate(() => window.__va.rev());
+  for (let i = 0; i < 5; i++) { const [x, y] = await scr(700 + i * 60, 760); await ed.mouse.move(x, y); await ed.mouse.click(x, y); await ed.waitForTimeout(90); }
+  s1 = await st();
+  const ins = await ed.evaluate(n => { const cs = window.__va.doc().comps.slice(n); return { types: cs.map(c => c.type), ids: new Set(cs.map(c => c.id)).size, tags: new Set(cs.map(c => c.tag)).size, app: cs.some(c => c.dev || c.bind) }; }, n0);
+  results.push(['Inserção contínua: cinco bobinas com uma única seleção da biblioteca', s1.n === n0 + 5 && ins.types.every(t => t === 'bobina') && ins.ids === 5 && ins.tags === 5 && !ins.app && s1.placing === 'bobina']);
+  results.push(['Inserção contínua: não abre Propriedades e cada inserção tem desfazer', !s1.open && await ed.evaluate(h => window.__va.rev() >= h + 5, h0) && await ed.evaluate(n => { window.__va.ui.placing = window.__va.ui.placing; document.getElementById('bUndo').click(); return window.__va.doc().comps.length === n + 4; }, n0)]);
+  await ed.evaluate(() => document.getElementById('bRedo').click()); await ed.waitForTimeout(100);
+  let [gx, gy] = await scr(760, 700); await ed.mouse.move(gx, gy); await ed.waitForTimeout(80);
+  results.push(['Inserção contínua: prévia semitransparente acompanha o cursor', await ed.evaluate(() => { const g = document.querySelector('#cv .ghost'); return !!g && +getComputedStyle(g).opacity < 1 && getComputedStyle(g).pointerEvents === 'none'; })]);
+  await ed.mouse.click(gx, gy, { button: 'right' }); await ed.waitForTimeout(150);
+  s1 = await st();
+  results.push(['Inserção: botão direito cancela sem inserir e volta à seleção', !s1.placing && s1.n === n0 + 5 && await ed.evaluate(() => !document.querySelector('#cv .ghost') && window.__va.ui.mode === 'select' && !document.querySelector('#folders .part.act'))]);
+  await arm(); await ed.keyboard.press('Escape'); await ed.waitForTimeout(150);
+  results.push(['Inserção: Esc cancela', !(await st()).placing]);
+  await arm(); await ed.click('#folders [data-part="bobina"]'); await ed.waitForTimeout(150);
+  results.push(['Inserção: clicar de novo no item ativo cancela', !(await st()).placing]);
+  await arm(); await ed.click('[data-folder="Contatores e relés"]'); await ed.waitForTimeout(350);
+  [gx, gy] = await scr(1000, 700); await ed.mouse.click(gx, gy); await ed.waitForTimeout(150);
+  s1 = await st();
+  results.push(['Inserção: fechar a categoria encerra a ferramenta (sem inserção invisível)', !s1.placing && s1.n === n0 + 5 && !await ed.evaluate(() => document.getElementById('drawer').classList.contains('open'))]);
+  // smart guides on the insertion preview, at two zoom/pan states
+  const k1 = await ed.evaluate(() => { const c = window.__va.doc().comps.find(c => c.tag === 'K1' && c.type === 'bobina'); return { x: c.x, y: c.y }; });
+  const before = await ed.evaluate(() => JSON.stringify(window.__va.doc().comps.map(c => [c.id, c.x, c.y])) + window.__va.doc().wires.length);
+  const guideAt = async () => ed.evaluate(() => [...document.querySelectorAll('#cv .sguides line')].map(l => ({ v: l.getAttribute('x1') === l.getAttribute('x2'), x: +l.getAttribute('x1'), y: +l.getAttribute('y1') })));
+  const centre = z => ed.evaluate(([k, z]) => { const va = window.__va, r = document.getElementById('cv').getBoundingClientRect(); va.ui.zoom = z; va.ui.px = r.width / 2 - k.x * z; va.ui.py = r.height * .4 - k.y * z; va.render(); }, [k1, z]);
+  await centre(1); await ed.waitForTimeout(80);
+  await arm();
+  [gx, gy] = await scr(k1.x, k1.y + 150); await ed.mouse.move(gx, gy); await ed.waitForTimeout(80);
+  const g1 = await guideAt();
+  await centre(1.7); await ed.waitForTimeout(100);
+  [gx, gy] = await scr(k1.x + 2, k1.y + 110); await ed.mouse.move(gx, gy); await ed.waitForTimeout(80);
+  const g2 = await guideAt();
+  [gx, gy] = await scr(k1.x + 200, k1.y + 3); await ed.mouse.move(gx, gy); await ed.waitForTimeout(80);
+  const g3 = await guideAt();
+  [gx, gy] = await scr(k1.x + 157, k1.y + 97); await ed.mouse.move(gx, gy); await ed.waitForTimeout(80);
+  const g4 = await guideAt();
+  const kc = await ed.evaluate(() => { const c = window.__va.doc().comps.find(c => c.tag === 'K1' && c.type === 'bobina'), r = [c.x, c.y]; return r; });
+  results.push(['Guias: vertical no mesmo X e horizontal no mesmo Y, com zoom e pan', g1.some(g => g.v && Math.abs(g.x - kc[0]) < 1) && g2.some(g => g.v && Math.abs(g.x - kc[0]) < 1) && g3.some(g => !g.v && Math.abs(g.y - kc[1]) < 1) && !g4.length]);
+  await ed.keyboard.press('Escape'); await ed.waitForTimeout(150);
+  results.push(['Guias: somem ao cancelar e não alteram posições nem conexões', !(await guideAt()).length && await ed.evaluate(b => JSON.stringify(window.__va.doc().comps.map(c => [c.id, c.x, c.y])) + window.__va.doc().wires.length === b, before)]);
+  // guides while moving a component; temporary and never exported
+  await centre(1); await ed.waitForTimeout(80);
+  const h1 = await ed.evaluate(k => { const va = window.__va, c = va.addComp('bobina', k.x + 200, k.y + 120); va.commitNow(); va.render(); return { id: c.id, x: c.x, y: c.y }; }, k1);
+  await ed.waitForTimeout(80);
+  const [hx0, hy0] = await scr(h1.x, h1.y); await ed.mouse.move(hx0, hy0); await ed.mouse.down();
+  const [hx1, hy1] = await scr(kc[0], h1.y + 3); await ed.mouse.move(hx1, hy1, { steps: 6 }); await ed.waitForTimeout(80);
+  const gm = await guideAt(), exp = await ed.evaluate(() => window.__va.sheetSVGFor ? '' : '');
+  await ed.mouse.up(); await ed.waitForTimeout(120);
+  results.push(['Guias: aparecem ao mover um componente e somem ao soltar', gm.some(g => g.v && Math.abs(g.x - kc[0]) < 1) && !(await guideAt()).length]);
+  results.push(['Guias: não fazem parte da folha exportada', await ed.evaluate(() => { window.__va.ui.guides = [{ dir: 'v', x: 10, a: 0, b: 10 }]; const s = window.__va.exportSheetSVG(); window.__va.ui.guides = null; return !/class="sguides"/.test(s) && !/class="ghost"/.test(s); })]);
+  await ed.close();
+}
+// ---- Catálogo de contatores e relés, BOM, capa e PDF completo ----
+{
+  const ct = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  ct.on('pageerror', e => errors.push(e.message + ' @ ' + (e.stack || '').split('\n').slice(1, 4).join(' | ')));
+  await ct.goto(page); await ct.waitForTimeout(500);
+  results.push(['Catálogo: duas categorias com dez fabricantes cada e 7 referências verificadas', await ct.evaluate(() => { const va = window.__va, m = k => new Set(va.CATALOG_FAMILIES.filter(f => f.kind === k).map(f => f.manufacturer)).size; return m('contactor') === 10 && m('interface_relay') === 10 && va.CATALOG_REFS.length === 7 && va.CATALOG_REFS.every(r => r.verificationStatus === 'verified' && r.sourceUrl); })]);
+  results.push(['Catálogo: sem combinações inválidas (corrente/bobina fora da família, CA≠CC, ref de outro tipo)', await ct.evaluate(() => { const D = window.__va.DeviceCatalog;
+    const a = D.sanitize({ kind: 'contactor', status: 'pending', manufacturer: 'WEG', family: 'CWB / CWM', supply: 'AC', vmin: 24, vmax: 24, currentA: 7 });
+    const b = D.sanitize({ kind: 'contactor', status: 'pending', manufacturer: 'Metaltex', family: 'CT', supply: 'DC', vmin: 220, vmax: 220, currentA: 9 });
+    const c = D.sanitize({ kind: 'interface_relay', status: 'verified', refId: 'schneider-lc1d09m7' });
+    const d = D.sanitize({ kind: 'contactor', status: 'generic', supply: 'AC', vmin: 120, vmax: 120, currentA: 9, manufacturer: 'Inventada', model: 'XYZ-1' });
+    return a.vmin === 24 && a.currentA === undefined && b.vmin === undefined && b.currentA === 9 && !c.refId && !c.model && d.manufacturer === '' && d.model === '' && d.vmin === 120; })]);
+  await ct.evaluate(() => { const va = window.__va; va.load(va.EXAMPLES[1].build()); va.setView('diagram'); const k = va.doc().comps.find(c => c.type === 'bobina'); va.ui.sheet = k.sheet; va.ui.sel = { kind: 'comp', id: k.id }; va.ui.inspOpen = true; va.ui.pmTab = 'props'; va.render(); });
+  await ct.waitForTimeout(400);
+  const kSpec = () => ct.evaluate(() => { const k = window.__va.doc().comps.find(c => c.type === 'bobina'); return { s: k.spec || null, vn: k.vn, vk: k.vk, tmin: k.tmin, tmax: k.tmax }; });
+  await ct.selectOption('#sp_status', 'verified'); await ct.waitForTimeout(150); await ct.selectOption('#sp_refId', 'schneider-lc1d09m7'); await ct.waitForTimeout(200);
+  let ks = await kSpec();
+  results.push(['Contator verificado: fabricante, modelo, bobina e corrente da ficha', ks.s.status === 'verified' && ks.s.manufacturer === 'Schneider Electric' && ks.s.model === 'LC1D09M7' && ks.s.supply === 'AC' && ks.s.vmin === 220 && ks.s.currentA === 9 && ks.s.basis === 'AC-3' && ks.vn === 220 && ks.vk === 'CA']);
+  results.push(['Contator verificado: identificação compacta no diagrama e campos de bobina bloqueados', await ct.evaluate(() => [...document.querySelectorAll('#cv .devid')].some(t => t.textContent === 'LC1D09M7') && document.querySelector('#insp [data-prop="vn"]').disabled && /Verificado/.test(document.querySelector('#insp .spec').textContent))]);
+  // simulation preserved with the catalogued coil
+  results.push(['Contator do catálogo: energiza e desenergiza como antes', await ct.evaluate(() => { const va = window.__va, tag = t => va.doc().comps.find(c => c.tag === t && !va.TYPES[c.type].ref); va.startSim(); va.sim.pressed.add(tag('S1').id); va.solve(); va.sim.pressed.clear(); va.solve(); const on = !!va.sim.coils.K1; va.sim.pressed.add(tag('S0').id); va.solve(); va.sim.pressed.clear(); va.solve(); const off = !va.sim.coils.K1; va.stopSim(); return on && off; })]);
+  await ct.evaluate(() => window.__va.render()); await ct.waitForTimeout(200);
+  // switching to an interface relay warns before (power contacts exist) and changes nothing on cancel
+  const topo = await ct.evaluate(() => JSON.stringify(window.__va.doc().comps.map(c => [c.id, c.type, c.tag])) + JSON.stringify(window.__va.doc().wires.map(w => [w.a, w.b])));
+  await ct.selectOption('#sp_kind', 'interface_relay'); await ct.waitForTimeout(250);
+  results.push(['Relé: troca de tipo com contatos de força avisa antes de aplicar', await ct.evaluate(() => !document.getElementById('modal').hidden && /contatos? de força/.test(document.getElementById('modal').textContent))]);
+  await ct.click('#spCancel'); await ct.waitForTimeout(200);
+  ks = await kSpec();
+  results.push(['Relé: cancelar mantém o contator e a topologia', ks.s.kind === 'contactor' && ks.s.model === 'LC1D09M7' && await ct.evaluate(t => JSON.stringify(window.__va.doc().comps.map(c => [c.id, c.type, c.tag])) + JSON.stringify(window.__va.doc().wires.map(w => [w.a, w.b])) === t, topo)]);
+  await ct.selectOption('#sp_kind', 'interface_relay'); await ct.waitForTimeout(200); await ct.click('#spOk'); await ct.waitForTimeout(200);
+  await ct.selectOption('#sp_status', 'verified'); await ct.waitForTimeout(150); await ct.selectOption('#sp_refId', 'phoenix-2966171'); await ct.waitForTimeout(200);
+  ks = await kSpec();
+  results.push(['Relé tipo borne verificado (Phoenix 2966171): 24 Vcc, 6 A, fios e contatos intactos', ks.s.kind === 'interface_relay' && ks.s.supply === 'DC' && ks.s.vmin === 24 && ks.s.currentA === 6 && ks.s.basis === 'carga resistiva' && ks.vk === 'CC' && ks.vn === 24 && await ct.evaluate(t => JSON.stringify(window.__va.doc().comps.map(c => [c.id, c.type, c.tag])) + JSON.stringify(window.__va.doc().wires.map(w => [w.a, w.b])) === t, topo)]);
+  await ct.selectOption('#sp_status', 'generic'); await ct.waitForTimeout(150);
+  const coilOpts = await ct.evaluate(() => [...document.querySelectorAll('#sp_coil option')].map(o => o.value).filter(Boolean));
+  await ct.selectOption('#sp_coil', 'DC:24:24'); await ct.waitForTimeout(150); await ct.selectOption('#sp_currentA', '6'); await ct.waitForTimeout(200);
+  ks = await kSpec();
+  results.push(['Relé genérico: sem marca nem SKU, CA e CC separados', ks.s.status === 'generic' && ks.s.manufacturer === '' && ks.s.model === '' && ks.s.currentA === 6 && ks.vk === 'CC' && coilOpts.includes('AC:24:24') && coilOpts.includes('DC:24:24') && !coilOpts.some(v => v.startsWith('AC_DC'))]);
+  // ABB AF range coil (pending family) → CA/CC band mapped to the existing rating fields
+  await ct.selectOption('#sp_kind', 'contactor'); await ct.waitForTimeout(150); await ct.selectOption('#sp_status', 'pending'); await ct.waitForTimeout(150);
+  await ct.selectOption('#sp_manufacturer', 'ABB'); await ct.waitForTimeout(150); await ct.selectOption('#sp_coil', 'AC_DC:100:250'); await ct.waitForTimeout(150); await ct.selectOption('#sp_currentA', '26'); await ct.waitForTimeout(200);
+  ks = await kSpec();
+  results.push(['Família pendente (ABB AF): faixa 100–250 V CA/CC e status pendente sinalizado', ks.s.status === 'pending' && ks.s.family === 'AF' && ks.vk === 'CA/CC' && ks.tmin && ks.tmax && Math.round(ks.vn * ks.tmin / 100) === 100 && Math.round(ks.vn * ks.tmax / 100) === 250 && await ct.evaluate(() => /pendentes?/i.test(document.querySelector('#insp .spec').textContent) && [...document.querySelectorAll('#cv .devid')].some(t => /\*$/.test(t.textContent)))]);
+  // BOM: one physical device per association, live updates, same source for Listas and PDF
+  const bom = () => ct.evaluate(() => { const B = window.__va.bomOf(); return { rows: B.rows.map(r => ({ tags: r.tags.join(','), model: r.model, status: r.status, qty: r.qty, coil: r.coil, cat: r.category })), devices: B.devices, symbols: B.symbols, rev: B.rev }; });
+  let B = await bom();
+  const kRow = B.rows.find(r => r.tags.split(',').includes('K1'));
+  results.push(['BOM: bobina, contatos de força e auxiliares de K1 contam um dispositivo', kRow && kRow.qty === 1 && B.symbols > B.devices && B.rows.filter(r => r.tags.split(',').includes('K1')).length === 1 && kRow.status === 'pending' && /CA\/CC/.test(kRow.coil)]);
+  await ct.evaluate(() => { const va = window.__va; va.setView('tags'); });
+  await ct.waitForTimeout(200);
+  const rev0 = await ct.evaluate(() => +document.querySelector('.docsec').dataset.rev);
+  await ct.evaluate(() => { const va = window.__va, m = va.doc().comps.find(c => c.type.startsWith('motor')); m.tag = 'M9'; va.addComp('sinaleiro', 300, 300, { sheet: va.doc().sheets[1].id, color: 'vermelho' }); va.commitNow(); va.render(); });
+  await ct.waitForTimeout(150);
+  B = await bom();
+  results.push(['BOM e Listas atualizam sozinhas após editar TAG e inserir componente', B.rows.some(r => r.tags.split(',').includes('M9')) && B.rows.some(r => /Sinaleiro/.test(r.model) && r.qty >= 1) && await ct.evaluate(r => +document.querySelector('.docsec').dataset.rev > r && /M9/.test(document.getElementById('bomSec').textContent), rev0)]);
+  await ct.evaluate(() => { document.getElementById('bUndo').click(); }); await ct.waitForTimeout(150);
+  results.push(['BOM acompanha desfazer', await ct.evaluate(() => !window.__va.bomOf().rows.some(r => /vermelho/.test(r.model + r.spec) || r.tags.includes('M9')) && !/M9/.test(document.getElementById('bomSec').textContent))]);
+  // persistence: save → reopen keeps the spec; repeated import does not duplicate
+  const saved = await ct.evaluate(() => window.__va.serialize());
+  results.push(['Dispositivo persistido e restaurado ao salvar/reabrir (sem duplicar em importações repetidas)', await ct.evaluate(s => { const va = window.__va; va.load(s); va.load(s); const k = va.doc().comps.find(c => c.type === 'bobina'); const B = va.bomOf(); return k.spec && k.spec.family === 'AF' && k.spec.vmin === 100 && va.doc().comps.length === JSON.parse(s).comps.length && B.rows.filter(r => r.tags.includes('K1')).length === 1; }, saved)]);
+  results.push(['Projeto antigo sem catálogo: bobina genérica não especificada', await ct.evaluate(() => { const va = window.__va; va.load(va.EXAMPLES[0].build()); const r = va.bomOf().rows.find(r => r.tags.includes('K1')); return r && r.status === 'generic' && /não especificado/.test(r.model); })]);
+  // new project dialog: cover identity + preview; skip keeps defaults
+  await ct.evaluate(() => { window.__va.setView('home'); window.__va.homeSelect(2); }); await ct.waitForTimeout(950); await ct.click('#opGo'); await ct.waitForTimeout(900);
+  results.push(['Novo projeto: campos de capa (empresa, logo, autor, descrição, data) e prévia', await ct.evaluate(() => ['#dCompany', '#dPDesc', '#dLogo', '#dAuth', '#dDate', '#dProj'].every(q => document.querySelector(q)) && /VOLT/.test(document.getElementById('dCover').textContent))]);
+  await ct.setInputFiles('#dLogo', { name: 'nota.txt', mimeType: 'text/plain', buffer: Buffer.from('oi') }); await ct.waitForTimeout(150);
+  results.push(['Logo: formato inválido é recusado', await ct.evaluate(() => /Formato não suportado/.test(document.getElementById('dMsg').textContent) && !document.querySelector('#dLogoBox img'))]);
+  const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAEAAAAAQCAIAAAAphe5+AAAAM0lEQVR4nO3PQQ0AMAjAQMAIjlCG6Ing0SzpKWizZ+NnRQdcOUBzgOYAzQGaAzQHaA7QHob1ARkpGjKbAAAAAElFTkSuQmCC', 'base64');
+  await ct.setInputFiles('#dLogo', { name: 'logo.png', mimeType: 'image/png', buffer: png }); await ct.waitForTimeout(400);
+  await ct.fill('#dProj', 'Bombas da ETA'); await ct.fill('#dCompany', 'Saneamento Sul'); await ct.fill('#dPDesc', 'Comando de duas bombas com alternância'); await ct.fill('#dAuth', 'Ana');
+  await ct.waitForTimeout(150);
+  results.push(['Logo: proporção preservada e prévia da capa atualizada ao digitar', await ct.evaluate(() => { const i = document.querySelector('#dCover img'); return !!i && /^data:image\/png/.test(i.src) && Math.abs(i.naturalWidth / i.naturalHeight - 4) < .05 && /Saneamento Sul/.test(document.getElementById('dCover').textContent) && /Bombas da ETA/.test(document.getElementById('dCover').textContent); })]);
+  await ct.click('#dSave'); await ct.waitForTimeout(700);
+  results.push(['Capa: identidade persistida com o projeto (salvar/reabrir)', await ct.evaluate(() => { const va = window.__va, s = JSON.parse(va.serialize()); va.load(va.serialize()); const d = va.doc(); return s.company === 'Saneamento Sul' && /^data:image\/png/.test(s.logo) && d.company === 'Saneamento Sul' && d.pdesc === 'Comando de duas bombas com alternância' && /^data:image/.test(d.logo); })]);
+  results.push(['Capa personalizada: título, empresa, logo e metadados; sem placeholders vazios', await ct.evaluate(() => { const va = window.__va, s = va.coverSVG(va.planDocument()); return /Bombas da ETA/.test(s) && /Saneamento Sul/.test(s) && /<image href="data:image\/png/.test(s) && /preserveAspectRatio="xMinYMid meet"/.test(s) && /AUTOR/.test(s) && !/undefined|null/.test(s); })]);
+  results.push(['Capa padrão: sem identidade usa VoltAcademy e omite campos vazios', await ct.evaluate(() => { const va = window.__va, d = va.doc(), keep = [d.company, d.logo, d.author]; d.company = ''; d.logo = ''; d.author = ''; const s = va.coverSVG(va.planDocument()); [d.company, d.logo, d.author] = keep; return /VOLT/.test(s) && /ACADEMY/.test(s) && !/AUTOR/.test(s) && !/EMPRESA/.test(s) && !/<image/.test(s); })]);
+  // full PDF: real pagination with multipage BOM and index, synced without saving
+  const exp = () => ct.evaluate(async () => { const va = window.__va, b = await va.exportPDF({ dpi: 40 }), t = new TextDecoder('latin1').decode(await b.arrayBuffer()); return { ...b.meta, pdfPages: (t.match(/\/Type \/Page\b/g) || []).length, cur: { rev: va.rev(), project: va.doc().project, sheets: va.doc().sheets.map(s => s.name), bomRows: va.bomOf().rows.length } }; });
+  await ct.evaluate(() => { const va = window.__va; va.load(va.EXAMPLES[1].build()); });
+  let m = await exp();
+  const contiguous = mm => mm.entries.every((e, i) => i === 0 ? e.page === 1 : e.page === mm.entries[i - 1].page + mm.entries[i - 1].n) && mm.total === mm.entries.reduce((a, e) => a + e.n, 0);
+  results.push(['PDF: capa, índice, folhas na ordem real, lista de materiais e paginação correta', m.pdfPages === m.total && contiguous(m) && m.entries[0].k === 'cover' && m.entries.filter(e => e.k === 'sheet').map(e => e.title).join('|') === 'Folha 1 · Força|Folha 2 · Comando' && m.bomRows === m.cur.bomRows && m.rev === m.cur.rev]);
+  await ct.evaluate(() => { const va = window.__va, d = va.doc(); d.sheets.push({ id: 's9', name: 'Sinalização', desc: '', size: 'A4', orient: 'paisagem', cols: 8, rows: 5 }); d.sheets[0].name = 'Potência'; d.project = 'Projeto renomeado'; va.commitNow(); });
+  m = await exp();
+  results.push(['PDF sem salvar: nova folha, renomeação e nome do projeto entram na próxima exportação', m.pdfPages === m.total && contiguous(m) && m.project === 'Projeto renomeado' && m.entries.filter(e => e.k === 'sheet').map(e => e.title).join('|') === 'Folha 1 · Potência|Folha 2 · Comando|Folha 3 · Sinalização' && m.rev === m.cur.rev]);
+  await ct.evaluate(() => { const va = window.__va, d = va.doc(); d.sheets = d.sheets.filter(s => s.id !== 's9'); va.commitNow(); });
+  m = await exp();
+  results.push(['PDF: excluir folha atualiza índice e páginas, sem dados antigos', m.pdfPages === m.total && contiguous(m) && m.entries.filter(e => e.k === 'sheet').length === 2 && !m.entries.some(e => /Sinalização/.test(e.title))]);
+  await ct.evaluate(() => { const va = window.__va, sid = va.doc().sheets[1].id; for (let i = 0; i < 40; i++) va.addComp('motor_3f', 200 + (i % 8) * 120, 200 + Math.floor(i / 8) * 120, { sheet: sid, kw: 0.25 + i * 0.25 }); for (let i = 0; i < 16; i++) va.doc().sheets.push({ id: 'x' + i, name: 'Extra ' + (i + 1), desc: '', size: 'A4', orient: 'paisagem', cols: 8, rows: 5 }); va.commitNow(); });
+  m = await exp();
+  const bomE = m.entries.find(e => e.k === 'bom'), idxE = m.entries.find(e => e.k === 'index');
+  results.push(['PDF: lista de materiais e índice multipágina com páginas reais', bomE.n >= 3 && idxE.n === 2 && m.pdfPages === m.total && contiguous(m) && m.bomRows === m.cur.bomRows]);
+  results.push(['BOM multipágina: cabeçalho repetido nas páginas seguintes', await ct.evaluate(() => { const va = window.__va, pl = va.planDocument(), pg = va.__bom(pl); return pg.length >= 3 && pg.every(s => /Família \/ modelo/.test(s) && /TAG\(s\)/.test(s)) && pg.slice(1).every(s => /continuação/.test(s)) && pg.every((s, i) => s.includes(`Página ${pl.entries.find(e => e.k === 'bom').page + i} de ${pl.total}`)); })]);
+  results.push(['PDF: guias, seleção e prévias da interface não entram nas folhas', await ct.evaluate(() => { const va = window.__va; va.ui.guides = [{ dir: 'h', y: 10, a: 0, b: 10 }]; va.ui.sel = { kind: 'comp', id: va.doc().comps[0].id }; const s = va.exportSheetSVG(); va.ui.guides = null; return !/class="sguides"|class="comp sel|class="ghost"|jarvis/.test(s); })]);
+  await ct.close();
+}
 // ---- Interface global e sessão (VOLT CORE em todas as telas, sem ativação automática) ----
 {
   const ss = await browser.newPage({ viewport: { width: 1280, height: 800 } });

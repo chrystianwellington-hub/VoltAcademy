@@ -94,6 +94,20 @@ Ao abrir, o circuito "Partida direta com selo" já vem carregado. Aperte **SIMUL
   por sobrecarga ou falta de fase, tudo com animação de falha. "Rearmar proteções" volta ao normal.
 
 ## Tela inicial e Project Lab
+- **Editor CAD:** clique simples só seleciona; **duplo clique** (mesmo componente, < 300 ms) abre Propriedades; o botão
+  Painel continua abrindo manualmente. **Inserção contínua**: escolha um item da biblioteca e cada clique na folha insere
+  uma nova instância (TAG própria, desfazer por inserção) com prévia semitransparente; botão direito, Esc, novo clique no
+  item ou fechar a categoria encerram. **Guias inteligentes** azuis indicam alinhamento de centros (mesmo X/Y) ao inserir
+  ou mover, sem deslocar nada e sem entrar no PDF.
+- **Bobina: contator ou relé:** nas Propriedades da bobina, tipo (contator de potência, relé de interface tipo borne,
+  relé convencional genérico) → origem (referência verificada, família do fabricante com dados pendentes ou genérico) →
+  fabricante → família → bobina CA/CC → corrente dos contatos. Catálogo com 10 fabricantes de contatores, 10 de relés
+  tipo borne e 7 referências verificadas; sem combinações inventadas. A bobina escolhida define a tensão nominal usada
+  pelo motor elétrico; fios e contatos nunca mudam sozinhos (trocar o tipo avisa antes).
+- **Documentação sempre sincronizada:** Listas mostra a prévia da capa, o índice do PDF com páginas reais e a lista de
+  materiais (dispositivos físicos: bobina e contatos do mesmo dispositivo contam uma vez), tudo derivado da revisão atual.
+  O PDF gera capa (empresa/logo ou VoltAcademy), índice automático, todas as folhas na ordem real, lista de materiais e
+  relatório, com paginação em duas etapas. O Novo projeto ganhou empresa/marca, descrição e prévia da capa.
 - **Sessão e VOLT CORE global:** a aplicação abre **sem projeto ativo** (o último projeto salvo fica só como referência
   em *Continuar projeto*, que fica indisponível se não houver nada salvo). O projeto só é ativado ao concluir Novo,
   Continuar, Abrir, um Exemplo ou um Exercício; falhas de carregamento não ativam nem sobrescrevem o salvo. Sem projeto,
