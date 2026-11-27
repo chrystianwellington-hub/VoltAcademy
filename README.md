@@ -99,6 +99,12 @@ Ao abrir, o circuito "Partida direta com selo" já vem carregado. Aperte **SIMUL
   uma nova instância (TAG própria, desfazer por inserção) com prévia semitransparente; botão direito, Esc, novo clique no
   item ou fechar a categoria encerram. **Guias inteligentes** azuis indicam alinhamento de centros (mesmo X/Y) ao inserir
   ou mover, sem deslocar nada e sem entrar no PDF.
+- **Conexões inteligentes:** **W** fio individual · **Shift+W** barramento (arraste em linha reta sobre os bornes ou
+  clique um a um e Enter: todos ficam na mesma rede, com pontos de conexão reais em cada derivação, e excluir um ramo só
+  desliga aquele borne) · **Alt+W** conexão por alinhamento (prévia tracejada verde/âmbar/vermelha e confirmação explícita;
+  tripolares ligam 2→1, 4→3, 6→5; curto entre potenciais conhecidos, polos incompatíveis, bornes ocupados e rotas que
+  atravessam componentes são bloqueados com motivo) · botão **Auto-conexão** (desligado por padrão). Cada operação é um
+  único desfazer; Esc/botão direito cancelam sem fios parciais.
 - **Bobina: contator ou relé:** nas Propriedades da bobina, tipo (contator de potência, relé de interface tipo borne,
   relé convencional genérico) → origem (referência verificada, família do fabricante com dados pendentes ou genérico) →
   fabricante → família → bobina CA/CC → corrente dos contatos. Catálogo com 10 fabricantes de contatores, 10 de relés
@@ -106,8 +112,10 @@ Ao abrir, o circuito "Partida direta com selo" já vem carregado. Aperte **SIMUL
   pelo motor elétrico; fios e contatos nunca mudam sozinhos (trocar o tipo avisa antes).
 - **Documentação sempre sincronizada:** Listas mostra a prévia da capa, o índice do PDF com páginas reais e a lista de
   materiais (dispositivos físicos: bobina e contatos do mesmo dispositivo contam uma vez), tudo derivado da revisão atual.
-  O PDF gera capa (empresa/logo ou VoltAcademy), índice automático, todas as folhas na ordem real, lista de materiais e
-  relatório, com paginação em duas etapas. O Novo projeto ganhou empresa/marca, descrição e prévia da capa.
+  O PDF completo (sempre com capa, índice, folhas, lista de materiais e relatório de conexões) usa um formato único para
+  todas as páginas (configurável no projeto; folhas de outro tamanho são reduzidas sem recorte), capa limpa (logo
+  proporcional + nome do projeto), índice com autor, empresa, descrição, data, revisão, folhas e páginas reais, tabelas
+  com quebra de linha e cabeçalho repetido, e relatório por redes/ligações/terminações — sem metragem inferida do desenho.
 - **Sessão e VOLT CORE global:** a aplicação abre **sem projeto ativo** (o último projeto salvo fica só como referência
   em *Continuar projeto*, que fica indisponível se não houver nada salvo). O projeto só é ativado ao concluir Novo,
   Continuar, Abrir, um Exemplo ou um Exercício; falhas de carregamento não ativam nem sobrescrevem o salvo. Sem projeto,

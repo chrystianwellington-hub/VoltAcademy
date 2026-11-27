@@ -964,7 +964,7 @@ await jh.close();
   ks = await kSpec();
   results.push(['Família pendente (ABB AF): faixa 100–250 V CA/CC e status pendente sinalizado', ks.s.status === 'pending' && ks.s.family === 'AF' && ks.vk === 'CA/CC' && ks.tmin && ks.tmax && Math.round(ks.vn * ks.tmin / 100) === 100 && Math.round(ks.vn * ks.tmax / 100) === 250 && await ct.evaluate(() => /pendentes?/i.test(document.querySelector('#insp .spec').textContent) && [...document.querySelectorAll('#cv .devid')].some(t => /\*$/.test(t.textContent)))]);
   // BOM: one physical device per association, live updates, same source for Listas and PDF
-  const bom = () => ct.evaluate(() => { const B = window.__va.bomOf(); return { rows: B.rows.map(r => ({ tags: r.tags.join(','), model: r.model, status: r.status, qty: r.qty, coil: r.coil, cat: r.category })), devices: B.devices, symbols: B.symbols, rev: B.rev }; });
+  const bom = () => ct.evaluate(() => { const B = window.__va.bomOf(); return { rows: B.rows.map(r => ({ tags: r.tags.join(','), kindLabel: r.kindLabel, model: r.model, status: r.status, qty: r.qty, coil: r.coil, cat: r.category })), devices: B.devices, symbols: B.symbols, rev: B.rev }; });
   let B = await bom();
   const kRow = B.rows.find(r => r.tags.split(',').includes('K1'));
   results.push(['BOM: bobina, contatos de força e auxiliares de K1 contam um dispositivo', kRow && kRow.qty === 1 && B.symbols > B.devices && B.rows.filter(r => r.tags.split(',').includes('K1')).length === 1 && kRow.status === 'pending' && /CA\/CC/.test(kRow.coil)]);
@@ -974,13 +974,13 @@ await jh.close();
   await ct.evaluate(() => { const va = window.__va, m = va.doc().comps.find(c => c.type.startsWith('motor')); m.tag = 'M9'; va.addComp('sinaleiro', 300, 300, { sheet: va.doc().sheets[1].id, color: 'vermelho' }); va.commitNow(); va.render(); });
   await ct.waitForTimeout(150);
   B = await bom();
-  results.push(['BOM e Listas atualizam sozinhas após editar TAG e inserir componente', B.rows.some(r => r.tags.split(',').includes('M9')) && B.rows.some(r => /Sinaleiro/.test(r.model) && r.qty >= 1) && await ct.evaluate(r => +document.querySelector('.docsec').dataset.rev > r && /M9/.test(document.getElementById('bomSec').textContent), rev0)]);
+  results.push(['BOM e Listas atualizam sozinhas após editar TAG e inserir componente', B.rows.some(r => r.tags.split(',').includes('M9')) && B.rows.some(r => /Sinaleiro/.test(r.kindLabel) && r.qty >= 1) && await ct.evaluate(r => +document.querySelector('.docsec').dataset.rev > r && /M9/.test(document.getElementById('bomSec').textContent), rev0)]);
   await ct.evaluate(() => { document.getElementById('bUndo').click(); }); await ct.waitForTimeout(150);
   results.push(['BOM acompanha desfazer', await ct.evaluate(() => !window.__va.bomOf().rows.some(r => /vermelho/.test(r.model + r.spec) || r.tags.includes('M9')) && !/M9/.test(document.getElementById('bomSec').textContent))]);
   // persistence: save → reopen keeps the spec; repeated import does not duplicate
   const saved = await ct.evaluate(() => window.__va.serialize());
   results.push(['Dispositivo persistido e restaurado ao salvar/reabrir (sem duplicar em importações repetidas)', await ct.evaluate(s => { const va = window.__va; va.load(s); va.load(s); const k = va.doc().comps.find(c => c.type === 'bobina'); const B = va.bomOf(); return k.spec && k.spec.family === 'AF' && k.spec.vmin === 100 && va.doc().comps.length === JSON.parse(s).comps.length && B.rows.filter(r => r.tags.includes('K1')).length === 1; }, saved)]);
-  results.push(['Projeto antigo sem catálogo: bobina genérica não especificada', await ct.evaluate(() => { const va = window.__va; va.load(va.EXAMPLES[0].build()); const r = va.bomOf().rows.find(r => r.tags.includes('K1')); return r && r.status === 'generic' && /não especificado/.test(r.model); })]);
+  results.push(['Projeto antigo sem catálogo: bobina genérica não especificada', await ct.evaluate(() => { const va = window.__va; va.load(va.EXAMPLES[0].build()); const r = va.bomOf().rows.find(r => r.tags.includes('K1')); return r && r.status === 'generic' && /não especificado/.test(r.kindLabel) && r.manufacturer === 'Não informado'; })]);
   // new project dialog: cover identity + preview; skip keeps defaults
   await ct.evaluate(() => { window.__va.setView('home'); window.__va.homeSelect(2); }); await ct.waitForTimeout(950); await ct.click('#opGo'); await ct.waitForTimeout(900);
   results.push(['Novo projeto: campos de capa (empresa, logo, autor, descrição, data) e prévia', await ct.evaluate(() => ['#dCompany', '#dPDesc', '#dLogo', '#dAuth', '#dDate', '#dProj'].every(q => document.querySelector(q)) && /VOLT/.test(document.getElementById('dCover').textContent))]);
@@ -990,11 +990,11 @@ await jh.close();
   await ct.setInputFiles('#dLogo', { name: 'logo.png', mimeType: 'image/png', buffer: png }); await ct.waitForTimeout(400);
   await ct.fill('#dProj', 'Bombas da ETA'); await ct.fill('#dCompany', 'Saneamento Sul'); await ct.fill('#dPDesc', 'Comando de duas bombas com alternância'); await ct.fill('#dAuth', 'Ana');
   await ct.waitForTimeout(150);
-  results.push(['Logo: proporção preservada e prévia da capa atualizada ao digitar', await ct.evaluate(() => { const i = document.querySelector('#dCover img'); return !!i && /^data:image\/png/.test(i.src) && Math.abs(i.naturalWidth / i.naturalHeight - 4) < .05 && /Saneamento Sul/.test(document.getElementById('dCover').textContent) && /Bombas da ETA/.test(document.getElementById('dCover').textContent); })]);
+  results.push(['Logo: proporção preservada e prévia da capa atualizada ao digitar', await ct.evaluate(() => { const i = document.querySelector('#dCover image'); return !!i && /^data:image\/png/.test(i.getAttribute('href')) && i.getAttribute('preserveAspectRatio') === 'xMidYMid meet' && /Saneamento Sul/.test(document.getElementById('dCover').textContent) && /Bombas da ETA/.test(document.getElementById('dCover').textContent); })]);
   await ct.click('#dSave'); await ct.waitForTimeout(700);
   results.push(['Capa: identidade persistida com o projeto (salvar/reabrir)', await ct.evaluate(() => { const va = window.__va, s = JSON.parse(va.serialize()); va.load(va.serialize()); const d = va.doc(); return s.company === 'Saneamento Sul' && /^data:image\/png/.test(s.logo) && d.company === 'Saneamento Sul' && d.pdesc === 'Comando de duas bombas com alternância' && /^data:image/.test(d.logo); })]);
-  results.push(['Capa personalizada: título, empresa, logo e metadados; sem placeholders vazios', await ct.evaluate(() => { const va = window.__va, s = va.coverSVG(va.planDocument()); return /Bombas da ETA/.test(s) && /Saneamento Sul/.test(s) && /<image href="data:image\/png/.test(s) && /preserveAspectRatio="xMinYMid meet"/.test(s) && /AUTOR/.test(s) && !/undefined|null/.test(s); })]);
-  results.push(['Capa padrão: sem identidade usa VoltAcademy e omite campos vazios', await ct.evaluate(() => { const va = window.__va, d = va.doc(), keep = [d.company, d.logo, d.author]; d.company = ''; d.logo = ''; d.author = ''; const s = va.coverSVG(va.planDocument()); [d.company, d.logo, d.author] = keep; return /VOLT/.test(s) && /ACADEMY/.test(s) && !/AUTOR/.test(s) && !/EMPRESA/.test(s) && !/<image/.test(s); })]);
+  results.push(['Capa limpa: logo proporcional (contain) e nome do projeto; sem texto fixo nem metadados', await ct.evaluate(() => { const va = window.__va, s = va.coverSVG(va.docFormat()); return /Bombas da ETA/.test(s) && /<image href="data:image\/png/.test(s) && /preserveAspectRatio="xMidYMid meet"/.test(s) && !/PROJETO DE COMANDOS|Projeto de comandos/.test(s) && !/AUTOR|Ana|alternância|Revisão|REVISÃO/.test(s) && !/undefined|null/.test(s); })]);
+  results.push(['Capa sem logo: marca vira identidade tipográfica; sem marca e sem logo: VoltAcademy', await ct.evaluate(() => { const va = window.__va, d = va.doc(), keep = [d.company, d.logo, d.project]; d.logo = ''; const a = va.coverSVG(va.docFormat()); d.company = ''; d.project = ''; const b = va.coverSVG(va.docFormat()); [d.company, d.logo, d.project] = keep; return /Saneamento Sul/.test(a) && !/<image/.test(a) && !/ACADEMY/.test(a) && /VOLT/.test(b) && /ACADEMY/.test(b) && /Novo projeto/.test(b) && !/<image/.test(b); })]);
   // full PDF: real pagination with multipage BOM and index, synced without saving
   const exp = () => ct.evaluate(async () => { const va = window.__va, b = await va.exportPDF({ dpi: 40 }), t = new TextDecoder('latin1').decode(await b.arrayBuffer()); return { ...b.meta, pdfPages: (t.match(/\/Type \/Page\b/g) || []).length, cur: { rev: va.rev(), project: va.doc().project, sheets: va.doc().sheets.map(s => s.name), bomRows: va.bomOf().rows.length } }; });
   await ct.evaluate(() => { const va = window.__va; va.load(va.EXAMPLES[1].build()); });
@@ -1011,9 +1011,114 @@ await jh.close();
   m = await exp();
   const bomE = m.entries.find(e => e.k === 'bom'), idxE = m.entries.find(e => e.k === 'index');
   results.push(['PDF: lista de materiais e índice multipágina com páginas reais', bomE.n >= 3 && idxE.n === 2 && m.pdfPages === m.total && contiguous(m) && m.bomRows === m.cur.bomRows]);
-  results.push(['BOM multipágina: cabeçalho repetido nas páginas seguintes', await ct.evaluate(() => { const va = window.__va, pl = va.planDocument(), pg = va.__bom(pl); return pg.length >= 3 && pg.every(s => /Família \/ modelo/.test(s) && /TAG\(s\)/.test(s)) && pg.slice(1).every(s => /continuação/.test(s)) && pg.every((s, i) => s.includes(`Página ${pl.entries.find(e => e.k === 'bom').page + i} de ${pl.total}`)); })]);
+  results.push(['BOM multipágina: cabeçalho repetido nas páginas seguintes', await ct.evaluate(() => { const va = window.__va, P = va.__pages(), pl = P.pl, pg = P.bom; return pg.length >= 3 && pg.every(s => /Família \/ modelo/.test(s) && /TAG\(s\)/.test(s)) && pg.slice(1).every(s => /continuação/.test(s)) && pg.every((s, i) => s.includes(`Página ${pl.entries.find(e => e.k === 'bom').page + i} de ${pl.total}`)); })]);
   results.push(['PDF: guias, seleção e prévias da interface não entram nas folhas', await ct.evaluate(() => { const va = window.__va; va.ui.guides = [{ dir: 'h', y: 10, a: 0, b: 10 }]; va.ui.sel = { kind: 'comp', id: va.doc().comps[0].id }; const s = va.exportSheetSVG(); va.ui.guides = null; return !/class="sguides"|class="comp sel|class="ghost"|jarvis/.test(s); })]);
   await ct.close();
+}
+// ---- Conexões inteligentes (barramento e alinhamento) e PDF técnico ----
+{
+  const cw = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  cw.on('pageerror', e => errors.push(e.message + ' @ ' + (e.stack || '').split('\n').slice(1, 4).join(' | ')));
+  await cw.goto(page); await cw.waitForTimeout(500);
+  const setup = async (zoom = 1) => { await cw.evaluate(z => { const va = window.__va; va.load({ project: 'Barramento', comps: [], wires: [], sheets: [{ id: 's1', name: 'Comando', size: 'A3' }, { id: 's2', name: 'Outra', size: 'A3' }] }); va.setView('diagram');
+    for (let i = 0; i < 5; i++) va.addComp('botao_na', 200 + i * 100, 200); va.addComp('botao_na', 700, 200, { sheet: 's2' }); va.addComp('fase', 200, 60);
+    va.addComp('disjuntor_motor', 300, 500); va.addComp('contator_forca', 300, 640); va.commitNow(); va.ui.mode = 'select'; va.ui.zoom = z; va.ui.px = 100 - (z - 1) * 150; va.ui.py = 20 - (z - 1) * 150; va.render(); }, zoom); await cw.waitForTimeout(150); };
+  const scr = (x, y) => cw.evaluate(([x, y]) => { const va = window.__va, svg = document.getElementById('cv'), pt = svg.createSVGPoint(); pt.x = va.ui.px + x * va.ui.zoom; pt.y = va.ui.py + y * va.ui.zoom; const q = pt.matrixTransform(svg.getScreenCTM()); return [q.x, q.y]; }, [x, y]);
+  const S = i => cw.evaluate(i => { const va = window.__va, c = va.doc().comps.filter(c => c.type === 'botao_na' && c.sheet === 's1')[i]; return { id: c.id, p: va.termPos(c.id, 'b') }; }, i);
+  const net = () => cw.evaluate(() => window.__va.netModel().rows.map(r => r.members.join(',')));
+  await setup(1);
+  await cw.keyboard.press('Shift+KeyW'); await cw.waitForTimeout(80);
+  results.push(['Atalhos: W fio, Shift+W barramento, Alt+W alinhamento', await cw.evaluate(() => window.__va.ui.mode === 'bus') && await (async () => { await cw.keyboard.press('Alt+KeyW'); const a = await cw.evaluate(() => window.__va.ui.mode); await cw.keyboard.press('KeyW'); const w = await cw.evaluate(() => window.__va.ui.mode); await cw.keyboard.press('Shift+KeyW'); return a === 'align' && w === 'wire'; })()]);
+  const s0 = await S(0); let [x, y] = await scr(s0.p[0], s0.p[1]);
+  await cw.mouse.move(x, y); await cw.mouse.down(); let [x2] = await scr(s0.p[0] + 430, s0.p[1]); await cw.mouse.move(x2, y + 3, { steps: 8 }); await cw.waitForTimeout(60);
+  const pending = await cw.evaluate(() => ({ n: window.__va.ui.bus.terms.length, hl: document.querySelectorAll('#cv .bushl').length, prev: document.querySelectorAll('#cv .wprevbus').length, wires: window.__va.doc().wires.length }));
+  await cw.mouse.up(); await cw.waitForTimeout(150);
+  let nets = await net();
+  results.push(['Barramento: arrastar destaca os cinco bornes (inclusive intermediários) com prévia ortogonal', pending.n === 5 && pending.hl === 5 && pending.prev >= 4 && pending.wires === 0]);
+  results.push(['Barramento: os cinco bornes ficam na mesma rede com pontos de conexão reais', nets.length === 1 && nets[0] === 'S1:14,S2:14,S3:14,S4:14,S5:14' && await cw.evaluate(() => window.__va.doc().comps.filter(c => c.type === 'juncao').length === 3 && window.__va.ui.mode === 'bus' && !window.__va.ui.bus)]);
+  results.push(['Barramento: continuidade no modelo — potencial da fase chega a S5:14 por S1:14', await cw.evaluate(() => { const va = window.__va, d = va.doc(), f = d.comps.find(c => c.type === 'fase'), b = d.comps.filter(c => c.type === 'botao_na' && c.sheet === 's1'); d.wires.push({ id: 'wx', a: { c: f.id, t: 'a' }, b: { c: b[0].id, t: 'a' }, color: '#000', pts: [] }); d.wires.push({ id: 'wy', a: { c: b[0].id, t: 'a' }, b: { c: b[0].id, t: 'a' }, pts: [] }); d.wires.pop(); const P = va.staticPotentials(); const r = P.of({ c: b[4].id, t: 'b' }).size === 0 && P.same({ c: b[0].id, t: 'b' }, { c: b[4].id, t: 'b' }); d.wires.pop(); return r; })]);
+  results.push(['Barramento: aparece integralmente no relatório e na lista de ligações', await cw.evaluate(() => { const va = window.__va; va.setView('tags'); const txt = document.getElementById('linkSec').textContent, P = va.__pages(); const rep = P.report.join(''); va.setView('diagram'); return /Equipotencial \(5\)/.test(txt) && ['S1:14', 'S2:14', 'S3:14', 'S4:14', 'S5:14'].every(m => txt.includes(m) && rep.includes(m)); })]);
+  const branch = await cw.evaluate(() => { const va = window.__va, d = va.doc(), s3 = d.comps.filter(c => c.type === 'botao_na' && c.sheet === 's1')[2]; const w = d.wires.find(w => (w.a.c === s3.id || w.b.c === s3.id)); d.wires = d.wires.filter(x => x !== w); va.commitNow(); return va.netModel().rows.map(r => r.members.join(',')); });
+  results.push(['Barramento: excluir um ramo desliga só aquele borne', branch.includes('S1:14,S2:14,S4:14,S5:14') && !branch.some(n => n.includes('S3:14'))]);
+  await cw.evaluate(() => document.getElementById('bUndo').click()); await cw.waitForTimeout(80);
+  const undone = await net();
+  await cw.evaluate(() => document.getElementById('bUndo').click()); await cw.waitForTimeout(80);
+  const before = await cw.evaluate(() => ({ w: window.__va.doc().wires.length, j: window.__va.doc().comps.filter(c => c.type === 'juncao').length }));
+  await cw.evaluate(() => document.getElementById('bRedo').click()); await cw.waitForTimeout(80);
+  results.push(['Barramento: desfazer/refazer restaura topologia e numeração (uma transação)', undone.length === 1 && undone[0].split(',').length === 5 && before.w === 0 && before.j === 0 && (await net())[0] === 'S1:14,S2:14,S3:14,S4:14,S5:14' && await cw.evaluate(() => new Set(window.__va.doc().wires.map(w => String(w.no))).size === 1)]);
+  // successive clicks + Enter, removal before confirming, zoom 2, other sheet ignored
+  await setup(2); await cw.keyboard.press('Shift+KeyW');
+  for (const i of [0, 2, 4, 3]) { const s = await S(i); [x, y] = await scr(s.p[0], s.p[1] + 3 / 2); await cw.mouse.click(x, y); await cw.waitForTimeout(60); }
+  { const s = await S(3); [x, y] = await scr(s.p[0], s.p[1]); await cw.mouse.click(x, y); await cw.waitForTimeout(60); }
+  const cap = await cw.evaluate(() => window.__va.ui.bus.terms.length);
+  await cw.keyboard.press('Enter'); await cw.waitForTimeout(120);
+  nets = await net();
+  results.push(['Barramento por cliques sucessivos (zoom 2): remover antes de confirmar e Enter conecta só os capturados', cap === 3 && nets.length === 1 && nets[0] === 'S1:14,S3:14,S5:14' && await cw.evaluate(() => { const d = window.__va.doc(); return !d.wires.some(w => [w.a.c, w.b.c].some(id => d.comps.find(c => c.id === id).sheet === 's2')); })]);
+  // cancel leaves nothing
+  await setup(1); await cw.keyboard.press('Shift+KeyW');
+  { const a = await S(0), c = await S(1); [x, y] = await scr(a.p[0], a.p[1]); await cw.mouse.click(x, y); [x, y] = await scr(c.p[0], c.p[1]); await cw.mouse.click(x, y); }
+  await cw.mouse.click(x + 40, y + 60, { button: 'right' }); await cw.waitForTimeout(100);
+  results.push(['Barramento: botão direito cancela sem fios parciais e sai da ferramenta', await cw.evaluate(() => window.__va.doc().wires.length === 0 && window.__va.ui.mode === 'select' && !window.__va.ui.bus && !document.querySelector('#cv .busprev .bushl'))]);
+  await cw.keyboard.press('Shift+KeyW'); { const a = await S(0); [x, y] = await scr(a.p[0], a.p[1]); await cw.mouse.move(x, y); await cw.mouse.down(); await cw.mouse.move(x + 200, y, { steps: 5 }); }
+  await cw.keyboard.press('Escape'); await cw.mouse.up(); await cw.waitForTimeout(100);
+  results.push(['Barramento: Esc durante o gesto cancela', await cw.evaluate(() => window.__va.doc().wires.length === 0 && window.__va.ui.mode === 'select')]);
+  // alignment
+  await setup(1);
+  await cw.evaluate(() => { const va = window.__va, d = va.doc(), q = d.comps.find(c => c.type === 'disjuntor_motor'); q.x += 0; va.ui.mode = 'select'; va.render(); });
+  results.push(['Alinhamento: modo desligado não cria fios ao mover componentes alinhados', await cw.evaluate(() => window.__va.doc().wires.length === 0 && !window.__va.ui.autoWire)]);
+  await cw.keyboard.press('Alt+KeyW');
+  await cw.evaluate(() => { const va = window.__va, ids = va.doc().comps.filter(c => c.type === 'disjuntor_motor' || c.type === 'contator_forca').map(c => c.id); va.ui.sel = { kind: 'comp', id: ids[0] }; va.ui.multi = new Set(ids); va.render(); });
+  await cw.waitForTimeout(100);
+  const al = await cw.evaluate(() => ({ ok: window.__va.ui.align.res.ok.map(c => window.__va.doc().comps.find(x => x.id === c.a.c).type + ':' + c.a.t + '>' + c.b.t), prev: document.querySelectorAll('#cv .alprev.ok').length, bar: !document.getElementById('alignBar').hidden, wires: window.__va.doc().wires.length }));
+  await cw.click('#alOk'); await cw.waitForTimeout(150);
+  nets = await net();
+  results.push(['Alinhamento: prévia tracejada e confirmação explícita para os três polos (2→1, 4→3, 6→5)', al.ok.length === 3 && al.prev === 3 && al.bar && al.wires === 0 && al.ok.every(s => /t(\d)>l\1/.test(s))]);
+  results.push(['Alinhamento: três polos geram três redes separadas, sem misturar fases', nets.length === 3 && nets.every(n => n.split(',').length === 2) && new Set(nets).size === 3 && nets.some(n => n.includes(':2') && n.includes(':1'))]);
+  const again = await cw.evaluate(() => { const va = window.__va, ids = va.doc().comps.filter(c => c.type === 'disjuntor_motor' || c.type === 'contator_forca').map(c => c.id); return va.alignCandidates(ids, { within: true }).ok.length; });
+  await cw.evaluate(() => document.getElementById('bUndo').click()); await cw.waitForTimeout(80);
+  results.push(['Alinhamento: sem fios duplicados e lote desfeito numa única operação', again === 0 && await cw.evaluate(() => window.__va.doc().wires.length === 0)]);
+  results.push(['Alinhamento: curto conhecido (L1 × L2) e polos incompatíveis são bloqueados com motivo', await cw.evaluate(() => { const va = window.__va; va.load({ project: 'C', comps: [], wires: [], sheets: [{ id: 's1', name: 'A', size: 'A3' }] }); va.ui.sheet = 's1';
+    const f1 = va.addComp('fase', 200, 100, { phase: 'L1' }), f2 = va.addComp('fase', 400, 100, { phase: 'L2' }), a = va.addComp('botao_na', 200, 220), b = va.addComp('botao_na', 400, 220);
+    va.doc().wires.push({ id: 'w1', a: { c: f1.id, t: 'a' }, b: { c: a.id, t: 'a' }, pts: [] }, { id: 'w2', a: { c: f2.id, t: 'a' }, b: { c: b.id, t: 'a' }, pts: [] });
+    const h1 = va.addComp('botao_na', 600, 220, { rot: 90 }), h2 = va.addComp('botao_na', 720, 220, { rot: 90 });
+    const q = va.addComp('disjuntor_motor', 300, 500), k = va.addComp('contator_forca', 340, 640);
+    const r1 = va.alignCandidates([q.id, k.id], { within: true }); const P = va.staticPotentials();
+    const short = P.of({ c: a.id, t: 'a' }).has('L1') && P.of({ c: b.id, t: 'a' }).has('L2');
+    return short && r1.ok.length === 0 && r1.blocked.some(c => /polos incompatíveis/.test(c.why)); })]);
+  await cw.evaluate(() => { const va = window.__va; va.load({ project: 'C2', comps: [], wires: [], sheets: [{ id: 's1', name: 'A', size: 'A3' }] }); va.ui.sheet = 's1'; const f1 = va.addComp('fase', 200, 100, { phase: 'L1' }), f2 = va.addComp('fase', 200, 300, { phase: 'L2' }); f2.rot = 180; va.commitNow(); });
+  results.push(['Alinhamento: duas fases diferentes voltadas uma para a outra não são ligadas', await cw.evaluate(() => { const va = window.__va, ids = va.doc().comps.map(c => c.id), r = va.alignCandidates(ids, { within: true }); return r.ok.length === 0 && r.blocked.some(c => /curto-circuito/.test(c.why)); })]);
+  // automatic mode on: placing under the breaker connects in the same transaction
+  await setup(1);
+  await cw.evaluate(() => { const va = window.__va, d = va.doc(); d.comps = d.comps.filter(c => c.type !== 'contator_forca'); va.commitNow(); va.render(); });
+  await cw.click('#tAuto'); await cw.waitForTimeout(80);
+  await cw.evaluate(() => { if (window.__va.ui.activeCategory !== 'Contatores e relés') document.querySelector('[data-folder="Contatores e relés"]').click(); }); await cw.waitForTimeout(350);
+  await cw.click('#folders [data-part="contator_forca"]'); await cw.waitForTimeout(100);
+  [x, y] = await scr(300, 640); await cw.mouse.move(x, y); await cw.mouse.click(x, y); await cw.waitForTimeout(150); await cw.keyboard.press('Escape');
+  const autoN = await cw.evaluate(() => window.__va.doc().wires.length);
+  await cw.evaluate(() => document.getElementById('bUndo').click()); await cw.waitForTimeout(80);
+  results.push(['Auto-conexão ligada: posicionar alinhado conecta os 3 polos numa só transação', autoN === 3 && await cw.evaluate(() => window.__va.doc().wires.length === 0 && !window.__va.doc().comps.some(c => c.type === 'contator_forca'))]);
+  await cw.click('#tAuto'); await cw.waitForTimeout(60);
+  results.push(['Atalhos não são capturados ao digitar em campos de texto', await cw.evaluate(() => { const va = window.__va; va.ui.mode = 'select'; const i = document.getElementById('search'); i.focus(); i.dispatchEvent(new KeyboardEvent('keydown', { key: 'W', code: 'KeyW', shiftKey: true, bubbles: true })); i.blur(); return va.ui.mode === 'select'; })]);
+  // documents: uniform format, metadata in the index, no lengths, no footer overlap
+  await cw.evaluate(() => { const va = window.__va; va.load(va.EXAMPLES[1].build()); const d = va.doc(); d.author = 'Ana'; d.company = 'Saneamento Sul'; d.pdesc = 'Comando de bombas'; d.sheets[1].desc = 'Liga/desliga com selo'; va.commitNow(); });
+  const pdfInfo = () => cw.evaluate(async () => { const va = window.__va, b = await va.exportPDF({ dpi: 30 }), t = new TextDecoder('latin1').decode(await b.arrayBuffer()); return { meta: b.meta, boxes: [...t.matchAll(/\/MediaBox \[0 0 ([\d.]+) ([\d.]+)\]/g)].map(m => m[1] + 'x' + m[2]), pages: (t.match(/\/Type \/Page\b/g) || []).length }; });
+  let pi = await pdfInfo();
+  results.push(['PDF: todas as páginas no formato global (A3 paisagem 420 × 297 mm)', pi.boxes.length === pi.pages && pi.pages === pi.meta.total && new Set(pi.boxes).size === 1 && pi.boxes[0] === '1190.55x841.89']);
+  await cw.evaluate(() => { const va = window.__va; va.doc().pdfFmt = { size: 'A4', orient: 'retrato' }; va.commitNow(); });
+  pi = await pdfInfo();
+  results.push(['PDF: formato A4 retrato aplicado a capa, índice, folhas e relatórios; folhas A3 reduzidas sem recorte', new Set(pi.boxes).size === 1 && pi.boxes[0] === '595.28x841.89' && pi.pages === pi.meta.total && pi.meta.entries.filter(e => e.k === 'sheet').every(e => e.scale > 0 && e.scale < 1)]);
+  results.push(['Índice: projeto, autor, empresa, descrição, data, revisão, folhas e páginas; descrição da folha', await cw.evaluate(() => { const va = window.__va, P = va.__pages(), ix = P.index.join(''); return ['PROJETO', 'AUTOR', 'EMPRESA', 'DESCRIÇÃO', 'DATA', 'REVISÃO', 'FOLHAS DE DIAGRAMA', 'PÁGINAS DO PDF'].every(k => ix.includes(k)) && ix.includes('Ana') && ix.includes('Saneamento Sul') && ix.includes('Comando de bombas') && ix.includes('Liga/desliga com selo') && ix.includes(`>${P.pl.total}<`) && P.pl.entries[1].k === 'index' && P.pl.entries[1].page === 2; })]);
+  results.push(['Índice: campos opcionais vazios são omitidos', await cw.evaluate(() => { const va = window.__va, d = va.doc(), k = [d.author, d.company]; d.author = ''; d.company = ''; const ix = va.__pages().index.join(''); [d.author, d.company] = k; return !ix.includes('AUTOR') && !ix.includes('EMPRESA'); })]);
+  const reorder = await cw.evaluate(async () => { const va = window.__va, d = va.doc(); d.sheets.reverse(); d.sheets[0].name = 'Comando renomeado'; d.sheets[0].desc = 'nova descrição'; va.commitNow(); const b = await va.exportPDF({ dpi: 30 }); return b.meta.entries.filter(e => e.k === 'sheet').map(e => e.title + '|' + e.desc).join(';'); });
+  results.push(['PDF sem salvar: reordenar folhas e editar descrição atualiza o índice', reorder === 'Folha 1 · Comando renomeado|nova descrição;Folha 2 · Força|']);
+  results.push(['Relatório e Listas sem metragem inferida do desenho', await cw.evaluate(() => { const va = window.__va; va.setView('tags'); const html = document.getElementById('vTags').textContent, rep = va.__pages().report.join(''); va.setView('diagram'); return !/Comprimento no desenho/.test(html + rep) && !/\d+,\d+ m\b/.test(rep) && /Não dimensionado/.test(rep) && /Não dimensionado/.test(html); })]);
+  results.push(['Mover símbolos e mudar zoom não altera dispositivos, redes nem terminações', await cw.evaluate(() => { const va = window.__va, snap = () => JSON.stringify([va.netModel().totals, va.bomOf().rows.map(r => [r.tags, r.qty])]); const a = snap(); va.doc().comps.forEach(c => { c.x += 40; c.y += 20; }); va.ui.zoom *= 2.3; va.commitNow(); return snap() === a; })]);
+  results.push(['Páginas sem texto sobre o rodapé (tabelas longas quebram em novas páginas)', await cw.evaluate(() => { const va = window.__va, sid = va.doc().sheets[0].id; for (let i = 0; i < 60; i++) { const a = va.addComp('botao_na', 100 + (i % 10) * 60, 120 + Math.floor(i / 10) * 100, { sheet: sid }); } va.commitNow();
+    const P = va.__pages(), pages = [...P.index, ...P.bom, ...P.report]; return P.report.length >= 2 && pages.every(s => { const ln = +s.match(/<line x1="[\d.]+" y1="([\d.]+)"[^>]*stroke="#D7DBE1"/)[1]; const ys = [...s.matchAll(/<text x="[\d.]+" y="([\d.]+)"/g)].map(m => +m[1]); const foot = ys.filter(y => y > ln); return foot.length === 2 && ys.filter(y => y <= ln).every(y => y < ln - 2); }); })]);
+  results.push(['BOM no PDF: contator verificado e relé com fabricante/modelo/bobina/corrente; contatos não duplicam', await cw.evaluate(() => { const va = window.__va; va.load(va.EXAMPLES[2].build()); const ks = va.doc().comps.filter(c => c.type === 'bobina'); ks[0].spec = va.DeviceCatalog.sanitize({ kind: 'contactor', status: 'verified', refId: 'weg-cwb32-11-30d25' }); ks[1].spec = va.DeviceCatalog.sanitize({ kind: 'interface_relay', status: 'verified', refId: 'phoenix-2967060' }); va.commitNow();
+    const bom = va.__pages().bom.join(''), B = va.bomOf(), r1 = B.rows.find(r => r.tags.includes(ks[0].tag)), r2 = B.rows.find(r => r.tags.includes(ks[1].tag));
+    return r1.manufacturer === 'WEG' && r1.sku === 'CWB32-11-30D25' && r1.coil === '240 Vca' && r1.current === '32 A (AC-3)' && r2.manufacturer === 'Phoenix Contact' && r2.sku === 'PLC-RSC-24DC/21-21 (2967060)' && r2.coil === '24 Vcc' && r2.current === '6 A (carga resistiva)' && ['WEG', 'CWB32-11-30D25', 'Phoenix', '240 Vca', 'Verificado'].every(t => bom.includes(t)) && r1.qty === 1 && r2.qty === 1 && B.rows.filter(r => r.tags.includes(ks[0].tag)).length === 1 && /Não informado/.test(bom); })]);
+  await cw.close();
 }
 // ---- Interface global e sessão (VOLT CORE em todas as telas, sem ativação automática) ----
 {
