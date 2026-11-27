@@ -308,7 +308,7 @@ results.push(['PDF: arquivo válido com folhas e relatório', pdf.slice(0, 5).to
 
 // ---- Biblioteca retrátil (activeCategory) e Active Energy UI ----
 const fresh = await browser.newPage({ viewport: { width: 1440, height: 900 } });
-await fresh.goto(page); await fresh.waitForTimeout(500); await fresh.evaluate(() => window.__va.setView('diagram'));
+await fresh.goto(page); await fresh.waitForTimeout(500); await fresh.evaluate(() => { const va = window.__va; va.load(va.EXAMPLES[0].build()); va.setView('diagram'); });
 results.push(['Biblioteca: começa fechada e sem categoria ativa', await fresh.evaluate(() => window.__va.ui.activeCategory === null && !document.getElementById('drawer').classList.contains('open') && !document.querySelector('.railb.act'))]);
 const geo0 = await fresh.evaluate(() => ({ w: document.getElementById('cv').getBoundingClientRect().width, z: window.__va.ui.zoom, px: window.__va.ui.px }));
 await fresh.click('[data-folder="Comando"]'); await fresh.waitForTimeout(350);
@@ -826,7 +826,7 @@ results.push(['Jarvis: seta lateral gira para Exercícios com contagem', await j
 const st = await jh.locator('#jStage').boundingBox();
 await jh.mouse.move(st.x + st.width * .7, st.y + st.height * .2); await jh.mouse.down(); await jh.mouse.move(st.x + st.width * .7 - 230, st.y + st.height * .2, { steps: 8 }); await jh.mouse.up(); await jh.waitForTimeout(1000);
 results.push(['Jarvis: arrastar a órbita troca o módulo da frente', await jh.evaluate(() => { const H = window.__va.Home; return H.sel !== 4 && document.querySelector(`#jOrbit [data-op="${H.sel}"]`).classList.contains('front'); })]);
-await jh.evaluate(() => window.__va.homeSelect(1)); await jh.waitForTimeout(950);
+await jh.evaluate(() => { const va = window.__va; va.load(va.EXAMPLES[1].build()); va.setView('home'); va.homeSelect(1); }); await jh.waitForTimeout(950);
 [x, y] = await box(1); await jh.mouse.click(x, y); await jh.waitForTimeout(800);
 results.push(['Jarvis: clicar no módulo ativo executa a função original (Continuar → Diagrama)', await jh.evaluate(() => window.__va.ui.view === 'diagram')]);
 await jh.evaluate(() => { window.__va.setView('home'); window.__va.homeSelect(0); }); await jh.waitForTimeout(950);
@@ -834,6 +834,64 @@ const [fc] = await Promise.all([jh.waitForEvent('filechooser', { timeout: 5000 }
 results.push(['Jarvis: Abrir projeto abre o seletor de arquivos', !!fc]);
 results.push(['Jarvis: barra superior com Projeto, Ajuda, Som e Tema com ícones sólidos; Início em destaque', await jh.evaluate(() => { const vis = ['#bFile', '#bHelp', '#bSound', '#bTheme'].every(s => !document.querySelector(s).hidden && document.querySelector(s + ' .solid')) && ['#bRun', '#bUndo', '#bInsp'].every(s => document.querySelector(s).hidden); const n = document.querySelector('.nav.home'); return vis && n.classList.contains('act') && n.classList.contains('energy-active'); })]);
 await jh.close();
+
+// ---- Interface global e sessão (VOLT CORE em todas as telas, sem ativação automática) ----
+{
+  const ss = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+  ss.on('pageerror', e => errors.push(e.message + ' @ ' + (e.stack || '').split('\n').slice(1, 4).join(' | ')));
+  await ss.goto(page); await ss.waitForTimeout(700);
+  const view = async v => { await ss.evaluate(v => window.__va.setView(v), v); await ss.waitForTimeout(450); };
+  results.push(['Sessão: inicia ociosa (idle, sem projeto ativo, simulação parada, sem salvo)', await ss.evaluate(() => { const S = window.__va.Session; return S.status === 'idle' && S.activeProject === null && !S.simulationRunning && S.lastSavedProject === null && window.__va.doc().comps.length === 0; })]);
+  results.push(['Sessão: cabeçalho e início mostram "Nenhum projeto ativo"', await ss.evaluate(() => document.getElementById('projName').textContent === 'Nenhum projeto ativo' && document.getElementById('homeProj').textContent === 'Nenhum projeto ativo')]);
+  results.push(['Sessão: Continuar indisponível sem projeto salvo', await ss.evaluate(() => { window.__va.homeSelect(1); return document.getElementById('opGo').disabled && /nenhum projeto salvo/i.test(document.getElementById('opDesc').textContent); })]);
+  await ss.waitForTimeout(950); await ss.click('.jmod[data-op="1"]', { force: true }); await ss.waitForTimeout(700);
+  results.push(['Sessão: confirmar Continuar sem salvo não ativa nada', await ss.evaluate(() => window.__va.ui.view === 'home' && !window.__va.Session.active)]);
+  await ss.evaluate(() => window.__va.homeSelect(3)); await ss.waitForTimeout(1200);
+  results.push(['Sessão: selecionar módulos no carrossel não ativa projeto', await ss.evaluate(() => !window.__va.Session.active && window.__va.doc().comps.length === 0)]);
+  await view('diagram');
+  results.push(['Diagrama em espera: prancheta vazia com mensagem e ferramentas bloqueadas', await ss.evaluate(() => { const w = document.getElementById('waitDiagram'); return !w.hidden && /AGUARDANDO INICIALIZAÇÃO DO PROJETO/.test(w.textContent) && getComputedStyle(document.getElementById('cv')).visibility === 'hidden' && getComputedStyle(document.getElementById('rail')).pointerEvents === 'none' && document.getElementById('bRun').disabled; })]);
+  results.push(['Diagrama em espera: atalhos e simulação não alteram nada', await ss.evaluate(() => { const va = window.__va; document.body.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true })); document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'a', ctrlKey: true, bubbles: true })); va.startSim(); return !va.sim.running && va.doc().comps.length === 0 && !localStorage.getItem('voltacademy.ce.doc'); })]);
+  await view('operate');
+  results.push(['HMI em espera: VOLT CORE central sem módulos orbitais e Simular desabilitado', await ss.evaluate(() => { const o = document.getElementById('vOperate'); return !!o.querySelector('#hmiAnchor') && /AGUARDANDO APLICAÇÃO/.test(o.textContent) && !o.querySelector('.jmod, .opbtn, .hmi') && document.body.classList.contains('hmi-wait') && document.getElementById('bRun').disabled && (!window.__va.JarvisCore.ok || document.body.classList.contains('core-on')); })]);
+  await view('tags');
+  results.push(['Listas sem projeto: "Nenhum material disponível"', await ss.evaluate(() => /Nenhum material disponível/.test(document.getElementById('vTags').textContent) && !document.querySelector('#vTags table'))]);
+  await view('monitor');
+  results.push(['Monitoramento sem projeto: em espera, sem dados', await ss.evaluate(() => /MONITORAMENTO EM ESPERA/.test(document.getElementById('vMonitor').textContent) && !document.querySelector('#vMonitor .readout, #vMonitor svg'))]);
+  results.push(['Camada global: cabeçalho sem fundo/borda e efeitos sem capturar o ponteiro', await ss.evaluate(() => { const t = getComputedStyle(document.querySelector('.top')), bg = getComputedStyle(document.getElementById('voltBg')); return /rgba\(0, 0, 0, 0\)|transparent/.test(t.backgroundColor) && t.borderBottomWidth === '0px' && t.boxShadow === 'none' && bg.pointerEvents === 'none' && bg.position === 'fixed' && document.getElementById('jarvisNet').parentElement.id === 'voltBg'; })]);
+  results.push(['VOLT CORE: STANDBY sem projeto', await ss.evaluate(() => window.__va.VoltState.state === 'STANDBY')]);
+  // Novo projeto pelo início → editor habilitado
+  await view('home'); await ss.evaluate(() => window.__va.homeSelect(2)); await ss.waitForTimeout(950); await ss.click('#opGo'); await ss.waitForTimeout(400);
+  await ss.click('#dSkip'); await ss.waitForTimeout(600);
+  results.push(['Novo projeto: ativa a sessão e habilita o editor', await ss.evaluate(() => { const va = window.__va; return va.Session.active && va.ui.view === 'diagram' && document.getElementById('waitDiagram').hidden && getComputedStyle(document.getElementById('rail')).pointerEvents !== 'none' && !document.getElementById('bRun').disabled && document.getElementById('projName').textContent === va.doc().project && va.doc().sheets.length >= 1; })]);
+  results.push(['VOLT CORE: INITIALIZING/SUCCESS na ativação e depois READY', await ss.evaluate(async () => { const a = window.__va.VoltState.state; await new Promise(r => setTimeout(r, 1900)); return ['INITIALIZING', 'SUCCESS'].includes(a) && window.__va.VoltState.state === 'READY'; })]);
+  // carregar exemplo → HMI correspondente; navegação durante a simulação
+  await ss.evaluate(() => { const va = window.__va; va.load(va.EXAMPLES[0].build()); va.setView('operate'); }); await ss.waitForTimeout(500);
+  results.push(['Exemplo: HMI real substitui a espera', await ss.evaluate(() => !document.querySelector('#vOperate .hmiwait') && !!document.getElementById('opRun') && !document.body.classList.contains('hmi-wait'))]);
+  await ss.evaluate(() => { const va = window.__va; va.startSim(); va.sim.pressed.add(va.doc().comps.find(c => c.tag === 'S1').id); va.solve(); va.sim.pressed.clear(); va.solve(); }); await ss.waitForTimeout(300);
+  const t0 = await ss.evaluate(() => window.__va.sim.t);
+  for (const v of ['diagram', 'monitor', 'tags', 'home', 'operate']) await view(v);
+  results.push(['Navegação durante simulação preserva sincronismo e estado elétrico', await ss.evaluate(t0 => { const va = window.__va; return va.sim.running && va.sim.coils.K1 && va.sim.t > t0 + 1 && va.Session.simulationRunning && va.VoltState.state === 'SIMULATING'; }, t0)]);
+  await ss.evaluate(() => window.__va.stopSim());
+  // efeitos não interferem na edição
+  await view('diagram');
+  results.push(['Efeitos não interferem: o elemento sob o cursor na prancheta é o desenho', await ss.evaluate(() => { const r = document.getElementById('cv').getBoundingClientRect(), el = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2); return !!el && !!el.closest('#cv'); })]);
+  // projeto salvo → nova sessão: referência sem ativação, Continuar restaura integralmente
+  const saved = await ss.evaluate(() => localStorage.getItem('voltacademy.ce.doc'));
+  await ss.reload(); await ss.waitForTimeout(800);
+  results.push(['Sessão com projeto salvo: referência disponível, sem ativação automática', await ss.evaluate(() => { const va = window.__va, S = va.Session; return !S.active && S.lastSavedProject && S.lastSavedProject.project === 'Partida direta com selo' && va.doc().comps.length === 0 && !va.sim.running && document.getElementById('projName').textContent === 'Nenhum projeto ativo'; })]);
+  await view('operate');
+  results.push(['HMI após reinício: espera, sem aplicação antiga', await ss.evaluate(() => !!document.querySelector('#vOperate .hmiwait') && !document.getElementById('opRun'))]);
+  await view('monitor');
+  results.push(['Monitoramento após reinício: sem dados da sessão anterior', await ss.evaluate(() => /EM ESPERA/.test(document.getElementById('vMonitor').textContent) && window.__va.sim.events.length === 0)]);
+  await view('home'); await ss.evaluate(() => window.__va.homeSelect(1)); await ss.waitForTimeout(950);
+  results.push(['Continuar mostra o último salvo apenas como referência', await ss.evaluate(() => !document.getElementById('opGo').disabled && /Partida direta com selo/.test(document.getElementById('opCount').textContent) && !window.__va.Session.active)]);
+  await ss.click('#opGo'); await ss.waitForTimeout(900);
+  results.push(['Continuar projeto recupera integralmente o trabalho salvo', await ss.evaluate(s => { const va = window.__va; return va.Session.active && va.ui.view === 'diagram' && JSON.stringify(JSON.parse(va.serialize()).comps) === JSON.stringify(JSON.parse(s).comps) && JSON.stringify(JSON.parse(va.serialize()).wires) === JSON.stringify(JSON.parse(s).wires) && va.doc().project === JSON.parse(s).project; }, saved)]);
+  // falha no carregamento não ativa nem sobrescreve
+  await ss.reload(); await ss.waitForTimeout(700);
+  results.push(['Falha no carregamento não ativa projeto nem sobrescreve o salvo', await ss.evaluate(s => { const va = window.__va; try { va.load('{"comps": [{"type": "inexistente"}], "wires": []}'); } catch (e) {} return !va.Session.active && localStorage.getItem('voltacademy.ce.doc') === s; }, saved)]);
+  await ss.close();
+}
 const jr = await browser.newPage({ viewport: { width: 1280, height: 800 }, reducedMotion: 'reduce' });
 await jr.goto(page); await jr.waitForTimeout(1200);
 results.push(['Jarvis: respeita redução de movimento', await jr.evaluate(() => window.__va.Orbit.sway === 0 && matchMedia('(prefers-reduced-motion: reduce)').matches)]);

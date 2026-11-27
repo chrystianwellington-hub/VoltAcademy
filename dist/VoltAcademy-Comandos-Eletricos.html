@@ -463,8 +463,7 @@ body.warp::after { content: ''; position: fixed; inset: 0; z-index: 90; pointer-
 
 /* ---- Home · JARVIS ORBITAL ---- */
 #vHome.jarvis { --j-navy: #030812; --j-blue: #1F6FD6; --j-ice: #9FD4FF; --j-steel: rgba(120,170,220,.32); background: #030812; }
-#vHome .jgl, #vHome .jhud { position: absolute; inset: 0; width: 100%; height: 100%; display: block; pointer-events: none; }
-#vHome .jgl { z-index: 0; } #vHome .jhud { z-index: 1; } #vHome.webgl #holoHome { display: none; }
+#vHome.webgl #holoHome { display: none; } #vHome.webgl { background: transparent; }
 #vHome .hud-top { z-index: 4; }
 .jstage { position: absolute; left: 0; right: 0; top: 0; bottom: 178px; z-index: 3; touch-action: none; cursor: grab; }
 .jstage.drag { cursor: grabbing; }
@@ -490,7 +489,6 @@ body.warp::after { content: ''; position: fixed; inset: 0; z-index: 90; pointer-
   transform: translate(-50%, -50%) scale(var(--hin)); }
 .jhero::before { content: ''; position: absolute; left: 6%; right: 6%; top: 74%; height: 18%; border-radius: 50%; background: radial-gradient(closest-side, rgba(255,214,0,calc(.25 + .3 * var(--fxglow))), rgba(255,170,0,0)); }
 .jhero .jfx { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 0 calc(6px + 14px * var(--fxglow)) rgba(255,190,40,calc(.2 + .35 * var(--fxglow)))); }
-#vHome .jnet { position: absolute; inset: 0; width: 100%; height: 100%; display: block; pointer-events: none; z-index: 1; }
 .jfx .jhring { fill: none; stroke: #3BA7FF; stroke-width: 5; stroke-linecap: round; filter: drop-shadow(0 0 7px #3BA7FF); }
 .jfx .jhring2 { fill: none; stroke: #65E4FF; stroke-width: 1.5; opacity: .45; }
 .jfx .jhdot { fill: #D8F2FF; filter: drop-shadow(0 0 6px #65E4FF); }
@@ -516,9 +514,9 @@ body.warp::after { content: ''; position: fixed; inset: 0; z-index: 90; pointer-
 #vHome .hud-go { text-transform: uppercase; letter-spacing: .14em; box-shadow: 0 0 0 1px #FFD600, 0 0 22px rgba(255,214,0,.4); }
 #vHome .hud-nav { border-color: var(--j-steel); color: var(--j-ice); background: linear-gradient(165deg, #17304E, #0B1828); }
 #vHome .hdot { background: rgba(120,170,220,.3); } #vHome .hdot.act { background: #FFD600; }
-body[data-view="home"] .top, body[data-view="home"] .bottom { --surface: #07101D; --surface-2: #0F1D31; --line: rgba(120,170,220,.2); --fg: #E3EEF8; --muted: #8FA9BF; background: #07101D; border-color: rgba(120,170,220,.18); color: #E3EEF8; }
-body[data-view="home"] .tbtn { color: #CFE2F3; } body[data-view="home"] .tbtn:hover:not([disabled]) { background: #0F1D31; }
-body[data-view="home"] .brand b { color: #fff; } body[data-view="home"] .nav.home b { color: #fff; }
+body[data-view="home"] .top, body.hmi-wait .top, body[data-view="home"] .bottom , body.hmi-wait .bottom { --surface: #07101D; --surface-2: #0F1D31; --line: rgba(120,170,220,.2); --fg: #E3EEF8; --muted: #8FA9BF; background: #07101D; border-color: rgba(120,170,220,.18); color: #E3EEF8; }
+body[data-view="home"] .tbtn , body.hmi-wait .tbtn { color: #CFE2F3; } body[data-view="home"] .tbtn:hover:not([disabled]) , body.hmi-wait .tbtn:hover:not([disabled]) { background: #0F1D31; }
+body[data-view="home"] .brand b , body.hmi-wait .brand b { color: #fff; } body[data-view="home"] .nav.home b , body.hmi-wait .nav.home b { color: #fff; }
 .tbtn .solid { fill: currentColor; fill-opacity: .22; }
 @media (max-width: 760px) { .jstage { bottom: 200px; } .jmod { width: 110px; } .jobj { width: 78px; height: 78px; } .jmod::before { top: 66px; width: 80px; } .jmod .jlabel { font-size: 9px; } }
 @media (min-width: 2200px) { .jmod { width: 200px; } .jobj { width: 150px; height: 150px; } .jmod::before { top: 128px; width: 150px; } .jmod .jlabel { font-size: 13px; } }
@@ -842,9 +840,41 @@ canvas.holo { position: absolute; inset: 0; width: 100%; height: 100%; display: 
   .pm.open { right: 48px; --pm-w: calc(100vw - 48px); }
   .lamp.wide { grid-column: span 1; }
 }
+/* ---- Global VOLT CORE layer: fundo → rede neural → núcleo → conteúdo → navegação/cabeçalho → modais ---- */
+.voltbg { position: fixed; inset: 0; z-index: 0; pointer-events: none; background: radial-gradient(120% 90% at 50% 0%, #F4F7FB, #E4EAF2); transition: background .8s; }
+:root[data-theme="dark"] .voltbg { background: radial-gradient(120% 90% at 50% 0%, #0E1724, #070B12); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .voltbg { background: radial-gradient(120% 90% at 50% 0%, #0E1724, #070B12); } }
+body[data-view="home"] .voltbg, body.hmi-wait .voltbg { background: #030812; }
+.voltbg canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; pointer-events: none; }
+.voltbg .jgl, .voltbg .jhud { opacity: 0; transition: opacity .7s ease; } body.core-on .voltbg .jgl, body.core-on .voltbg .jhud { opacity: 1; }
+.voltbg .jnet { opacity: 1; }
+.app { position: relative; z-index: 1; }
+body { background: var(--bg); }
+.top { background: transparent; border-bottom: 0; box-shadow: none; }
+body[data-view="home"] .top, body.hmi-wait .top { background: transparent; border-color: transparent; }
+.stage { background: color-mix(in srgb, var(--bg) 84%, transparent); }
+/* Diagram waiting board: purely visual, no project behind it */
+.waitboard { position: absolute; inset: 0; z-index: 6; display: grid; place-items: center; padding: 28px; background: transparent; }
+.wb-paper { position: relative; width: min(100%, 980px); aspect-ratio: 1.414; max-height: 100%; background: #FCFBF7; border: 1px solid #CFC9B8; border-radius: 4px; box-shadow: 0 10px 40px rgba(20,40,80,.18);
+  background-image: linear-gradient(#E9E4D6 1px, transparent 1px), linear-gradient(90deg, #E9E4D6 1px, transparent 1px); background-size: 40px 40px; background-position: -1px -1px; display: grid; place-items: center; }
+.wb-paper::before { content: ''; position: absolute; inset: 14px; border: 1.5px solid #B9B2A0; pointer-events: none; }
+.wb-msg { position: relative; text-align: center; max-width: 520px; padding: 22px 26px; background: rgba(252,251,247,.94); border-radius: 10px; color: #2A2C24; }
+.wb-msg p { margin: 0 0 12px; line-height: 1.5; } .wb-k, .hw-k { font: 700 13px var(--font-mono); letter-spacing: .14em; color: #1F4E8C; }
+body.no-project #cv, body.no-project #sheetNav, body.no-project .stage .hint { visibility: hidden; }
+body.no-project #rail, body.no-project #drawer, body.no-project .tools, body.no-project #status .status-in { pointer-events: none; opacity: .35; filter: grayscale(.6); }
+/* HMI waiting: VOLT CORE alone, no orbit */
+.hmiwait { position: relative; min-height: calc(100% - 8px); display: grid; grid-template-rows: 1fr auto; justify-items: center; color: #DCEBF7; }
+.hmiwait-anchor { width: min(70vw, 52vh); aspect-ratio: 1; align-self: center; }
+.hmiwait-msg { text-align: center; padding: 0 16px 18px; max-width: 560px; } .hmiwait-msg p { margin: 0 0 10px; color: #A9C7DF; } .hmiwait-msg .hw-k { color: #FFD27A; }
+body.hmi-wait #vOperate { background: transparent; }
+.emptywait { max-width: 640px; margin: 12vh auto 0; text-align: center; padding: 28px; border-radius: 14px; background: color-mix(in srgb, var(--surface) 90%, transparent); border: 1px solid var(--line); }
+.emptywait p { margin: 0 0 8px; } .emptywait .hw-k { color: var(--accent-ink); }
+.hmi-enter { animation: hmiEnter .6s ease-out both; } @keyframes hmiEnter { from { opacity: 0; transform: translateY(6px) scale(.99); } }
+body.just-active .stage { animation: actPulse 1.1s ease-out; } @keyframes actPulse { 0% { box-shadow: inset 0 0 0 0 rgba(255,214,0,0); } 30% { box-shadow: inset 0 0 0 3px rgba(255,214,0,.55), inset 0 0 40px rgba(59,167,255,.25); } 100% { box-shadow: inset 0 0 0 0 rgba(255,214,0,0); } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 </style>
 
+<div class="voltbg" id="voltBg" aria-hidden="true"><canvas class="jgl" id="jarvisGL"></canvas><canvas class="jnet" id="jarvisNet"></canvas><canvas class="jhud" id="jarvisHUD"></canvas></div>
 <div class="app">
   <header class="top">
     <div class="brand">
@@ -888,6 +918,7 @@ canvas.holo { position: absolute; inset: 0; width: 100%; height: 100%; display: 
             <g id="world"></g>
           </svg>
           <div class="hint"><span id="hint"></span></div>
+          <div class="waitboard" id="waitDiagram" hidden role="status"><div class="wb-paper"><div class="wb-msg"><p class="wb-k">AGUARDANDO INICIALIZAÇÃO DO PROJETO</p><p>Selecione Novo projeto, Continuar projeto, Abrir projeto, Exemplos ou Exercícios na tela inicial.</p><button class="btn pri" type="button" data-gohome>Ir para o início</button></div></div></div>
         </div>
         <footer class="status" id="status"><div class="status-in" id="statusIn"></div><button class="navtog" id="navToggle" type="button" aria-expanded="true" aria-controls="bnav" title="Recolher navegação"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button></footer>
       </div>
@@ -924,8 +955,7 @@ canvas.holo { position: absolute; inset: 0; width: 100%; height: 100%; display: 
     <section class="view scrollview" data-view="operate" id="vOperate" hidden></section>
     <section class="view holoview jarvis" data-view="home" id="vHome" hidden>
       <canvas class="holo" id="holoHome" aria-hidden="true"></canvas>
-      <canvas class="jgl" id="jarvisGL" aria-hidden="true"></canvas><canvas class="jnet" id="jarvisNet" aria-hidden="true"></canvas><canvas class="jhud" id="jarvisHUD" aria-hidden="true"></canvas>
-      <div class="jstage" id="jStage" aria-label="Núcleo VOLT CORE e módulos em órbita. Clique, arraste ou use as setas; Enter confirma."><div class="jcore-anchor" id="jAnchor"></div><div class="jorbit" id="jOrbit" role="listbox" aria-label="Módulos da VoltAcademy"></div><div class="jhero" id="jHero" aria-hidden="true"></div></div>
+            <div class="jstage" id="jStage" aria-label="Núcleo VOLT CORE e módulos em órbita. Clique, arraste ou use as setas; Enter confirma."><div class="jcore-anchor" id="jAnchor"></div><div class="jorbit" id="jOrbit" role="listbox" aria-label="Módulos da VoltAcademy"></div><div class="jhero" id="jHero" aria-hidden="true"></div></div>
       <div class="hud-top"><div class="hud-brand"><span class="hud-led"></span><div><p class="hud-k">VOLT CORE</p><p class="hud-v"><span id="coreState">IDLE</span> · ONLINE</p></div></div>
         <div class="hud-meta"><p class="hud-k">Projeto atual</p><p class="hud-v" id="homeProj"></p></div></div>
       <div class="hud-bottom">
@@ -1433,7 +1463,16 @@ const netOfWire = w => wireNets().find(n => n.includes(w)) || [w];
 function endLabel(e) { const c = compById(e.c); if (!c) return '?'; const T0 = TYPES[c.type], n = T0.nums[e.t] || (Object.keys(T0.terms).length > 1 ? e.t.toUpperCase() : ''); return `${c.tag || T0.name}${n ? ':' + n : ''}`; }
 // ---------- History & persistence ----------
 function serialize() { return JSON.stringify({ app: PLATFORM, kind: 'comandos-eletricos', version: 6, elec: doc.elec || undefined, app: doc.app || undefined, project: doc.project, author: doc.author, logo: doc.logo || '', dateAuto: doc.dateAuto !== false, date: doc.date || '', dateIso: doc.dateIso || '', sheets: doc.sheets, comps: doc.comps, wires: doc.wires }); }
-function saveLocal() { try { localStorage.setItem('voltacademy.ce.doc', serialize()); localStorage.setItem('voltacademy.ce.sheet', ui.sheet || ''); } catch (e) {} }
+// ---------- Global session state (single source of truth) ----------
+// sessionStatus: idle | active · activeProject: name or null · simulationRunning mirrors the engine · lastSavedProject: persisted reference only
+const Session = { status: 'idle', activeProject: null, lastSavedProject: null, get active() { return this.status === 'active'; }, get simulationRunning() { return !!sim.running; } };
+function readSavedRef() { try { const s = localStorage.getItem('voltacademy.ce.doc'); if (!s) return null; const d = JSON.parse(s); if (!d || !Array.isArray(d.comps)) return null; return { project: d.project || 'Projeto sem nome', sheets: Array.isArray(d.sheets) && d.sheets.length ? d.sheets.length : 1, comps: d.comps.length, savedAt: d.savedAt || '' }; } catch (e) { return null; } }
+function activateSession(animate = true) {
+  const first = !Session.active; Session.status = 'active'; Session.activeProject = doc.project;
+  if (animate) VoltState.sequence([['INITIALIZING', .8], ['SUCCESS', .9]]);
+  if (first && animate && !HOLO.reduced) { document.body.classList.remove('just-active'); void document.body.offsetWidth; document.body.classList.add('just-active'); setTimeout(() => document.body.classList.remove('just-active'), 1200); }
+}
+function saveLocal() { if (!Session.active) return; Session.lastSavedProject = { project: doc.project, sheets: doc.sheets.length, comps: doc.comps.length, savedAt: '' }; try { localStorage.setItem('voltacademy.ce.doc', serialize()); localStorage.setItem('voltacademy.ce.sheet', ui.sheet || ''); } catch (e) {} }
 function commit() {
   normalizeWireNumbers();
   hist.stack = hist.stack.slice(0, hist.idx + 1);
@@ -1442,7 +1481,7 @@ function commit() {
   saveLocal(); updateTop();
   if (doc.app && doc.app.mode === 'exercise') ExerciseProgressManager.save();
 }
-function load(json, { keepHistory = false } = {}) {
+function load(json, { keepHistory = false, activate = true } = {}) {
   const d = typeof json === 'string' ? JSON.parse(json) : json;
   if (!d || !Array.isArray(d.comps) || !Array.isArray(d.wires)) throw new Error('Arquivo sem componentes ou fios.');
   for (const c of d.comps) if (!TYPES[c.type]) throw new Error(`Componente desconhecido: ${c.type}`);
@@ -1458,6 +1497,7 @@ function load(json, { keepHistory = false } = {}) {
   if (!ids.has(ui.sheet)) ui.sheet = sheets[0].id;
   ui.sel = null; ui.multi.clear();
   if (!keepHistory) { hist.stack = []; hist.idx = -1; commit(); }
+  if (activate) { const was = Session.active; activateSession(!keepHistory || !was); Session.activeProject = doc.project; if (!was) saveLocal(); }
 }
 function undo() { if (hist.idx > 0 && !sim.running) { hist.idx--; load(hist.stack[hist.idx], { keepHistory: true }); saveLocal(); render(); } }
 function redo() { if (hist.idx < hist.stack.length - 1 && !sim.running) { hist.idx++; load(hist.stack[hist.idx], { keepHistory: true }); saveLocal(); render(); } }
@@ -2024,6 +2064,7 @@ function frameUpdate() {
 function shortMsg() { const [a, b] = sim.short || []; return `Curto-circuito entre ${a} e ${b}: dois potenciais diferentes ficaram ligados sem carga no caminho. Confira a fiação e simule de novo.`; }
 function fmtTime(t) { const m = Math.floor(t / 60), s = t - m * 60; return String(m).padStart(2, '0') + ':' + s.toFixed(1).padStart(4, '0'); }
 function startSim() {
+  if (!Session.active) return;   // no project, no simulation
   Object.assign(sim, blankSim(), { running: true });
   ui.wireStart = null; ui.wirePts = []; ui.placing = null;
   showBanner(null);
@@ -2365,6 +2406,7 @@ function renderWorld() {
   $('#zoomv').textContent = Math.round(ui.zoom * 100) + '%';
 }
 function renderDiagram() {
+  $('#waitDiagram').hidden = Session.active; if (!Session.active) { ui.inspOpen = false; ui.sel = null; ui.multi.clear(); }
   renderWorld();
   $$('[data-look]').forEach(b => b.classList.toggle('act', b.dataset.look === ui.look));
   renderSheetTabs(); renderInspector(); renderStatus(); updateHint(); updateTools();
@@ -2626,7 +2668,9 @@ function updateTop() {
   $('#bUndo').disabled = hist.idx <= 0 || sim.running; $('#bRedo').disabled = hist.idx >= hist.stack.length - 1 || sim.running;
   const r = $('#bRun'); r.classList.toggle('on', sim.running); r.classList.toggle('act', sim.running); r.querySelector('.lbl').textContent = sim.running ? 'Parar' : 'Simular';
   r.querySelector('svg').innerHTML = sim.running ? '<rect x="7" y="7" width="10" height="10" rx="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="10"/>' : '<circle cx="12" cy="12" r="10"/><path d="M10 8l6 4-6 4z" fill="currentColor"/>';
-  $('#projName').textContent = doc.project;
+  $('#projName').textContent = Session.active ? doc.project : 'Nenhum projeto ativo'; if (Session.active) Session.activeProject = doc.project;
+  r.disabled = !Session.active; $('#bInsp').disabled = !Session.active; if (!Session.active) { $('#bUndo').disabled = true; $('#bRedo').disabled = true; }
+  document.body.classList.toggle('no-project', !Session.active); document.body.classList.toggle('hmi-wait', !Session.active && ui.view === 'operate');
   $('#bInsp').classList.toggle('act', !!ui.inspOpen && ui.view === 'diagram'); $('#clock').classList.toggle('act', sim.running);
   $('#bSound').classList.toggle('muted', !!ui.mute); $('#bSoundL').textContent = ui.mute ? 'Mudo' : 'Som';
 }
@@ -2671,6 +2715,9 @@ function setActiveCategory(fn) {
 // Other views
 // =====================================================================
 function renderOperate() {
+  const vo = $('#vOperate');
+  if (!Session.active) { if (!vo.querySelector('.hmiwait')) { vo._key = null; vo.innerHTML = `<div class="hmiwait"><div class="hmiwait-anchor" id="hmiAnchor"></div><div class="hmiwait-msg"><p class="hw-k">AGUARDANDO APLICAÇÃO</p><p>Nenhum projeto ativo. Inicie um projeto, exemplo ou exercício.</p><button class="btn pri" type="button" data-gohome>Voltar ao início</button></div></div>`; } vo._wait = true; return; }
+  if (vo._wait) { vo._wait = false; vo.innerHTML = ''; vo.classList.remove('hmi-enter'); void vo.offsetWidth; if (!HOLO.reduced) { vo.classList.add('hmi-enter'); setTimeout(() => vo.classList.remove('hmi-enter'), 700); } }
   { const app = ApplicationRegistry.current(); if (app) return renderOperateHMI(app); $('#vOperate')._key = null; }
   const seenTrip = new Set();
   const inter = doc.comps.filter(c => TYPES[c.type].inter).sort((a, b) => (b.type === 'rele_termico') - (a.type === 'rele_termico'))
@@ -2701,6 +2748,7 @@ function renderOperate() {
   });
 }
 function renderTags() {
+  if (!Session.active) { $('#vTags').innerHTML = `<div class="emptywait" role="status"><p class="hw-k">LISTAS E RELATÓRIO</p><p>Nenhum material disponível. Inicie um projeto para visualizar sua documentação e lista de componentes.</p><button class="btn pri" type="button" data-gohome>Ir para o início</button></div>`; return; }
   const rows = doc.comps.filter(c => !TYPES[c.type].notag).slice().sort((a, b) => a.tag.localeCompare(b.tag, 'pt', { numeric: true }));
   const state = c => {
     if (!sim.running) return '<span class="muted">—</span>';
@@ -2733,6 +2781,7 @@ function renderTags() {
   $('#tCsv').addEventListener('click', () => { const msg = t => { $('#csvMsg').textContent = t; }; if (navigator.clipboard) navigator.clipboard.writeText(csv).then(() => msg('Lista de fios copiada. Cole numa planilha.'), () => msg('Não consegui copiar. Use Projeto → Copiar código.')); });
 }
 function renderMonitor() {
+  if (!Session.active) { $('#vMonitor').innerHTML = `<div class="emptywait" role="status"><p class="hw-k">MONITORAMENTO EM ESPERA</p><p>Aguardando a inicialização de um projeto e o início da simulação.</p><button class="btn pri" type="button" data-gohome>Ir para o início</button></div>`; return; }
   const motors = doc.comps.filter(c => c.type.startsWith('motor'));
   const coils = doc.comps.filter(c => c.type === 'bobina' || c.type === 'sinaleiro');
   const prot = doc.comps.filter(c => c.type.startsWith('fus'));
@@ -3012,6 +3061,7 @@ function fit() {
 // =====================================================================
 $('#bRun').addEventListener('click', () => sim.running ? stopSim() : startSim());
 $('#bUndo').addEventListener('click', undo); $('#bRedo').addEventListener('click', redo);
+document.addEventListener('click', ev => { if (ev.target.closest('[data-gohome]')) { ui.view = 'home'; render(); } });
 $('#bFile').addEventListener('click', openFile); $('#bHelp').addEventListener('click', openHelp);
 $('#bTheme').addEventListener('click', () => {
   const root = document.documentElement, dark = root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
@@ -3194,6 +3244,7 @@ document.addEventListener('keydown', ev => {
   if ($('#modal').hidden && !(ev.ctrlKey || ev.metaKey) && holoKey(ev)) return;
   if (ev.key === 'Escape') { const busy = ui.placing || ui.wireStart || !$('#modal').hidden; ui.placing = null; ui.wireStart = null; ui.wirePts = []; closeModal(); $('#colorPop').hidden = true; if (!busy && (ui.multi.size || ui.sel) && ui.view === 'diagram') { clearSelection(); buildFolders(); } else if (!busy && ui.activeCategory) setActiveCategory(null); else { if (!busy && ui.inspOpen && ui.view === 'diagram') ui.inspOpen = false; buildFolders(); } render(); return; }
   if (ui.view !== 'diagram' && ev.key !== ' ') return;
+  if (!Session.active) return;
   if ((ev.key === 'Delete' || ev.key === 'Backspace') && (ui.sel || ui.multi.size)) { ev.preventDefault(); deleteSel(); }
   else if ((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === 'a' && !sim.running) { ev.preventDefault(); selectAll(); }
   else if ((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === 'c') { const n = copySel(); if (n) flashInfo(`${n} componente${n > 1 ? 's copiados' : ' copiado'}`); }
@@ -3213,9 +3264,9 @@ window.addEventListener('drop', ev => { document.body.classList.remove('dropping
 document.addEventListener('keydown', ev => {
   if (!(ev.ctrlKey || ev.metaKey)) return;
   const k = ev.key.toLowerCase();
-  if (k === 's') { ev.preventDefault(); saveProjectFile(); }
+  if (k === 's') { ev.preventDefault(); if (Session.active) saveProjectFile(); }
   else if (k === 'o') { ev.preventDefault(); openFile(); }
-  else if (k === 'p' && !ev.shiftKey) { ev.preventDefault(); openPdfDialog(); }
+  else if (k === 'p' && !ev.shiftKey) { ev.preventDefault(); if (Session.active) openPdfDialog(); }
 }, true);
 
 // ---------- Electrical properties in the inspector (reads results from the voltage engine) ----------
@@ -3624,7 +3675,7 @@ function closeModal() {
 $('#modal').addEventListener('click', ev => { if (ev.target.id === 'modal' || ev.target.closest('[data-close]')) closeModal(); });
 function loadKeepingHistory(src) {
   if (sim.running) stopSim();
-  const keep = hist.stack.slice(0, hist.idx + 1); ui.sheet = null; load(src);
+  const keep = Session.active ? hist.stack.slice(0, hist.idx + 1) : []; ui.sheet = null; load(src);
   hist.stack = keep.concat(hist.stack); hist.idx = hist.stack.length - 1; saveLocal(); closeModal();
   ui.view = 'diagram'; render(); requestAnimationFrame(fit);
 }
@@ -3686,6 +3737,7 @@ function importDialog(text, fileName) {
     <button class="card impbtn" id="iMerge"><b>Adicionar as folhas ao projeto atual</b><span>Junta ${n} folha${n > 1 ? 's' : ''} a "${esc(doc.project)}". Números de fio são refeitos por ponto.</span></button></div>
     <div class="row" style="justify-content:flex-end"><button class="btn" data-close>Cancelar</button></div>`);
   $('#iOpen').addEventListener('click', () => { if (sim.running) stopSim(); loadKeepingHistory(d); flashInfo(`Projeto aberto: ${d.project || fileName}`); });
+  if (!Session.active) $('#iMerge').hidden = true;
   $('#iMerge').addEventListener('click', () => { if (sim.running) stopSim(); closeModal(); ui.view = 'diagram'; const k = mergeProject(d); flashInfo(`${k} folha${k > 1 ? 's adicionadas' : ' adicionada'} ao projeto`); });
 }
 function readFileThen(file, fn) { const r = new FileReader(); r.onload = () => fn(r.result, file.name); r.readAsText(file); }
@@ -3702,6 +3754,7 @@ function openFile() {
     <div class="row" style="margin-top:8px"><button class="btn" id="aCopy">Copiar código</button><button class="btn" id="aLoadTxt">Abrir o código colado</button></div></details>
   <p id="fileMsg" class="muted" style="margin:0"></p>`);
   const msg = t => { $('#fileMsg').textContent = t; };
+  if (!Session.active) { ['#pSave', '#pPdf', '#aCopy'].forEach(q => { const b = $(q); if (b) b.disabled = true; }); $('#fJson').value = ''; msg('Nenhum projeto ativo: abra um arquivo ou cole um código para começar.'); }
   $('#pSave').addEventListener('click', () => saveProjectFile());
   $('#pPdf').addEventListener('click', openPdfDialog);
   $('#pFile').addEventListener('change', ev => { const f = ev.target.files[0]; if (f) readFileThen(f, importDialog); });
@@ -5517,7 +5570,7 @@ function drawBokeh(ctx, w, h) {
 // API: ok · frame(dt) · setAnchor(el) · pulse(v) · flash(v) · tier()
 // =====================================================================
 const JarvisCore = (() => {
-  const NOOP = { ok: false, frame() {}, setAnchor() {}, pulse() {}, flash() {}, tier: () => '—' };
+  const NOOP = { ok: false, frame() {}, setMood() {}, setAnchor() {}, pulse() {}, flash() {}, tier: () => '—' };
   const cv = document.getElementById('jarvisGL');
   let gl = null;
   try { gl = cv && cv.getContext('webgl2', { antialias: false, alpha: false, depth: false, stencil: false, powerPreference: 'high-performance' }); } catch (e) { gl = null; }
@@ -5682,9 +5735,13 @@ void main(){ vec2 uv=vUv,d=uv-.5; float r2=dot(d,d); vec2 off=d*(.0012+r2*.01);
   const ringSpin = [0, 0, 0], ringHead = [0, 0, 0];
   addEventListener('pointermove', e => { mx = (e.clientX / innerWidth - .5) * 2; my = (e.clientY / innerHeight - .5) * 2; }, { passive: true });
   const lerp = (a, b, k) => a + (b - a) * k;
+  const MOODS = { STANDBY: [.55, 0, 0, 1], INITIALIZING: [1.15, 0, 0, 0], READY: [1, 0, 0, 0], SIMULATING: [1.18, 0, 0, 0], WARNING: [1, .55, 0, 0], FAULT: [1, 0, .6, 0], SUCCESS: [1.3, 0, 0, 0] };
+  let mood = [.55, 0, 0, 1], moodT = mood.slice();
   function frame(dt) {
-    if (!cv.offsetParent) return;
+    if (document.hidden) return;
     resize(); time += dt;
+    for (let i = 0; i < 4; i++) mood[i] += (moodT[i] - mood[i]) * (1 - Math.exp(-dt * 2.5));
+    const energy = mood[0] * (1 + mood[3] * .14 * Math.sin(time * 1.1));
     const reduce = HOLO.reduced, slow = reduce ? .3 : 1;
     const cr = cv.getBoundingClientRect(), ar = anchorEl ? anchorEl.getBoundingClientRect() : null;
     const box = ar && ar.width > 10 ? { x: ar.left - cr.left + ar.width / 2, y: ar.top - cr.top + ar.height / 2, w: ar.width, h: ar.height } : { x: W / 2, y: H * .42, w: W * .4, h: H * .5 };
@@ -5692,7 +5749,7 @@ void main(){ vec2 uv=vUv,d=uv-.5; float r2=dot(d,d); vec2 off=d*(.0012+r2*.01);
     let sum = 0;
     for (let i = 0; i < 32; i++) { const v = (.16 + .1 * Math.sin(time * 1.4 + i * .41) * (.6 + .4 * Math.sin(time * .5))) * (1 - i / 64) + pulseV * (.5 + .5 * Math.sin(time * 9 + i * 1.7)) * (1 - i / 48); bands[i] += (v - bands[i]) * .25; sum += bands[i]; }
     level = lerp(level, Math.min(1, sum / 32 * 1.2 + pulseV * .5), .2);
-    rotY += (.2 + level * .4) * dt * slow; filPhase += (.15 + level * .2) * dt * slow;
+    rotY += (.2 + level * .4) * dt * slow * (.6 + .4 * energy); filPhase += (.15 + level * .2) * dt * slow;
     for (let i = 0; i < 3; i++) { ringSpin[i] += RING_SPD[i] * (1 + pulseV) * dt * slow; ringHead[i] += HEAD_SPD[i] * (1 + pulseV) * dt * slow; }
     const fitR = Math.max(50, Math.min(box.w, box.h) * .53), wantDist = Math.min(18, Math.max(4.2, 1.8 * (H * .5) / Math.tan(FOV / 2) / fitR));
     camDist = lerp(camDist, wantDist, 1 - Math.exp(-dt * 4));
@@ -5708,7 +5765,7 @@ void main(){ vec2 uv=vUv,d=uv-.5; float r2=dot(d,d); vec2 off=d*(.0012+r2*.01);
     gl.uniform1f(p.u.uTime, time); gl.uniform1f(p.u.uPx, pxScale); gl.uniform1f(p.u.uFocus, camDist); gl.bindVertexArray(dustVAO); gl.drawArrays(gl.POINTS, 0, ND);
     p = P.particle; gl.useProgram(p.p); gl.uniformMatrix4fv(p.u.uProj, false, proj); gl.uniformMatrix4fv(p.u.uView, false, view); gl.uniformMatrix4fv(p.u.uModel, false, model);
     gl.uniform1f(p.u.uTime, time); gl.uniform1f(p.u.uLevel, level); gl.uniform1f(p.u.uFlash, flashV); gl.uniform1f(p.u.uPx, pxScale); gl.uniform1f(p.u.uCoreDist, camDist);
-    gl.uniform1f(p.u.uGain, (HDR ? 1.05 : .7) * Math.sqrt(9000 / N)); gl.uniform1fv(p.u.uBands, bands); gl.bindVertexArray(particleVAO); gl.drawArrays(gl.POINTS, 0, N);
+    gl.uniform1f(p.u.uGain, (HDR ? 1.05 : .7) * Math.sqrt(9000 / N) * energy); gl.uniform1fv(p.u.uBands, bands); gl.bindVertexArray(particleVAO); gl.drawArrays(gl.POINTS, 0, N);
     p = P.fil; gl.useProgram(p.p); gl.uniformMatrix4fv(p.u.uProj, false, proj); gl.uniformMatrix4fv(p.u.uView, false, view); gl.uniformMatrix4fv(p.u.uModel, false, model);
     gl.uniform1f(p.u.uTime, time); gl.uniform1f(p.u.uPhase, filPhase); gl.uniform1f(p.u.uLevel, level); gl.uniform1f(p.u.uFlash, flashV); gl.uniform1f(p.u.uDim, HDR ? 1 : .7);
     gl.uniform1fv(p.u.uBands, bands); gl.bindVertexArray(filVAO); gl.drawArrays(gl.LINES, 0, NF * SEG * 2);
@@ -5716,8 +5773,8 @@ void main(){ vec2 uv=vUv,d=uv-.5; float r2=dot(d,d); vec2 off=d*(.0012+r2*.01);
     const rm = new Float32Array(48), rc = new Float32Array(9), COL = [[1.15, .78, .16], [.28, .62, 1.05], [1.0, .62, .14]];
     for (let i = 0; i < 3; i++) {
       rm.set(M4.mul(M4.rx(RING_BASE[i][0]), M4.mul(M4.ry(RING_BASE[i][1]), M4.rz(ringSpin[i]))), i * 16);
-      const it = [.95, .8, .6][i] * (HDR ? 1 : .75) * (1 + flashV * .6);
-      for (let c = 0; c < 3; c++) rc[i * 3 + c] = COL[i][c] * it;
+      const it = [.95, .8, .6][i] * (HDR ? 1 : .75) * (1 + flashV * .6) * energy, AMB = [1.2, .62, .08], RED = [1.25, .2, .12];
+      for (let c = 0; c < 3; c++) rc[i * 3 + c] = (COL[i][c] * (1 - mood[1] - mood[2]) + AMB[c] * mood[1] + RED[c] * mood[2]) * it;
     }
     gl.uniformMatrix4fv(p.u.uRing, false, rm); gl.uniform3fv(p.u.uRingCol, rc); gl.uniform1fv(p.u.uHead, ringHead); gl.bindVertexArray(ringVAO); gl.drawArrays(gl.TRIANGLES, 0, ringCount);
     gl.bindVertexArray(emptyVAO); gl.disable(gl.BLEND);
@@ -5733,7 +5790,7 @@ void main(){ vec2 uv=vUv,d=uv-.5; float r2=dot(d,d); vec2 off=d*(.0012+r2*.01);
     gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, scene.t); gl.uniform1i(p.u.uScene, 0);
     gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, mips[0].t); gl.uniform1i(p.u.uBloom, 1);
     gl.uniform2f(p.u.uRes, CW, CH); gl.uniform2f(p.u.uCore, box.x / W, 1 - box.y / H);
-    gl.uniform1f(p.u.uTime, time); gl.uniform1f(p.u.uBloomK, (HDR ? 1.0 : .8) * (1 + flashV * .7)); gl.uniform1f(p.u.uGrain, reduce ? .015 : .03); gl.uniform1f(p.u.uLevel, level); gl.uniform1f(p.u.uDpr, CW / W);
+    gl.uniform1f(p.u.uTime, time); gl.uniform1f(p.u.uBloomK, (HDR ? 1.0 : .8) * (1 + flashV * .7) * (.65 + .35 * energy)); gl.uniform1f(p.u.uGrain, reduce ? .015 : .03); gl.uniform1f(p.u.uLevel, level); gl.uniform1f(p.u.uDpr, CW / W);
     gl.drawArrays(gl.TRIANGLES, 0, 3); gl.activeTexture(gl.TEXTURE0);
     // HUD: discreet graduated pulse ring around the core
     if (hx) {
@@ -5748,7 +5805,7 @@ void main(){ vec2 uv=vUv,d=uv-.5; float r2=dot(d,d); vec2 off=d*(.0012+r2*.01);
     if (HOLO.avg > 30) { slowFor += dt; fastFor = 0; } else if (HOLO.avg < 18) { fastFor += dt; slowFor = 0; } else { slowFor = 0; fastFor = 0; }
     if (slowFor > 1.5 && tier < TIERS.length - 1) { tier++; slowFor = 0; lastKey = ''; } else if (fastFor > 8 && tier > 0) { tier--; fastFor = 0; lastKey = ''; }
   }
-  return { ok: true, frame, setAnchor(el) { anchorEl = el; }, pulse(v = 1) { pulseV = Math.max(pulseV, v); }, flash(v = 1) { flashV = Math.max(flashV, v); }, tier: () => ['ULTRA', 'ALTA', 'MÉDIA', 'BAIXA'][tier] };
+  return { ok: true, frame, setMood(s) { if (MOODS[s]) moodT = MOODS[s].slice(); }, setAnchor(el) { anchorEl = el; }, pulse(v = 1) { pulseV = Math.max(pulseV, v); }, flash(v = 1) { flashV = Math.max(flashV, v); }, tier: () => ['ULTRA', 'ALTA', 'MÉDIA', 'BAIXA'][tier] };
 })();
 // ---------- Solid 2D module icons (metallic gold, light and soft shadow) ----------
 const goldDefs = k => `<defs><linearGradient id="${k}g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFE98A"/><stop offset=".45" stop-color="#F7B92B"/><stop offset="1" stop-color="#B46F08"/></linearGradient>
@@ -5996,20 +6053,20 @@ const JarvisFX = {
 // ---------- JarvisNet: energia do núcleo espalhada pela tela como rede neural viva ----------
 const JarvisNet = (() => {
   const cv = document.getElementById('jarvisNet'), x = cv && cv.getContext('2d');
-  if (!x) return { frame() {}, wave() {}, stats: () => ({ nodes: 0, edges: 0 }) };
-  let W = 0, H = 0, key = '', nodes = [], edges = [], adj = [], pulses = [], waves = [], t = 0, spawn = 0, linkT = 0, core = { x: 0, y: 0, R: 100 };
+  if (!x) return { frame() {}, wave() {}, setMood() {}, stats: () => ({ nodes: 0, edges: 0 }) };
+  let I = 0, acc = 0, moodCol = null, moodE = 1, W = 0, H = 0, key = '', nodes = [], edges = [], adj = [], pulses = [], waves = [], t = 0, spawn = 0, linkT = 0, core = { x: 0, y: 0, R: 100 };
   const rnd = (s => () => (s = (s * 16807) % 2147483647) / 2147483647)(9);
   function build() {
     nodes = []; edges = []; const cell = Math.max(110, Math.min(170, Math.sqrt(W * H / 46))), cols = Math.ceil(W / cell) + 1, rows = Math.ceil(H / cell) + 1;
     for (let i = 0; i < cols; i++) for (let j = 0; j < rows; j++) {
       const px = (i + .5 + (rnd() - .5) * .8) * cell - cell * .3, py = (j + .5 + (rnd() - .5) * .8) * cell - cell * .3, d = Math.hypot(px - core.x, py - core.y);
-      if (d < core.R * .62 || px < -20 || px > W + 20 || py < -20 || py > H + 20) continue;
+      if (d < core.R * .62 * (core.anchored ? 1 : 0) || px < -20 || px > W + 20 || py < -20 || py > H + 20) continue;
       nodes.push({ x: px, y: py, ox: px, oy: py, ph: rnd() * 6.28, a: 0, d, hop: 99 });
     }
     adj = nodes.map(() => []);
     nodes.forEach((n, i) => { nodes.map((m, j) => [j, Math.hypot(m.ox - n.ox, m.oy - n.oy)]).filter(([j, d]) => j !== i && d < cell * 1.55).sort((a, b) => a[1] - b[1]).slice(0, 3)
       .forEach(([j]) => { if (!adj[i].includes(j)) { adj[i].push(j); adj[j].push(i); edges.push([i, j]); } }); });
-    const q = []; nodes.forEach((n, i) => { if (n.d < core.R * 1.25) { n.hop = 0; q.push(i); } });
+    const q = []; nodes.forEach((n, i) => { if (n.d < Math.max(core.R, 170) * 1.25) { n.hop = 0; q.push(i); } });
     while (q.length) { const i = q.shift(); adj[i].forEach(j => { if (nodes[j].hop > nodes[i].hop + 1) { nodes[j].hop = nodes[i].hop + 1; q.push(j); } }); }
   }
   function launch(strong) {
@@ -6017,29 +6074,42 @@ const JarvisNet = (() => {
     const j = roots[Math.floor(rnd() * roots.length)], n = nodes[j], a = Math.atan2(n.y - core.y, n.x - core.x);
     pulses.push({ ax: core.x + Math.cos(a) * core.R * .5, ay: core.y + Math.sin(a) * core.R * .5, to: j, s: 0, len: 1, spd: (strong ? 300 : 190) + rnd() * 80, life: 4 + Math.floor(rnd() * 4), gold: strong || rnd() < .25 });
   }
+  const VIEW_I = { home: 1, diagram: .3, tags: .2, monitor: .2 };
   function frame(dt) {
-    if (!cv.offsetParent) return;
-    const r = cv.getBoundingClientRect(), dpr = Math.min(1.5, window.devicePixelRatio || 1), an = $('#jAnchor'), ar = an && an.getBoundingClientRect();
-    if (ar && ar.width > 10) core = { x: ar.left - r.left + ar.width / 2, y: ar.top - r.top + ar.height / 2, R: ar.width * .53 };
+    if (document.hidden) return;
+    const hmiWait = ui.view === 'operate' && !Session.active, target = ui.view === 'operate' ? (hmiWait ? .8 : .35) : (VIEW_I[ui.view] || 0);
+    I += (target - I) * (1 - Math.exp(-dt * 2.2)); acc += dt;
+    const home = ui.view === 'home';
+    if (!home && acc < (HOLO.reduced ? .25 : 1 / 30)) return;   // editor screens: lighter refresh
+    const step = home ? dt : acc; acc = 0;
+    if (I < .01) { if (W) { x.setTransform(1, 0, 0, 1, 0, 0); x.clearRect(0, 0, cv.width, cv.height); } return; }
+    const r = cv.getBoundingClientRect(), dpr = Math.min(1.5, window.devicePixelRatio || 1), an = home ? $('#jAnchor') : hmiWait ? $('#hmiAnchor') : null, ar = an && an.getBoundingClientRect();
+    if (ar && ar.width > 10) core = { x: ar.left - r.left + ar.width / 2, y: ar.top - r.top + ar.height / 2, R: ar.width * .53, anchored: true };
+    else { const v = document.querySelector('.views'), vr = v ? v.getBoundingClientRect() : { left: 0, top: 0, width: r.width, height: r.height }; core = { x: vr.left + vr.width / 2, y: vr.top + vr.height * .45, R: 0, anchored: false }; }
+    dt = step;
     const k = `${Math.round(r.width)}x${Math.round(r.height)}:${Math.round(core.x)},${Math.round(core.y)},${Math.round(core.R)}`;
     if (k !== key) { key = k; W = r.width; H = r.height; cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); build(); pulses = []; }
     const reduce = HOLO.reduced; t += dt;
-    x.setTransform(dpr, 0, 0, dpr, 0, 0); x.clearRect(0, 0, W, H); x.globalCompositeOperation = 'lighter';
+    const th = document.documentElement.dataset.theme, dark = home || hmiWait || th === 'dark' || (!th && matchMedia('(prefers-color-scheme: dark)').matches);
+    const edges_only = ui.view === 'tags' || ui.view === 'monitor', topH = (document.querySelector('.top') || { offsetHeight: 0 }).offsetHeight;
+    const em = (px, py) => edges_only ? Math.max(1 - Math.min(px, W - px, Math.max(0, py - topH) + (py < topH ? 0 : 0), H - py) / 150, py < topH ? 1 : 0) : 1;
+    const B = dark ? '120,200,255' : '30,95,190', Bl = dark ? '80,160,255' : '40,100,190', G = moodCol || (dark ? '255,210,90' : '190,130,10');
+    x.setTransform(dpr, 0, 0, dpr, 0, 0); x.clearRect(0, 0, W, H); x.globalCompositeOperation = dark ? 'lighter' : 'source-over'; x.globalAlpha = Math.min(1, I * (dark ? 1 : .8));
     // ambient light spreading from the core to the sides
     let g = x.createRadialGradient(core.x, core.y, core.R * .4, core.x, core.y, Math.max(W, H) * .8);
-    g.addColorStop(0, 'rgba(255,190,70,.07)'); g.addColorStop(.25, 'rgba(40,120,230,.07)'); g.addColorStop(1, 'rgba(10,30,70,0)'); x.fillStyle = g; x.fillRect(0, 0, W, H);
-    if (!reduce) { spawn += dt; while (spawn > .42) { spawn -= .42; if (pulses.length < 26) launch(false); } }
+    g.addColorStop(0, dark ? 'rgba(255,190,70,.07)' : 'rgba(255,190,70,.035)'); g.addColorStop(.25, dark ? 'rgba(40,120,230,.07)' : 'rgba(40,120,230,.035)'); g.addColorStop(1, 'rgba(10,30,70,0)'); x.fillStyle = g; x.fillRect(0, 0, W, H);
+    if (!reduce) { spawn += dt * moodE; const every = home ? .42 : .9; while (spawn > every) { spawn -= every; if (pulses.length < (home ? 26 : 10)) launch(false); } }
     for (const n of nodes) { if (!reduce) { n.x = n.ox + Math.sin(t * .23 + n.ph) * 7; n.y = n.oy + Math.cos(t * .19 + n.ph * 1.3) * 6; } n.a *= Math.exp(-dt * 1.6); }
     waves = waves.filter(w => (w.r += dt * 820) < Math.hypot(W, H));
     for (const w of waves) for (const n of nodes) { const dd = Math.abs(Math.hypot(n.x - core.x, n.y - core.y) - w.r); if (dd < 40) n.a = Math.max(n.a, (1 - dd / 40) * w.s); }
     // links
-    x.lineWidth = 1; x.beginPath();
-    for (const [i, j] of edges) { const a = nodes[i], b = nodes[j]; x.moveTo(a.x, a.y); x.lineTo(b.x, b.y); }
-    x.strokeStyle = 'rgba(80,160,255,.075)'; x.stroke();
-    for (const [i, j] of edges) { const a = nodes[i], b = nodes[j], v = (a.a + b.a) / 2; if (v < .05) continue; x.strokeStyle = `rgba(120,200,255,${(v * .45).toFixed(3)})`; x.beginPath(); x.moveTo(a.x, a.y); x.lineTo(b.x, b.y); x.stroke(); }
-    for (const n of nodes) { const f = Math.exp(-n.d / Math.max(W, H)) ; x.fillStyle = `rgba(150,210,255,${(.16 * f + n.a * .75).toFixed(3)})`; x.beginPath(); x.arc(n.x, n.y, 1.4 + n.a * 2.2, 0, 6.283); x.fill(); }
+    x.lineWidth = 1;
+    if (edges_only) { for (const [i, j] of edges) { const a = nodes[i], b = nodes[j], m = em((a.x + b.x) / 2, (a.y + b.y) / 2); if (m < .02) continue; x.strokeStyle = `rgba(${Bl},${(.09 * m).toFixed(3)})`; x.beginPath(); x.moveTo(a.x, a.y); x.lineTo(b.x, b.y); x.stroke(); } }
+    else { x.beginPath(); for (const [i, j] of edges) { const a = nodes[i], b = nodes[j]; x.moveTo(a.x, a.y); x.lineTo(b.x, b.y); } x.strokeStyle = `rgba(${Bl},.075)`; x.stroke(); }
+    for (const [i, j] of edges) { const a = nodes[i], b = nodes[j], v = (a.a + b.a) / 2 * em((a.x + b.x) / 2, (a.y + b.y) / 2); if (v < .05) continue; x.strokeStyle = `rgba(${B},${(v * .45).toFixed(3)})`; x.beginPath(); x.moveTo(a.x, a.y); x.lineTo(b.x, b.y); x.stroke(); }
+    for (const n of nodes) { const f = Math.exp(-n.d / Math.max(W, H)) * em(n.x, n.y); if (f < .02 && n.a < .05) continue; x.fillStyle = `rgba(${B},${((.16 * f + n.a * .75) * (edges_only ? em(n.x, n.y) : 1)).toFixed(3)})`; x.beginPath(); x.arc(n.x, n.y, 1.4 + n.a * 2.2, 0, 6.283); x.fill(); }
     // orbit links: core → each satellite; the selected one carries golden energy
-    linkT += dt; const P = Orbit.pos || [];
+    linkT += dt; const P = home ? Orbit.pos || [] : [];
     P.forEach((p, i) => { if (!p) return; const sel = i === Home.sel, a = Math.atan2(p.y - core.y, p.x - core.x), sx = core.x + Math.cos(a) * core.R * .45, sy = core.y + Math.sin(a) * core.R * .45;
       const mx = (sx + p.x) / 2 + (p.y - sy) * .12, my = (sy + p.y) / 2 - (p.x - sx) * .12;
       x.setLineDash(sel ? [5, 13] : []); x.lineDashOffset = -linkT * 46;
@@ -6052,13 +6122,14 @@ const JarvisNet = (() => {
       const b = nodes[p.to]; if (!b) return false; const L = Math.hypot(b.x - p.ax, b.y - p.ay) || 1; p.s += dt * p.spd / L;
       if (p.s >= 1) { b.a = Math.max(b.a, p.gold ? 1 : .8); const nx = adj[p.to].filter(j => nodes[j].hop > b.hop); if (!nx.length || --p.life <= 0) return false; p.ax = b.x; p.ay = b.y; p.to = nx[Math.floor(rnd() * nx.length)]; p.s = 0; return true; }
       const px = p.ax + (b.x - p.ax) * p.s, py = p.ay + (b.y - p.ay) * p.s, tx = p.ax + (b.x - p.ax) * Math.max(0, p.s - .35), ty = p.ay + (b.y - p.ay) * Math.max(0, p.s - .35);
-      const col = p.gold ? '255,210,90' : '120,210,255', lg = x.createLinearGradient(tx, ty, px, py); lg.addColorStop(0, `rgba(${col},0)`); lg.addColorStop(1, `rgba(${col},.7)`);
+      const m = em(p.ax, p.ay); if (m < .03) return true; x.globalAlpha = Math.min(1, I * m * (dark ? 1 : .8));
+      const col = p.gold ? G : B, lg = x.createLinearGradient(tx, ty, px, py); lg.addColorStop(0, `rgba(${col},0)`); lg.addColorStop(1, `rgba(${col},.7)`);
       x.strokeStyle = lg; x.lineWidth = 1.6; x.beginPath(); x.moveTo(tx, ty); x.lineTo(px, py); x.stroke();
-      x.fillStyle = `rgba(${col},.95)`; x.beginPath(); x.arc(px, py, 1.9, 0, 6.283); x.fill(); return true; });
+      x.fillStyle = `rgba(${col},.95)`; x.beginPath(); x.arc(px, py, 1.9, 0, 6.283); x.fill(); x.globalAlpha = Math.min(1, I * (dark ? 1 : .8)); return true; });
     for (const w of waves) { const f = 1 - w.r / Math.hypot(W, H); x.strokeStyle = `rgba(110,190,255,${(.16 * f * w.s).toFixed(3)})`; x.lineWidth = 2; x.beginPath(); x.ellipse(core.x, core.y, w.r, w.r * .82, 0, 0, 6.283); x.stroke(); }
-    x.globalCompositeOperation = 'source-over';
+    x.globalCompositeOperation = 'source-over'; x.globalAlpha = 1;
   }
-  return { frame, wave(s = 1) { if (HOLO.reduced) return; waves.push({ r: core.R * .6, s }); for (let i = 0; i < 6; i++) launch(true); }, stats: () => ({ nodes: nodes.length, edges: edges.length, pulses: pulses.length }) };
+  return { frame, setMood(s) { moodCol = s === 'WARNING' ? '255,170,40' : s === 'FAULT' ? '255,90,70' : null; moodE = s === 'STANDBY' ? .55 : s === 'SIMULATING' ? 1.35 : 1; }, intensity: () => I, wave(s = 1) { if (HOLO.reduced) return; waves.push({ r: core.R * .6, s }); for (let i = 0; i < 6; i++) launch(true); }, stats: () => ({ nodes: nodes.length, edges: edges.length, pulses: pulses.length }) };
 })();
 // ---------- Orbit carousel (CSS 3D-like layout; icons never spin on their own axis) ----------
 const Orbit = { built: false, sway: 0, lastInteract: -99 };
@@ -6092,19 +6163,29 @@ function layoutOrbit(dt) {
 // ---------- Centralized operations (HolographicHome) ----------
 const HOME_OPS = [
   { id: 'abrir', title: 'Abrir projeto', desc: 'Importa um projeto .voltacademy ou .json salvo no computador, substituindo ou somando folhas.', object: 'file', run: () => { const i = $('#homeFile'); i.value = ''; i.click(); } },
-  { id: 'continuar', title: 'Continuar projeto', desc: () => `Retoma "${doc.project}" exatamente de onde você parou: ${doc.sheets.length} folha(s), ${doc.comps.length} componentes.`, object: 'circuit', run: () => { ui.view = 'diagram'; render(); requestAnimationFrame(fit); } },
+  { id: 'continuar', title: 'Continuar projeto', desc: () => Session.active ? `Retoma "${doc.project}" exatamente de onde você parou: ${doc.sheets.length} folha(s), ${doc.comps.length} componentes.` : Session.lastSavedProject ? `Último projeto salvo: "${Session.lastSavedProject.project}". Restaura folhas, componentes, fios, TAGs, dados elétricos e vínculo da IHM.` : 'Nenhum projeto salvo neste navegador. Comece um projeto novo, abra um arquivo, um exemplo ou um exercício.', object: 'circuit',
+    available: () => Session.active || !!Session.lastSavedProject, run: continueProject },
   { id: 'novo', title: 'Novo projeto', desc: 'Prancheta em branco com folhas de Força e Comando, pronta para montar um circuito.', object: 'board', run: () => sheetDialog('new') },
   { id: 'exemplos', title: 'Exemplos', desc: 'Biblioteca de circuitos elétricos prontos e funcionais para estudar, simular e modificar no Project Lab.', object: 'library', run: () => { ui.view = 'lab'; render(); } },
   { id: 'exercicios', title: 'Exercícios', desc: () => `${ExerciseLibraryRegistry.list().length} exercícios práticos com ambientes virtuais animados. Desenvolva seus circuitos e teste seus conhecimentos em comandos elétricos.`, object: 'exercise', run: () => { ui.view = 'exlab'; render(); } },
 ];
 const HOME_COUNT = {
   abrir: () => 'Arquivos .voltacademy e .json do computador',
-  continuar: () => `${doc.project} · ${doc.sheets.length} folha${doc.sheets.length > 1 ? 's' : ''} · ${doc.comps.length} componentes`,
+  continuar: () => { const r = Session.active ? { project: doc.project, sheets: doc.sheets.length, comps: doc.comps.length } : Session.lastSavedProject; return r ? `${Session.active ? '' : 'Último salvo: '}${r.project} · ${r.sheets} folha${r.sheets > 1 ? 's' : ''} · ${r.comps} componentes` : 'Indisponível: nenhum projeto salvo'; },
   novo: () => '2 folhas em branco · Força e Comando',
   exemplos: () => `${EXAMPLES.length} circuitos prontos`,
   exercicios: () => { const idx = ExerciseProgressManager.index(), n = ExerciseLibraryRegistry.list().length, done = Object.values(idx).filter(x => x.pct === 100).length, started = Object.keys(idx).length; return `${n} exercícios práticos${started ? ` · ${started} iniciado${started > 1 ? 's' : ''}, ${done} concluído${done !== 1 ? 's' : ''}` : ''}`; },
 };
 const Home = { sel: 2, rot: 2 * 2 * Math.PI / 5, objs: [], drag: null, hits: [], booted: false, core: null, parts: null, confirming: false };
+function continueProject() {
+  if (!Session.active) {
+    let s = null, sh = null; try { s = localStorage.getItem('voltacademy.ce.doc'); sh = localStorage.getItem('voltacademy.ce.sheet'); } catch (e) {}
+    if (!s) { Session.lastSavedProject = null; renderHomeHUD(); return; }
+    try { const d = JSON.parse(s); ui.sheet = sh || null; load(d); }
+    catch (e) { Session.status = 'idle'; Session.activeProject = null; ui.view = 'home'; render(); flashInfo('Não foi possível restaurar o projeto salvo: ' + e.message); return; }
+  }
+  ui.view = 'diagram'; render(); requestAnimationFrame(fit);
+}
 function homeSelect(i, { fromDrag = false } = {}) {
   const n = HOME_OPS.length; i = ((i % n) + n) % n;
   const step = 2 * Math.PI / n;
@@ -6119,7 +6200,7 @@ function homeSelect(i, { fromDrag = false } = {}) {
 }
 function homeConfirm() {
   if (Home.confirming) return;
-  const op = HOME_OPS[Home.sel]; Home.confirming = true; Home.core.set('SUCCESS'); JarvisCore.flash(1); JarvisCore.pulse(1); JarvisNet.wave(1.2);
+  const op = HOME_OPS[Home.sel]; if (op.available && !op.available()) return; Home.confirming = true; Home.core.set('SELECT'); JarvisCore.flash(1); JarvisCore.pulse(1); JarvisNet.wave(1.2);
   if (!JarvisCore.ok) spawnStream([0, 0, 0], homeItemPos(Home.sel), 50, HC.yellow, .7);
   setTimeout(() => { Home.confirming = false; op.run(); }, HOLO.reduced ? 60 : 520);
 }
@@ -6131,8 +6212,9 @@ function renderHomeHUD() {
   $('#opGo').textContent = op.id === 'exercicios' ? 'Abrir exercícios' : op.id === 'exemplos' ? 'Abrir exemplos' : op.id === 'abrir' ? 'Abrir projeto' : op.id === 'novo' ? 'Criar projeto' : 'Continuar projeto';
   $('#opCount').textContent = HOME_COUNT[op.id] ? HOME_COUNT[op.id]() : '';
   $('#opDots').innerHTML = HOME_OPS.map((o, i) => `<button class="hdot${i === Home.sel ? ' act' : ''}" data-op="${i}" aria-label="${esc(o.title)}"></button>`).join('');
-  $('#coreState').textContent = Home.core ? Home.core.state : 'IDLE';
-  $('#homeProj').textContent = doc.project;
+  $('#coreState').textContent = VoltState.state;
+  $('#homeProj').textContent = Session.active ? doc.project : 'Nenhum projeto ativo';
+  $('#opGo').disabled = !!(op.available && !op.available());
 }
 function bootHome() {
   if (Home.booted) return; Home.booted = true;
@@ -6194,7 +6276,6 @@ function drawHome(dt) {
   drawStreams(ctx, proj, dt);
   // cinematic vignette
   g = ctx.createRadialGradient(w / 2, h / 2, Math.min(w, h) * .35, w / 2, h / 2, Math.max(w, h) * .75); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,.55)'); ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
-  if (Home.core && $('#coreState').textContent !== Home.core.state) $('#coreState').textContent = Home.core.state;
 }
 function renderHome() { bootHome(); renderHomeHUD(); }
 
@@ -6327,21 +6408,44 @@ function drawLab(dt) {
 }
 function renderLab() { bootLab(); renderLabUI(); }
 
-// ---------- render loop: runs only while a holographic view is visible ----------
+// ---------- VOLT CORE visual states, bound to real events (no fictitious success/fault) ----------
+const VoltState = {
+  state: 'STANDBY', seq: [], seqEnd: 0, alertsAt: 0, alerts: '',
+  now: () => performance.now() / 1000,
+  sequence(steps) { const t = this.now(); let acc = t; this.seq = steps.map(([s, d]) => ({ s, until: (acc += HOLO.reduced ? Math.min(d, .2) : d) })); this.update(true); },
+  success(d = .9) { this.sequence([['SUCCESS', d]]); },
+  derive() {
+    const t = this.now(); while (this.seq.length && this.seq[0].until <= t) this.seq.shift(); if (this.seq.length) return this.seq[0].s;
+    if (!Session.active) return 'STANDBY';
+    if (!sim.running) return 'READY';
+    if (t - this.alertsAt > .25) { this.alertsAt = t; const a = elecAlerts(), crit = a.some(x => x.lvl === 'crit') || (Proc.live && Proc.faults && Proc.faults.some(f => f.level === 'crit')); this.alerts = crit ? 'FAULT' : a.length ? 'WARNING' : ''; }
+    return this.alerts || 'SIMULATING';
+  },
+  update(force) { const s = this.derive(); if (s === this.state && !force) return; this.state = s; document.body.dataset.core = s; JarvisCore.setMood && JarvisCore.setMood(s); JarvisNet.setMood(s); const el = $('#coreState'); if (el) el.textContent = s; },
+};
+const BG_VIEWS = new Set(['home', 'lab', 'diagram', 'operate', 'tags', 'monitor']);
+const VoltBg = { coreT: 0 };
+// ---------- render loop: runs while any screen sharing the VOLT CORE layer is visible ----------
 function holoFrame(ts) {
   HOLO.raf = 0;
-  if (document.hidden || (ui.view !== 'home' && ui.view !== 'lab')) return;
+  if (document.hidden || !BG_VIEWS.has(ui.view)) return;
   const real = HOLO.last ? Math.min(.25, (ts - HOLO.last) / 1000) : .016, dt = Math.min(.05, real); HOLO.last = ts; HOLO.t += dt;
   // adaptive quality from measured frame time
   HOLO.avg = HOLO.avg * .95 + (dt * 1000) * .05;
   if (HOLO.avg > 28 && HOLO.quality > .45) HOLO.quality -= .02; else if (HOLO.avg < 19 && HOLO.quality < 1) HOLO.quality += .005;
   AnimationController.step(real);   // UI transitions follow real time even on slow (software) rendering
-  if (ui.view === 'home' && Home.core) { Home.core.update(dt); if (JarvisCore.ok) JarvisCore.frame(dt); else drawHome(dt); layoutOrbit(dt); JarvisNet.frame(real); JarvisFX.frame(real); }
+  VoltState.update();
+  const hmiWait = ui.view === 'operate' && !Session.active, coreWanted = (ui.view === 'home' || hmiWait) && JarvisCore.ok;
+  document.body.classList.toggle('core-on', coreWanted); VoltBg.coreT = coreWanted ? .9 : Math.max(0, VoltBg.coreT - real);
+  JarvisCore.setAnchor(ui.view === 'home' ? $('#jAnchor') : hmiWait ? $('#hmiAnchor') : null);
+  if (ui.view === 'home' && Home.core) { Home.core.update(dt); if (JarvisCore.ok) JarvisCore.frame(dt); else drawHome(dt); layoutOrbit(dt); JarvisFX.frame(real); }
+  else if (JarvisCore.ok && VoltBg.coreT > 0) JarvisCore.frame(dt);
+  JarvisNet.frame(real);
   if (ui.view === 'lab' && Lab.core) { Lab.core.update(dt); drawLab(dt); }
   HOLO.raf = requestAnimationFrame(holoFrame);
 }
 function holoSync() {
-  const on = (ui.view === 'home' || ui.view === 'lab') && !document.hidden;
+  const on = BG_VIEWS.has(ui.view) && !document.hidden;
   if (on && !HOLO.raf) { HOLO.last = 0; HOLO.raf = requestAnimationFrame(holoFrame); }
   if (!on && HOLO.raf) { cancelAnimationFrame(HOLO.raf); HOLO.raf = 0; }
 }
@@ -6390,14 +6494,14 @@ try { const th = localStorage.getItem('voltacademy.theme'); if (th) document.doc
 try { ui.mute = localStorage.getItem('voltacademy.mute') === '1'; } catch (e) {}
 try { const lk = localStorage.getItem('voltacademy.look'); if (lk === '2d' || lk === 'sym') ui.look = lk; } catch (e) {}
 buildRail(); buildFolders();
-let restored = false;
-try { const s = localStorage.getItem('voltacademy.ce.doc'); if (s) { ui.sheet = localStorage.getItem('voltacademy.ce.sheet') || null; load(s); restored = true; } } catch (e) {}
-if (!restored) load(EXAMPLES[0].build());
+// The session starts idle: the last saved project is only a reference for "Continuar projeto".
+Session.lastSavedProject = readSavedRef();
+load({ project: '', comps: [], wires: [], sheets: [{ id: 's1', name: 'Folha 1' }] }, { activate: false });   // internal empty model, never shown or saved
 if (matchMedia('(max-width: 1100px)').matches) ui.inspOpen = false;
 render();
 requestAnimationFrame(fit);
 window.addEventListener('resize', () => fit());
-window.__va = { JarvisNet, JarvisFX, JarvisCore, Orbit, layoutOrbit, Sfx, SfxWatch, LiveScript, sceneSVG, hmiView, hmiDiagHTML, monitorIOHTML, elecAlerts, updateHMI, Proc, DemoRunner, ApplicationRegistry, ExerciseLibraryRegistry, ExampleLibraryRegistry, TagBindingManager, HMIBindingEngine, VirtualActuatorEngine, VirtualProcessEngine, ExerciseTestRunner, ExerciseValidationEngine, ExerciseProgressManager, ExerciseSession, EX, simStep, focus, setNavigation, toggleNavigation, FOCUS, serialize, sheetDialog, blankProject, ElectricalNetwork, ProjectElectricalConfig, TransformerModel, PotentialDifferenceCalculator, ElectricalDomainManager, ElectricalDiagnostics, addComp, Home, Lab, HOME_OPS, homeSelect, homeConfirm, labSelect, labOpen, exportPDF, projectFile, mergeProject, doc: () => doc, sim, ui, points: id => fullPointsAny(doc.wires.find(w => w.id === id)), audio, solve: resolve, rawSolve: solve, clearFaults, updateElectrical, startSim, stopSim, load, EXAMPLES, TYPES, interact, render, setView: v => { ui.view = v; render(); } };
+window.__va = { Session, VoltState, continueProject, JarvisNet, JarvisFX, JarvisCore, Orbit, layoutOrbit, Sfx, SfxWatch, LiveScript, sceneSVG, hmiView, hmiDiagHTML, monitorIOHTML, elecAlerts, updateHMI, Proc, DemoRunner, ApplicationRegistry, ExerciseLibraryRegistry, ExampleLibraryRegistry, TagBindingManager, HMIBindingEngine, VirtualActuatorEngine, VirtualProcessEngine, ExerciseTestRunner, ExerciseValidationEngine, ExerciseProgressManager, ExerciseSession, EX, simStep, focus, setNavigation, toggleNavigation, FOCUS, serialize, sheetDialog, blankProject, ElectricalNetwork, ProjectElectricalConfig, TransformerModel, PotentialDifferenceCalculator, ElectricalDomainManager, ElectricalDiagnostics, addComp, Home, Lab, HOME_OPS, homeSelect, homeConfirm, labSelect, labOpen, exportPDF, projectFile, mergeProject, doc: () => doc, sim, ui, points: id => fullPointsAny(doc.wires.find(w => w.id === id)), audio, solve: resolve, rawSolve: solve, clearFaults, updateElectrical, startSim, stopSim, load, EXAMPLES, TYPES, interact, render, setView: v => { ui.view = v; render(); } };
 })();
 </script>
 

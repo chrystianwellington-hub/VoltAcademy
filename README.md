@@ -94,6 +94,13 @@ Ao abrir, o circuito "Partida direta com selo" já vem carregado. Aperte **SIMUL
   por sobrecarga ou falta de fase, tudo com animação de falha. "Rearmar proteções" volta ao normal.
 
 ## Tela inicial e Project Lab
+- **Sessão e VOLT CORE global:** a aplicação abre **sem projeto ativo** (o último projeto salvo fica só como referência
+  em *Continuar projeto*, que fica indisponível se não houver nada salvo). O projeto só é ativado ao concluir Novo,
+  Continuar, Abrir, um Exemplo ou um Exercício; falhas de carregamento não ativam nem sobrescrevem o salvo. Sem projeto,
+  o Diagrama mostra uma prancheta de espera com as ferramentas bloqueadas, a Operação/IHM mostra o VOLT CORE em espera e
+  Listas/Monitoramento mostram estados vazios. O fundo (WebGL + rede neural) é uma camada única compartilhada por trás do
+  cabeçalho e das telas, com intensidade por tela, e o núcleo reflete estados reais: STANDBY, INITIALIZING, READY,
+  SIMULATING, WARNING, FAULT e SUCCESS.
 - **Tela inicial JARVIS ORBITAL:** núcleo central em WebGL2 (adaptado do modelo de reator enviado: esfera de partículas
   dourada, filamentos, três anéis graduados amarelo/azul/dourado, pulsação luminosa, bloom e fundo azul-marinho), sem voz
   nem som. Ao redor, cinco módulos em órbita com perspectiva: **Abrir projeto, Continuar projeto, Novo projeto, Exemplos e
