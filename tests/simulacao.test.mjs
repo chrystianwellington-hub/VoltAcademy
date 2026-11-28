@@ -990,11 +990,13 @@ await jh.close();
   await ct.setInputFiles('#dLogo', { name: 'logo.png', mimeType: 'image/png', buffer: png }); await ct.waitForTimeout(400);
   await ct.fill('#dProj', 'Bombas da ETA'); await ct.fill('#dCompany', 'Saneamento Sul'); await ct.fill('#dPDesc', 'Comando de duas bombas com alternância'); await ct.fill('#dAuth', 'Ana');
   await ct.waitForTimeout(150);
-  results.push(['Logo: proporção preservada e prévia da capa atualizada ao digitar', await ct.evaluate(() => { const i = document.querySelector('#dCover image'); return !!i && /^data:image\/png/.test(i.getAttribute('href')) && i.getAttribute('preserveAspectRatio') === 'xMidYMid meet' && /Saneamento Sul/.test(document.getElementById('dCover').textContent) && /Bombas da ETA/.test(document.getElementById('dCover').textContent); })]);
+  results.push(['Logo: proporção preservada e prévia da capa atualizada ao digitar', await ct.evaluate(() => { const i = document.querySelector('#dCover image'); return !!i && /^data:image\/png/.test(i.getAttribute('href')) && i.getAttribute('preserveAspectRatio') === 'xMidYMid meet' && !/Saneamento Sul/.test(document.getElementById('dCover').textContent) && /Bombas da ETA/.test(document.getElementById('dCover').textContent); })]);
   await ct.click('#dSave'); await ct.waitForTimeout(700);
   results.push(['Capa: identidade persistida com o projeto (salvar/reabrir)', await ct.evaluate(() => { const va = window.__va, s = JSON.parse(va.serialize()); va.load(va.serialize()); const d = va.doc(); return s.company === 'Saneamento Sul' && /^data:image\/png/.test(s.logo) && d.company === 'Saneamento Sul' && d.pdesc === 'Comando de duas bombas com alternância' && /^data:image/.test(d.logo); })]);
-  results.push(['Capa limpa: logo proporcional (contain) e nome do projeto; sem texto fixo nem metadados', await ct.evaluate(() => { const va = window.__va, s = va.coverSVG(va.docFormat()); return /Bombas da ETA/.test(s) && /<image href="data:image\/png/.test(s) && /preserveAspectRatio="xMidYMid meet"/.test(s) && !/PROJETO DE COMANDOS|Projeto de comandos/.test(s) && !/AUTOR|Ana|alternância|Revisão|REVISÃO/.test(s) && !/undefined|null/.test(s); })]);
-  results.push(['Capa sem logo: marca vira identidade tipográfica; sem marca e sem logo: VoltAcademy', await ct.evaluate(() => { const va = window.__va, d = va.doc(), keep = [d.company, d.logo, d.project]; d.logo = ''; const a = va.coverSVG(va.docFormat()); d.company = ''; d.project = ''; const b = va.coverSVG(va.docFormat()); [d.company, d.logo, d.project] = keep; return /Saneamento Sul/.test(a) && !/<image/.test(a) && !/ACADEMY/.test(a) && /VOLT/.test(b) && /ACADEMY/.test(b) && /Novo projeto/.test(b) && !/<image/.test(b); })]);
+  results.push(['Capa limpa: logo proporcional (contain) e nome do projeto; sem texto fixo nem metadados', await ct.evaluate(() => { const va = window.__va, s = va.coverSVG(va.docFormat()); return /Bombas da ETA/.test(s) && !/Saneamento Sul/.test(s) && /<image href="data:image\/png/.test(s) && /preserveAspectRatio="xMidYMid meet"/.test(s) && !/PROJETO DE COMANDOS|Projeto de comandos/.test(s) && !/AUTOR|Ana|alternância|Revisão|REVISÃO/.test(s) && !/undefined|null/.test(s); })]);
+  results.push(['Capa: sem legenda da empresa; sem logo usa VoltAcademy (empresa fica no índice)', await ct.evaluate(() => { const va = window.__va, d = va.doc(), keep = [d.logo, d.project]; const a = va.coverSVG(va.docFormat()); d.logo = ''; const b = va.coverSVG(va.docFormat()); d.project = ''; const c = va.coverSVG(va.docFormat()); [d.logo, d.project] = keep; const ix = va.__pages().index.join(''); return !/Saneamento Sul/.test(a + b) && /VOLT/.test(b) && /ACADEMY/.test(b) && !/<image/.test(b) && /Novo projeto/.test(c) && ix.includes('Saneamento Sul'); })]);
+  results.push(['Capa: logo grande (até 68% × 40% da área útil, contain) e título ~30% maior', await ct.evaluate(() => { const va = window.__va, d = va.doc(), keep = d.logoSize; d.logoSize = [1400, 700]; const G = va.docFormat(), s = va.coverSVG(G); d.logoSize = keep; const m = 14 * 4, w = +s.match(/<image[^>]*width="([\d.]+)"/)[1], h = +s.match(/<image[^>]*height="([\d.]+)"/)[1], fs = Math.max(...[...s.matchAll(/font-size="([\d.]+)"/g)].map(x => +x[1])); return w >= (G.W - 2 * m) * .6 && w <= (G.W - 2 * m) * .69 && h <= (G.H - 2 * m) * .41 && fs >= 16 * 4 * G.k * (G.W < G.H ? .8 : 1); })]);
+  results.push(['Capa: imagem pequena não é ampliada em excesso', await ct.evaluate(() => { const va = window.__va, d = va.doc(), keep = d.logoSize; d.logoSize = [64, 16]; const s = va.coverSVG(va.docFormat()); d.logoSize = keep; return +s.match(/<image[^>]*width="([\d.]+)"/)[1] <= 64 * 25.4 / 96 * 4 * 2.5 + .5; })]);
   // full PDF: real pagination with multipage BOM and index, synced without saving
   const exp = () => ct.evaluate(async () => { const va = window.__va, b = await va.exportPDF({ dpi: 40 }), t = new TextDecoder('latin1').decode(await b.arrayBuffer()); return { ...b.meta, pdfPages: (t.match(/\/Type \/Page\b/g) || []).length, cur: { rev: va.rev(), project: va.doc().project, sheets: va.doc().sheets.map(s => s.name), bomRows: va.bomOf().rows.length } }; });
   await ct.evaluate(() => { const va = window.__va; va.load(va.EXAMPLES[1].build()); });
@@ -1119,6 +1121,42 @@ await jh.close();
     const bom = va.__pages().bom.join(''), B = va.bomOf(), r1 = B.rows.find(r => r.tags.includes(ks[0].tag)), r2 = B.rows.find(r => r.tags.includes(ks[1].tag));
     return r1.manufacturer === 'WEG' && r1.sku === 'CWB32-11-30D25' && r1.coil === '240 Vca' && r1.current === '32 A (AC-3)' && r2.manufacturer === 'Phoenix Contact' && r2.sku === 'PLC-RSC-24DC/21-21 (2967060)' && r2.coil === '24 Vcc' && r2.current === '6 A (carga resistiva)' && ['WEG', 'CWB32-11-30D25', 'Phoenix', '240 Vca', 'Verificado'].every(t => bom.includes(t)) && r1.qty === 1 && r2.qty === 1 && B.rows.filter(r => r.tags.includes(ks[0].tag)).length === 1 && /Não informado/.test(bom); })]);
   await cw.close();
+}
+// ---- Ajuda contextual e vista 3D de inspeção ----
+{
+  const v = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  v.on('pageerror', e => errors.push(e.message + ' @ ' + (e.stack || '').split('\n').slice(1, 4).join(' | ')));
+  await v.goto(page); await v.waitForTimeout(500);
+  await v.evaluate(() => { const va = window.__va; va.load(va.EXAMPLES[0].build()); va.setView('diagram'); }); await v.waitForTimeout(400);
+  results.push(['Ajuda: sem faixa fixa de instruções sobre a prancheta (status elétrico preservado)', await v.evaluate(() => getComputedStyle(document.querySelector('.stage .hint')).display === 'none' && !!document.getElementById('status') && getComputedStyle(document.getElementById('status')).display !== 'none' && document.getElementById('helpPop').hidden)]);
+  await v.click('#tHelp'); await v.waitForTimeout(100);
+  const h1 = await v.evaluate(() => ({ open: !document.getElementById('helpPop').hidden, t: document.getElementById('hpTitle').textContent, keys: document.getElementById('hpKeys').textContent }));
+  await v.keyboard.press('Shift+KeyW'); await v.waitForTimeout(100);
+  const h2 = await v.evaluate(() => document.getElementById('hpTitle').textContent);
+  await v.keyboard.press('Escape'); await v.waitForTimeout(80); await v.keyboard.press('Escape'); await v.waitForTimeout(80);
+  results.push(['Ajuda: botão ? abre instruções e atalhos da ferramenta ativa e acompanha a troca de ferramenta', h1.open && /Seleção/.test(h1.t) && /duplo clique/.test(h1.keys) && /Barramento/.test(h2) && await v.evaluate(() => document.getElementById('helpPop').hidden)]);
+  const geo = () => v.evaluate(() => { const va = window.__va; return JSON.stringify([va.ui.px, va.ui.py, va.ui.zoom, va.doc().comps.map(c => [c.id, c.x, c.y, c.rot || 0]), va.doc().wires.map(w => [w.id, w.a, w.b, w.pts])]); });
+  const g0 = await geo();
+  await v.evaluate(() => { const va = window.__va, t = t => va.doc().comps.find(c => c.tag === t && !va.TYPES[c.type].ref); va.startSim(); va.sim.pressed.add(t('S1').id); va.solve(); va.sim.pressed.clear(); va.solve(); });
+  await v.click('#tView'); await v.waitForTimeout(800);
+  const v1 = await v.evaluate(() => { const va = window.__va, sc = document.getElementById('v3Scene'), circ = sc.querySelector('.v3l.circ'); const ids2d = [...document.querySelectorAll('#cv [data-comp]')].map(e => e.dataset.comp).sort().join(), ids3d = [...circ.querySelectorAll('[data-comp]')].map(e => e.dataset.comp).sort().join(); return { on: va.ui.v3on && !document.getElementById('view3d').hidden, layers: sc.querySelectorAll('.v3l').length, same: ids2d === ids3d && ids2d.length > 0, live: /wglow|class="w[^"]*live|flow/.test(circ.innerHTML), lamp: /bulb|on/.test(circ.innerHTML), tilt: va.V3.pitch > 0, sim: va.sim.running && !!va.sim.coils.K1 }; });
+  results.push(['Vista 3D: folha, símbolos, fios e bornes em camadas com relevo, mesmos IDs do 2D', v1.on && v1.layers === 3 && v1.same && v1.tilt]);
+  results.push(['Vista 3D: estados da simulação aparecem (fios energizados) e a simulação continua', v1.live && v1.sim]);
+  const box = await v.evaluate(() => { const r = document.getElementById('view3d').getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; });
+  const y0 = await v.evaluate(() => ({ ...window.__va.V3 }));
+  await v.mouse.move(box[0], box[1]); await v.mouse.down(); await v.mouse.move(box[0] + 120, box[1] - 400, { steps: 8 }); await v.mouse.up(); await v.waitForTimeout(80);
+  const y1 = await v.evaluate(() => ({ ...window.__va.V3 }));
+  await v.mouse.move(box[0], box[1]); await v.mouse.down({ button: 'middle' }); await v.mouse.move(box[0] + 50, box[1] + 30, { steps: 4 }); await v.mouse.up({ button: 'middle' });
+  await v.mouse.wheel(0, -300); await v.waitForTimeout(80);
+  const y2 = await v.evaluate(() => ({ ...window.__va.V3 }));
+  results.push(['Órbita: arrastar gira nos dois eixos com limite de inclinação; meio move; roda aproxima', y1.yaw > y0.yaw && y1.pitch <= 65 && y1.pitch >= 0 && y2.tx === 50 && y2.ty === 30 && y2.s > 1]);
+  await v.click('#v3Front'); await v.waitForTimeout(80);
+  results.push(['Órbita: Frontal reseta a câmera; câmera não altera coordenadas nem ligações', await v.evaluate(() => { const V = window.__va.V3; return V.yaw === 0 && V.pitch === 0 && V.s === 1 && V.tx === 0; }) && (await geo()) === g0]);
+  results.push(['Vista 3D: edição bloqueada e PDF segue na vista técnica 2D', await v.evaluate(() => getComputedStyle(document.getElementById('rail')).pointerEvents === 'none' && getComputedStyle(document.querySelector('.tools [data-mode="wire"]')).pointerEvents === 'none' && !/v3l|rotateX|translateZ/.test(window.__va.exportSheetSVG()))]);
+  await v.keyboard.press('Escape'); await v.waitForTimeout(150);
+  results.push(['Vista 2D: Esc/Vista 2D retorna com zoom, pan, geometria e simulação preservados', await v.evaluate(() => !window.__va.ui.v3on && document.getElementById('view3d').hidden && getComputedStyle(document.getElementById('cv')).visibility !== 'hidden' && window.__va.sim.running && !!window.__va.sim.coils.K1) && (await geo()) === g0]);
+  await v.evaluate(() => window.__va.stopSim());
+  await v.close();
 }
 // ---- Interface global e sessão (VOLT CORE em todas as telas, sem ativação automática) ----
 {

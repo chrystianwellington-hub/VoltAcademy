@@ -105,6 +105,11 @@ Ao abrir, o circuito "Partida direta com selo" já vem carregado. Aperte **SIMUL
   tripolares ligam 2→1, 4→3, 6→5; curto entre potenciais conhecidos, polos incompatíveis, bornes ocupados e rotas que
   atravessam componentes são bloqueados com motivo) · botão **Auto-conexão** (desligado por padrão). Cada operação é um
   único desfazer; Esc/botão direito cancelam sem fios parciais.
+- **Ajuda e vista 3D (V4):** a faixa fixa de instruções saiu da prancheta; o botão **?** na barra de ferramentas abre a
+  ajuda e os atalhos da ferramenta ativa. O botão **3D** abre a vista de inspeção: arrastar orbita (inclinação limitada),
+  botão do meio move, roda aproxima, **Frontal** reseta e **Vista 2D**/Esc volta à edição com zoom, pan e geometria intactos.
+  A vista 3D usa a mesma marcação do diagrama em camadas com relevo e sombra, mostra os estados da simulação e nunca entra
+  no PDF. Capa: logo grande (até 68% × 40% da área útil, proporcional) ou VoltAcademy, e o título do projeto maior.
 - **Bobina: contator ou relé:** nas Propriedades da bobina, tipo (contator de potência, relé de interface tipo borne,
   relé convencional genérico) → origem (referência verificada, família do fabricante com dados pendentes ou genérico) →
   fabricante → família → bobina CA/CC → corrente dos contatos. Catálogo com 10 fabricantes de contatores, 10 de relés
